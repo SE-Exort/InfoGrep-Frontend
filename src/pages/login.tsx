@@ -1,45 +1,46 @@
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { loadSlim } from "@tsparticles/slim"; // if you are going to use `loadSlim`, install the "@tsparticles/slim" package too.
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import logo from "../logo.png";
-
-const LoginForm = () => {
-  return (
-    <Paper
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 20,
-        padding: 50,
-        zIndex: 99,
-      }}
-    >
-      <Typography variant="h4" fontWeight="bold" marginBottom={5}>
-        Welcome to InfoGrep
-      </Typography>
-      <TextField
-        label="Email"
-        variant="filled"
-        placeholder="Enter username here.."
-      />
-      <TextField
-        label="Password"
-        type="password"
-        variant="filled"
-        placeholder="Enter password here.."
-      />
-
-      <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
-        <Button variant="contained" color='primary'>Login</Button>
-        <Button variant="contained" color='secondary'>Sign up</Button>
-      </Box>
-    </Paper>
-  );
-};
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const [init, setInit] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [session, setSession] = useState(''); // encrypt later
+
+  const handleSignIn = async (type: string, e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); // Prevent form from submitting normally
+
+    try {
+      console.log(JSON.stringify({ username, password }));
+      const response = await fetch(`http://localhost:4000/${type}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Request failed');
+      }
+      
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.status);
+      }
+      setSession(data.data); // may need to change
+      // Handle success (e.g., store the token, redirect the user)
+      console.log('Login successful:', data.data);
+    } catch (error) {
+      // Handle error (e.g., show error message)
+      console.error('Login error:', error);
+    }
+  };
 
   // this should be run only once per application lifetime
   useEffect(() => {
@@ -567,6 +568,28 @@ function Login() {
     }),
     []
   );
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (session != ''){
+      goToChat();
+    }
+  }, [session]);
+
+  const goToChat = () => {
+    navigate('/chat', { state: { session } }); // Use the path you defined in your Routes
+    // pass session to chat
+  };
+
+  const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(event.target.value);
+  };
+
+  const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value);
+  };
+
   return (
     <>
       <img
@@ -574,6 +597,9 @@ function Login() {
         style={{ position: "absolute", width: "250px", zIndex: 10, left: '20%', top: 200 }}
         alt="Logo of InfoGrep"
       ></img>
+      <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
+        <Button variant="contained" color='primary' onClick={goToChat}>Go to Chat</Button>
+      </Box>  
       <Box
         display="flex"
         justifyContent="center"
@@ -581,7 +607,39 @@ function Login() {
         height="100vh"
       >
         {init && <Particles id="tsparticles" options={options as any} />}
-        <LoginForm />
+        <Paper
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 20,
+          padding: 50,
+          zIndex: 99,
+        }}
+      >
+        <Typography variant="h4" fontWeight="bold" marginBottom={5}>
+          Welcome to InfoGrep
+        </Typography>
+        <TextField
+          label="Email"
+          variant="filled"
+          placeholder="Enter username here.."
+          value={username}
+          onChange={handleUsernameChange}
+        />
+        <TextField
+          label="Password"
+          type="password"
+          variant="filled"
+          placeholder="Enter password here.."
+          value={password}
+          onChange={handlePasswordChange}
+        />
+  
+        <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
+          <Button variant="contained" color='primary' onClick={(e) => handleSignIn("login", e)}>Login</Button>
+          <Button variant="contained" color='secondary' onClick={(e) => handleSignIn("register", e)}>Sign up</Button>
+        </Box>
+      </Paper>
       </Box>
     </>
   );

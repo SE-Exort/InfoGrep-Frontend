@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import reportWebVitals from "./reportWebVitals";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Login from "./pages/login";
+import Chat from "./pages/chat";
 import { StyledEngineProvider } from "@mui/material/styles";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
@@ -11,6 +12,10 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Login />,
+  },
+  {
+    path: "/chat",
+    element: <Chat />,
   },
 ]);
 
