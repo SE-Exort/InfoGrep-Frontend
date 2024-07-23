@@ -13,7 +13,7 @@ const SettingsBar = ({ uuid }: { uuid: string }) => {
 
   return (
     <Box sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
         <IconButton onClick={() => console.log('Settings')}>
           <SettingsIcon />
         </IconButton>

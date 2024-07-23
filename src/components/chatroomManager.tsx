@@ -133,7 +133,7 @@ const ChatroomManager = ({ sessionImport }: { sessionImport: string }) => {
   };
 
   return (
-    <Box width={minimized ? "25%" : "100%"} bgcolor="#e0e0e0" p={1} display="flex" flexDirection="column" gap={2}>
+    <Box width={minimized ? `max(133px, 40%)` : "100%"} bgcolor="#e0e0e0" display="flex" flexDirection="column" gap={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Button variant="contained" color="primary" onClick={minimizePanel}>
           <Menu />
@@ -144,13 +144,17 @@ const ChatroomManager = ({ sessionImport }: { sessionImport: string }) => {
       </Box>
       <List>
       {chatrooms.map((cr, index) => (
-        <Box key={cr.CHATROOM_NAME} sx={{ bgcolor: 'secondary.main', borderRadius: '4px', mb: 1 }}> {/* Use cr.id instead of index for key */}
+        <Box key={cr.CHATROOM_NAME} sx={{ bgcolor: 'secondary.main', borderRadius: '4px', mb: 1 }}>
           <ListItem secondaryAction={
-            <IconButton edge="end" aria-label="delete" onClick={() => deleteChatroom(cr.CHATROOM_UUID)}> {/* Pass cr.id to deleteChatroom */}
+            <IconButton edge="end" aria-label="delete" onClick={() => deleteChatroom(cr.CHATROOM_UUID)}> 
               <Delete />
             </IconButton>
           }>
-            <ListItemText primary={cr.CHATROOM_NAME} sx={{ color: 'primary.contrastText' }} /> {/* Use cr.name for the primary text */}
+            <ListItemText primary={cr.CHATROOM_NAME} 
+              sx={{ color: 'primary.contrastText', 
+                  overflow: 'hidden', 
+                  textOverflow: 'ellipsis', 
+                  whiteSpace: 'nowrap' }} />
           </ListItem>
         </Box>
       ))}

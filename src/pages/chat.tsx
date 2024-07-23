@@ -100,7 +100,7 @@ function Chat() {
   return (
     <ThemeProvider theme={theme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
-        <Box width="25%" p={1} display="flex" flexDirection="column" gap={2}>
+        <Box width="25%" p={1} display="flex" flexDirection="column" gap={2} bgcolor={"grey.200"}>
           <SettingsBar uuid={uuid}/>
           <ChatroomManager sessionImport={session}/>
         </Box>
