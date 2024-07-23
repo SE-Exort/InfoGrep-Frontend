@@ -578,7 +578,7 @@ function Login() {
   }, [session]);
 
   const goToChat = () => {
-    navigate('/chat', { state: { session } }); // Use the path you defined in your Routes
+    navigate('/chat', { state: { sessionID: session } }); // Use the path you defined in your Routes
     // pass session to chat
   };
 

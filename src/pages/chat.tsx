@@ -3,8 +3,9 @@ import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconB
 import { Delete, UploadFile } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import ChatroomManager from '../components/chatroomManager';
 import Chatroom from '../components/chatroom';
+import SettingsBar from '../components/settingsBar';
+import ChatroomManager from '../components/chatroomManager';
 
 const theme = createTheme({
   palette: {
@@ -20,10 +21,12 @@ const theme = createTheme({
 
 function Chat() {
   const navigate = useNavigate();
-  const location = useLocation();
+  let location = useLocation();
   const [session, setSession] = useState<string>('');
+  const [uuid, setUUID] = useState<string>('');
   const [messages, setMessages] = useState<string[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
+  const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<string[]>([
     'What is Laplace Transform?',
     'Why is coal so interesting?',
@@ -31,8 +34,46 @@ function Chat() {
   ]);
 
   useEffect(() => {
-    setSession(location.state ? location.state.session : null);
+    const timer = setTimeout(() => {
+      setLoading(false); // This will switch to the main content after 2 seconds
+    }, 1000); 
+    return () => clearTimeout(timer); // Cleanup the timer
+  }, []); // Empty dependency array means this effect runs once on mount
+
+  useEffect(() => {
+    setSession(location.state.sessionID);
   }, [location]);
+
+  useEffect(() => {
+    if(session){
+      console.log('ChatSession:', session);
+      getUUID();
+    }
+  }, [session]);
+
+  const getUUID = async () => {
+      try {
+        const sessionToken = session;
+        const response = await fetch(`http://localhost:4000/check`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ sessionToken }),
+        });
+        if (!response.ok) {
+          throw new Error('Request failed');
+        }
+        const data = await response.json();
+        if (data.error) {
+          throw new Error(data.status);
+        }
+        setUUID(data.data); 
+        console.log('UUID:', data.data);
+      } catch (error) {
+        console.error('UUID error:', error);
+      }
+  };
 
   const sendMessage = () => {
     if (!currentMessage.trim()) return; // Prevent sending empty messages
@@ -53,15 +94,19 @@ function Chat() {
     console.log('File uploaded');
   };
 
+  if (loading) {
+    return <div>Loading...</div>; // Display loading screen
+  }
   return (
     <ThemeProvider theme={theme}>
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        {/* <ChatroomManager/>
+      <Box display="flex" justifyContent="flex-start" alignItems="center">
+        <Box width="25%" p={1} display="flex" flexDirection="column" gap={2} bgcolor={"grey.200"}>
+          <SettingsBar uuid={uuid}/>
+          <ChatroomManager sessionImport={session}/>
+        </Box>
         <Chatroom/> 
-        
-        Move all into components for managing*/}
       </Box>
-      <Box display="flex" height="100vh">
+      {/* <Box display="flex" height="100vh">
         <Box width="20%" bgcolor="#e0e0e0" p={2} display="flex" flexDirection="column" gap={2}>
           <Button
             variant="contained"
@@ -114,7 +159,7 @@ function Chat() {
             </Button>
           </Box>
         </Box>
-      </Box>
+      </Box> */}
     </ThemeProvider>
   );
 }
