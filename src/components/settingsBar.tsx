@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import LogoutIcon from '@mui/icons-material/Logout';
+import SettingsIcon from '@mui/icons-material/Settings';
 
-const SettingsBar = () => {
+const SettingsBar = ({ uuid }: { uuid: string }) => {
   const [count, setCount] = useState(0);
 
-  // Handler functions here
-  const incrementCount = () => {
-    setCount(count + 1);
+  const handleLogout = () => {
+    console.log('Logging out...');
   };
 
-  // Component render
-  // need Settings component
-  // 
   return (
-    <div>
-      <h1>Hello, World!</h1>
-      <p>Count: {count}</p>
-      <button onClick={incrementCount}>Increment</button>
-    </div>
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+        <IconButton onClick={() => console.log('Settings')}>
+          <SettingsIcon />
+        </IconButton>
+        <IconButton onClick={handleLogout}>
+          <LogoutIcon />
+        </IconButton>
+      </Box>
+    </Box>
   );
 };
 
