@@ -1,22 +1,38 @@
 import React, { useState } from 'react';
+import { Box, Button, TextField} from '@mui/material';
 
 const Message = () => {
-  const [count, setCount] = useState(0);
+  const [messages, setMessages] = useState<string[]>([]);
+  const [currentMessage, setCurrentMessage] = useState('');
 
-  // Handler functions here
-  const incrementCount = () => {
-    setCount(count + 1);
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentMessage(event.target.value);
   };
 
-  // Component render
-  // need Settings component
-  // 
+  const sendMessage = () => {
+    if (!currentMessage.trim()) return; // Prevent sending empty messages
+    setMessages([...messages, currentMessage]);
+    setCurrentMessage(''); // Clear input field after sending
+  };
+
   return (
-    <div>
-      <h1>Hello, World!</h1>
-      <p>Count: {count}</p>
-      <button onClick={incrementCount}>Increment</button>
-    </div>
+    <Box display="flex" gap={1} mt={2}>
+      <TextField
+        fullWidth
+        variant="outlined"
+        placeholder="Ask me anything..."
+        value={currentMessage}
+        onChange={handleInputChange}
+        onKeyPress={(event) => {
+        if (event.key === 'Enter') {
+          sendMessage();
+        }
+      }}
+      />
+      <Button variant="contained" color="primary" onClick={sendMessage}>
+        Send
+      </Button>
+    </Box>
   );
 };
 
