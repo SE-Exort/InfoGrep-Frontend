@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
+import { Box, Typography} from '@mui/material';
 
 const MessageHistory = () => {
-  const [count, setCount] = useState(0);
+  const [messages, setMessages] = useState<string[]>([]);
 
-  // Handler functions here
-  const incrementCount = () => {
-    setCount(count + 1);
-  };
-
-  // Component render
-  // need Settings component
-  // 
   return (
-    <div>
-      <h1>Hello, World!</h1>
-      <p>Count: {count}</p>
-      <button onClick={incrementCount}>Increment</button>
-    </div>
+    <Box display="flex" flexDirection="column" flexGrow={1} p={3}>
+      <Box bgcolor="#f0f0d0" p={2} mb={2}>
+        <Typography variant="h6">How many majors has tiger won?</Typography>
+      </Box>
+      <Box flexGrow={1} overflow="auto" maxHeight="60vh" bgcolor="#f0f0d0" p={2}>
+        {messages.map((message, index) => (
+          <Typography key={index} gutterBottom>
+              {message}
+            </Typography>
+          ))}
+      </Box>  
+    </Box> 
   );
 };
 
