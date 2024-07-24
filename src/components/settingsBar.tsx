@@ -3,11 +3,15 @@ import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { useNavigate } from 'react-router-dom';
 
 const SettingsBar = ({ uuid }: { uuid: string }) => {
   const [count, setCount] = useState(0);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
+    navigate('/'); // Use the path you defined in your Routes
+    // stop processing things 
     console.log('Logging out...');
   };
 
