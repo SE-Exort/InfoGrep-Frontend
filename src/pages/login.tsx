@@ -15,6 +15,9 @@ function Login() {
     e.preventDefault(); // Prevent form from submitting normally
 
     try {
+      if(type=="register" && (username == '' || password == '')){
+        throw new Error('Please fill out all fields');
+      } 
       console.log(JSON.stringify({ username, password }));
       const response = await fetch(`http://localhost:4000/${type}`, {
         method: 'POST',
