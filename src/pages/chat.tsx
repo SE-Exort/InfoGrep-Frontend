@@ -23,6 +23,7 @@ import {
   MessageList,
   Message,
   MessageInput,
+  MessageModel,
 } from "@chatscope/chat-ui-kit-react";
 
 const theme = createTheme({
@@ -42,16 +43,18 @@ function Chat() {
   let location = useLocation();
   const [session, setSession] = useState<string>("");
   const [uuid, setUUID] = useState<string>("");
-  const [messages, setMessages] = useState<string[]>([]);
-  const [currentMessage, setCurrentMessage] = useState("");
+  const [messages, setMessages] = useState<MessageModel[]>([
+    {
+      message: "Hi, I'm InfoGrep, your helpful assistant. Feel free to ask me anything related to your files!",
+      sentTime: "just now",
+      sender: "Joe",
+      direction: "incoming",
+      position: "normal",
+    }
+  ]);
   const [loading, setLoading] = useState(true);
   const [currentChatroom, setCurrentChatroom] = useState<string>("");
-  const [questions, setQuestions] = useState<string[]>([
-    "What is Laplace Transform?",
-    "Why is coal so interesting?",
-    "What makes the Leafs bad?",
-  ]);
-
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false); // This will switch to the main content after 2 seconds
@@ -94,20 +97,6 @@ function Chat() {
     }
   };
 
-  const sendMessage = () => {
-    if (!currentMessage.trim()) return; // Prevent sending empty messages
-    setMessages([...messages, currentMessage]);
-    setCurrentMessage(""); // Clear input field after sending
-  };
-
-  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCurrentMessage(event.target.value);
-  };
-
-  const deleteQuestion = (index: number) => {
-    setQuestions(questions.filter((_, i) => i !== index));
-  };
-
   const handleFileUpload = () => {
     // Handle file upload logic here
     console.log("File uploaded");
@@ -146,7 +135,9 @@ function Chat() {
               variant="contained"
               startIcon={<UploadFile />}
               onClick={handleFileUpload}
+              component='label'
             >
+              <input type="file" hidden onChange={(e) => console.log(e)} />
               Upload File
             </Button>
             <Divider />
@@ -156,15 +147,7 @@ function Chat() {
             <MainContainer>
               <ChatContainer>
                 <MessageList>
-                  <Message
-                    model={{
-                      message: "Hello my friend",
-                      sentTime: "just now",
-                      sender: "Joe",
-                      direction: "outgoing",
-                      position: "normal",
-                    }}
-                  />
+                  {messages.map(a => <Message model={a}/>)}
                 </MessageList>
                 <MessageInput placeholder="Type message here" />
               </ChatContainer>
