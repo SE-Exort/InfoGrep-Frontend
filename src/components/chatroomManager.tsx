@@ -103,6 +103,9 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
       }
       
       setChatrooms(data.list);
+      if (data?.list?.length) {
+        setChatroom(data.list[0].CHATROOM_UUID)
+      }
       console.log('Chatroom grep successful:', data.list);
     } catch (error) {
       console.error('Chatroom grep error:', error);
@@ -147,14 +150,14 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
       </Box>
       <List>
       {chatrooms.map((cr, index) => (
-        <Box key={cr.CHATROOM_NAME} sx={{ bgcolor: 'secondary.main', borderRadius: '4px', mb: 1 }}>
+        <Box key={cr.CHATROOM_UUID} sx={{ bgcolor: 'secondary.main', borderRadius: '4px', mb: 1 }}>
           <ListItem secondaryAction={
             <IconButton edge="end" aria-label="delete" onClick={() => deleteChatroom(cr.CHATROOM_UUID)}> 
               <Delete />
             </IconButton>
           }
           onClick={() => setChatroom(cr.CHATROOM_UUID)}>
-            <ListItemText primary={cr.CHATROOM_NAME} 
+            <ListItemText primary={cr.CHATROOM_UUID} 
               sx={{ color: 'primary.contrastText', 
                   overflow: 'hidden', 
                   textOverflow: 'ellipsis', 

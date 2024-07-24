@@ -25,6 +25,7 @@ import {
   MessageInput,
   MessageModel,
 } from "@chatscope/chat-ui-kit-react";
+import { current } from "@reduxjs/toolkit";
 
 const theme = createTheme({
   palette: {
@@ -43,17 +44,44 @@ function Chat() {
   let location = useLocation();
   const [session, setSession] = useState<string>("");
   const [uuid, setUUID] = useState<string>("");
-  const [messages, setMessages] = useState<MessageModel[]>([
-    {
-      message: "Hi, I'm InfoGrep, your helpful assistant. Feel free to ask me anything related to your files!",
-      sentTime: "just now",
-      sender: "Joe",
-      direction: "incoming",
-      position: "normal",
-    }
-  ]);
+  const [messages, setMessages] = useState<MessageModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentChatroom, setCurrentChatroom] = useState<string>("");
+
+  const refetchMessages = async () => {
+    // refetch messages
+    const data = await fetch('http://0.0.0.0:8003/api/room?' + new URLSearchParams({
+      'chatroom_uuid': currentChatroom,
+      'cookie': session,
+    }).toString(), {method: 'GET'});
+    const newMessages = await data.json();
+    
+    // get each individual message
+    const newMessagesArr: MessageModel[] = [];
+    newMessages.list.forEach(async ({Message_UUID, User_UUID} : {Message_UUID: string, User_UUID: string}) => {
+      const data = await fetch('http://0.0.0.0:8003/api/message?' + new URLSearchParams({
+        'chatroom_uuid': currentChatroom,
+        'message_uuid': Message_UUID,
+        'cookie': session,
+      }).toString(), {method: 'GET'});
+      const actualMsg = await data.text();
+
+      newMessagesArr.push({
+        message: actualMsg.replaceAll("[[\"", '').replaceAll("\"]]", ''),
+        direction: User_UUID === "00000000-0000-0000-0000-000000000000" ? 'incoming' : 'outgoing',
+        sender: User_UUID === "00000000-0000-0000-0000-000000000000" ? 'InfoGrep' : 'You',
+        position: 'single',
+      })
+      console.log("refetched msgs", newMessagesArr);
+      setMessages(newMessagesArr);
+    })
+  };
+
+  useEffect(() => {
+    if (currentChatroom && session) {
+      refetchMessages();
+    }
+  }, [currentChatroom, session])
   
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -105,6 +133,10 @@ function Chat() {
   if (loading) {
     return <div>Loading...</div>; // Display loading screen
   }
+
+  console.log("render: ", messages)
+  const msgComponents = messages.map(a => <Message model={a} key={a.message}/>);
+  console.log(msgComponents)
   return (
     <ThemeProvider theme={theme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
@@ -137,7 +169,28 @@ function Chat() {
               onClick={handleFileUpload}
               component='label'
             >
-              <input type="file" hidden onChange={(e) => console.log(e)} />
+              <input type="file" hidden onChange={async (e) => {
+                if (e.target.files && e.target.files[0]) {
+                  const file: File = e.target.files[0]
+                  const formData = new FormData()
+                  formData.append("uploadedfile", file)
+                  const data = await fetch('http://0.0.0.0:8002/api/file?' + new URLSearchParams({
+                    'chatroom_uuid': currentChatroom,
+                    'cookie': session
+                  }).toString(), {method: "POST", body: formData});
+
+                  const fileId = (await data.text()).replaceAll("\"", '');
+                  console.log("got file id " + fileId);
+                  const parseResult = await fetch('http://0.0.0.0:8001/api/start_parsing?' + new URLSearchParams({
+                    'chatroom_uuid': currentChatroom,
+                    'cookie': session,
+                    'file_uuid': fileId,
+                    'filetype': 'PDF'
+                  }).toString(), {method: 'POST'});
+
+                  console.log("Parse result" + parseResult);
+                }
+                }}/>
               Upload File
             </Button>
             <Divider />
@@ -147,9 +200,22 @@ function Chat() {
             <MainContainer>
               <ChatContainer>
                 <MessageList>
-                  {messages.map(a => <Message model={a}/>)}
+                  {msgComponents}
                 </MessageList>
-                <MessageInput placeholder="Type message here" />
+                <MessageInput placeholder="Type message here" onSend={async (msg) => {
+                  // send to our chatroom service
+                  setMessages([...messages, {
+                    message: msg,
+                    direction: 'outgoing',
+                    position: 'single'
+                  }]);
+                  await fetch('http://0.0.0.0:8003/api/message?' + new URLSearchParams({
+                    'chatroom_uuid': currentChatroom,
+                    'cookie': session,
+                    'message': msg,
+                  }).toString(), {method: 'POST'});
+                  refetchMessages();
+                }} />
               </ChatContainer>
             </MainContainer>
           </div>

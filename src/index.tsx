@@ -21,11 +21,9 @@ const router = createBrowserRouter([
 ]);
 
 root.render(
-  <React.StrictMode>
-    <StyledEngineProvider injectFirst>
-      <RouterProvider router={router} />
-    </StyledEngineProvider>
-  </React.StrictMode>
+  <StyledEngineProvider injectFirst>
+    <RouterProvider router={router} />
+  </StyledEngineProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
