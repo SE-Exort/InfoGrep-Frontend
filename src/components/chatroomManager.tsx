@@ -13,11 +13,11 @@ interface ChatroomManagerProps {
 }
 
 const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setChatroom }) => {
-  const [count, setCount] = useState(0);
   const [session, setSession] = useState<string>('');
   const [uuid, setUUID] = useState<string>('');
   const [chatrooms, setChatrooms] = useState<Chatroom[]>([]);
   const [minimized, setMinimized] = useState<boolean>(false);
+  const [currentChatRoom, setCurrentChatRoom] = useState<string>('');
 
   const minimizePanel = () => {
     minimized ? setMinimized(false) : setMinimized(true);
