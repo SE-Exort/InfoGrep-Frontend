@@ -10,11 +10,39 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [session, setSession] = useState(''); // encrypt later
+  const [passwordError, setPasswordError] = useState(false);
+  const [passwordErrorDesc, setPasswordErrorDesc] = useState('');
+
+  const checkEmail = () => {
+    // if we want to check emails later
+  }
+
+  const checkPassword = () => {
+    const minLength = 8;
+    const hasNumber = /\d/;
+    const hasLetter = /[a-zA-Z]/;
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/;
+
+    if (password.length < minLength) {
+      throw new Error('Password must be at least 8 characters long');
+    }
+    if (!hasNumber.test(password)) {
+      throw new Error('Password must contain at least one number');
+    }
+    if (!hasLetter.test(password)) {
+      throw new Error('Password must contain at least one letter');
+    }
+    if (!hasSpecialChar.test(password)) {
+      throw new Error('Password must contain at least one special character');
+    }
+  }
 
   const handleSignIn = async (type: string, e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent form from submitting normally
 
     try {
+      checkEmail();
+      // checkPassword();
       if(type=="register" && (username == '' || password == '')){
         throw new Error('Please fill out all fields');
       } 
@@ -40,7 +68,10 @@ function Login() {
       // Handle success (e.g., store the token, redirect the user)
       console.log('Login successful:', data.data);
     } catch (error) {
-      // Handle error (e.g., show error message)
+      if (error instanceof Error) {
+        setPasswordError(true);
+        setPasswordErrorDesc(error.message);
+      }
       console.error('Login error:', error);
     }
   };
@@ -635,6 +666,8 @@ function Login() {
           variant="filled"
           placeholder="Enter password here.."
           value={password}
+          error={passwordError}
+          helperText={passwordErrorDesc}
           onChange={handlePasswordChange}
         />
   
