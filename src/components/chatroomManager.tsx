@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Divider } from '@mui/material';
 import { Delete, Add, Menu } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 interface Chatroom {
   CHATROOM_UUID: string;
   CHATROOM_NAME: string;
 }
+interface ChatroomManagerProps {
+  sessionImport: string;
+  setChatroom: React.Dispatch<React.SetStateAction<string>>;
+}
 
-const ChatroomManager = ({ sessionImport }: { sessionImport: string }) => {
+const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setChatroom }) => {
   const [count, setCount] = useState(0);
   const [session, setSession] = useState<string>('');
   const [uuid, setUUID] = useState<string>('');
@@ -149,7 +152,8 @@ const ChatroomManager = ({ sessionImport }: { sessionImport: string }) => {
             <IconButton edge="end" aria-label="delete" onClick={() => deleteChatroom(cr.CHATROOM_UUID)}> 
               <Delete />
             </IconButton>
-          }>
+          }
+          onClick={() => setChatroom(cr.CHATROOM_UUID)}>
             <ListItemText primary={cr.CHATROOM_NAME} 
               sx={{ color: 'primary.contrastText', 
                   overflow: 'hidden', 

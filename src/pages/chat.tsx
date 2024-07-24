@@ -27,6 +27,7 @@ function Chat() {
   const [messages, setMessages] = useState<string[]>([]);
   const [currentMessage, setCurrentMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [currentChatroom, setCurrentChatroom] = useState<string>('');
   const [questions, setQuestions] = useState<string[]>([
     'What is Laplace Transform?',
     'Why is coal so interesting?',
@@ -102,7 +103,7 @@ function Chat() {
       <Box display="flex" justifyContent="flex-start" alignItems="center">
         <Box width="25%" p={1} display="flex" flexDirection="column" gap={2} bgcolor={"grey.200"}>
           <SettingsBar uuid={uuid}/>
-          <ChatroomManager sessionImport={session}/>
+          <ChatroomManager sessionImport={session} setChatroom={setCurrentChatroom}/>
         </Box>
         <Chatroom/> 
       </Box>
