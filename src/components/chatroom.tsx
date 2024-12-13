@@ -48,7 +48,7 @@ const Chatroom = () => {
     try {
       setIsTyping(true);
       // send query to the backend
-      const response = await axios.post(`${import.meta.env.VITE_VECTOR_SERVICE_URL}/demo/query`, {
+      const response = await axios.post(`http://${import.meta.env.VITE_VECTOR_SERVICE_URL}/demo/query`, {
         query: inputValue,
       });
 
