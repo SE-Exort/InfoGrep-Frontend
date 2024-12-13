@@ -19,7 +19,7 @@ function Login() {
 
     try {
       console.log(JSON.stringify({ username, password }));
-      const response = await fetch(`http://${import.meta.env.VITE_AUTH_SERVICE_URL}/${type}`, {
+      const response = await fetch(`${import.meta.env.VITE_AUTH_SERVICE_URL}/${type}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

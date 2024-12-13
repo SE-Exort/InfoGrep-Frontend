@@ -46,7 +46,7 @@ const FileManager = () => {
 
     try {
       const response = await axios.post(
-        `http://${import.meta.env.VITE_VECTOR_SERVICE_URL}/demo/document_save`,
+        `${import.meta.env.VITE_VECTOR_SERVICE_URL}/demo/document_save`,
         formData,
         {
           headers: {
