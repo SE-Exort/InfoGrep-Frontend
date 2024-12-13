@@ -1,7 +1,7 @@
 import { Grid2 } from "@mui/material";
-import ChatroomManager from "../components/ChatroomManager";
-import Chatroom from "../components/Chatroom";
-import FileManager from "../components/FileManager";
+import ChatroomManager from "../components/chatroomManager";
+import Chatroom from "../components/chatroom";
+import FileManager from "../components/fileManager";
 
 const Chat = () => {
   return (

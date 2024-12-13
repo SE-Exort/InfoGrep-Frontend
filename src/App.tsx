@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Chat from "./pages/Chat";
-import Login from "./pages/Login";
+import Chat from "./pages/chat";
+import Login from "./pages/login";
 import { ThemeProvider } from "@mui/material";
 import theme from "./theme";
 
