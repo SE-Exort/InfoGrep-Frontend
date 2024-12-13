@@ -1,4 +1,4 @@
-FROM node:latest AS base
+FROM node:latest
 
 USER node
 
@@ -7,15 +7,12 @@ WORKDIR /home/node/app
 COPY package.json ./
 
 RUN npm i
+RUN npm i -g serve
 
 COPY . .
 
-FROM base AS production
-
-ENV NODE_PATH=./build
-
 RUN npm run build
 
-EXPOSE 4000
+EXPOSE 3000
 
-CMD ["node", "./build/index.js"]
+CMD [ "serve", "-s", "dist" ]
