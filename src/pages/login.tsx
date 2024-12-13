@@ -2,63 +2,35 @@ import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import React, { useState, useEffect, useMemo } from "react";
 import { loadSlim } from "@tsparticles/slim"; // if you are going to use `loadSlim`, install the "@tsparticles/slim" package too.
 import Particles, { initParticlesEngine } from "@tsparticles/react";
-import logo from "../logo.png";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [init, setInit] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [session, setSession] = useState(''); // encrypt later
-  const [passwordError, setPasswordError] = useState(false);
-  const [passwordErrorDesc, setPasswordErrorDesc] = useState('');
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [session, setSession] = useState(""); // encrypt later
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const checkEmail = () => {
-    // if we want to check emails later
-  }
-
-  const checkPassword = () => {
-    const minLength = 8;
-    const hasNumber = /\d/;
-    const hasLetter = /[a-zA-Z]/;
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/;
-
-    if (password.length < minLength) {
-      throw new Error('Password must be at least 8 characters long');
-    }
-    if (!hasNumber.test(password)) {
-      throw new Error('Password must contain at least one number');
-    }
-    if (!hasLetter.test(password)) {
-      throw new Error('Password must contain at least one letter');
-    }
-    if (!hasSpecialChar.test(password)) {
-      throw new Error('Password must contain at least one special character');
-    }
-  }
-
-  const handleSignIn = async (type: string, e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSignIn = async (
+    type: string,
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault(); // Prevent form from submitting normally
 
     try {
-      checkEmail();
-      // checkPassword();
-      if(type=="register" && (username == '' || password == '')){
-        throw new Error('Please fill out all fields');
-      } 
       console.log(JSON.stringify({ username, password }));
-      const response = await fetch(`http://localhost:4000/${type}`, {
-        method: 'POST',
+      const response = await fetch(`http://127.0.0.1:53034/${type}`, {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
       });
 
       if (!response.ok) {
-        throw new Error('Request failed');
+        throw new Error("Request failed");
       }
-      
+
       const data = await response.json();
 
       if (data.error) {
@@ -66,13 +38,14 @@ function Login() {
       }
       setSession(data.data); // may need to change
       // Handle success (e.g., store the token, redirect the user)
-      console.log('Login successful:', data.data);
+      console.log("Login successful:", data.data);
+      // Clear error message on success
+      setErrorMessage("");
     } catch (error) {
-      if (error instanceof Error) {
-        setPasswordError(true);
-        setPasswordErrorDesc(error.message);
-      }
-      console.error('Login error:', error);
+      // Handle error (e.g., show error message)
+      console.error("Login error:", error);
+      // Set the error message to state
+      setErrorMessage("Incorrect email or password.");
     }
   };
 
@@ -606,13 +579,13 @@ function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (session != ''){
+    if (session != "") {
       goToChat();
     }
   }, [session]);
 
   const goToChat = () => {
-    navigate('/chat', { state: { sessionID: session } }); // Use the path you defined in your Routes
+    navigate("/chat", { state: { sessionID: session } }); // Use the path you defined in your Routes
     // pass session to chat
   };
 
@@ -626,56 +599,75 @@ function Login() {
 
   return (
     <>
-      <img
-        src={logo}
-        style={{ position: "absolute", width: "250px", zIndex: 10, left: '20%', top: 200 }}
-        alt="Logo of InfoGrep"
-      ></img>
       <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
-        <Button variant="contained" color='primary' onClick={goToChat}>Go to Chat</Button>
-      </Box>  
+        <Button variant="contained" color="primary" onClick={goToChat}>
+          Go to Chat
+        </Button>
+      </Box>
       <Box
         display="flex"
         justifyContent="center"
         alignItems="center"
-        height="100vh"
+        height="70vh"
       >
         {init && <Particles id="tsparticles" options={options as any} />}
         <Paper
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 20,
-          padding: 50,
-          zIndex: 99,
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold" marginBottom={5}>
-          Welcome to InfoGrep
-        </Typography>
-        <TextField
-          label="Email"
-          variant="filled"
-          placeholder="Enter username here.."
-          value={username}
-          onChange={handleUsernameChange}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          variant="filled"
-          placeholder="Enter password here.."
-          value={password}
-          error={passwordError}
-          helperText={passwordErrorDesc}
-          onChange={handlePasswordChange}
-        />
-  
-        <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
-          <Button variant="contained" color='primary' onClick={(e) => handleSignIn("login", e)}>Login</Button>
-          <Button variant="contained" color='secondary' onClick={(e) => handleSignIn("register", e)}>Sign up</Button>
-        </Box>
-      </Paper>
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+            padding: 50,
+            zIndex: 99,
+            backgroundColor: "#d0e7b7",
+          }}
+        >
+          <Typography
+            color="primary.dark"
+            variant="h4"
+            fontWeight="bold"
+            marginBottom={5}
+          >
+            Welcome to InfoGrep
+          </Typography>
+          <TextField
+            label="Email"
+            variant="filled"
+            placeholder="Enter username here.."
+            value={username}
+            onChange={handleUsernameChange}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="filled"
+            placeholder="Enter password here.."
+            value={password}
+            onChange={handlePasswordChange}
+          />
+          {/* Display error message */}
+          {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+          <Box
+            display="flex"
+            gap={3}
+            marginTop={5}
+            justifyContent="space-around"
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={(e) => handleSignIn("login", e)}
+            >
+              Login
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={(e) => handleSignIn("register", e)}
+            >
+              Sign up
+            </Button>
+          </Box>
+        </Paper>
       </Box>
     </>
   );
