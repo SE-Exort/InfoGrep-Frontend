@@ -157,7 +157,7 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
             </IconButton>
           }
           onClick={() => setChatroom(cr.CHATROOM_UUID)}>
-            <ListItemText primary={cr.CHATROOM_UUID} 
+            <ListItemText primary={cr.CHATROOM_NAME} 
               sx={{ color: 'primary.contrastText', 
                   overflow: 'hidden', 
                   textOverflow: 'ellipsis', 

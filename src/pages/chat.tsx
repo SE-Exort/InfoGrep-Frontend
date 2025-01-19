@@ -26,6 +26,7 @@ import {
   MessageModel,
 } from "@chatscope/chat-ui-kit-react";
 import { current } from "@reduxjs/toolkit";
+import Cookies from 'js-cookie';
 
 const theme = createTheme({
   palette: {
@@ -42,7 +43,7 @@ const theme = createTheme({
 function Chat() {
   const navigate = useNavigate();
   let location = useLocation();
-  const [session, setSession] = useState<string>("");
+  const [session, setSession] = useState<string>(Cookies.get('session') || '');
   const [uuid, setUUID] = useState<string>("");
   const [messages, setMessages] = useState<MessageModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ function Chat() {
 
   const refetchMessages = async () => {
     // refetch messages
-    const data = await fetch('http://0.0.0.0:8003/api/room?' + new URLSearchParams({
+    const data = await fetch('http://127.0.0.1:8003/api/room?' + new URLSearchParams({
       'chatroom_uuid': currentChatroom,
       'cookie': session,
     }).toString(), {method: 'GET'});
@@ -59,7 +60,7 @@ function Chat() {
     // get each individual message
     const newMessagesArr: MessageModel[] = [];
     newMessages.list.forEach(async ({Message_UUID, User_UUID} : {Message_UUID: string, User_UUID: string}) => {
-      const data = await fetch('http://0.0.0.0:8003/api/message?' + new URLSearchParams({
+      const data = await fetch('http://127.0.0.1:8003/api/message?' + new URLSearchParams({
         'chatroom_uuid': currentChatroom,
         'message_uuid': Message_UUID,
         'cookie': session,
@@ -91,11 +92,21 @@ function Chat() {
   }, []); // Empty dependency array means this effect runs once on mount
 
   useEffect(() => {
-    setSession(location.state.sessionID);
+    if(session === '') {
+      if(location.state && location.state.sessionID){
+        setSession(location.state.sessionID);
+      } else {
+        navigate('/')
+      };
+    }
   }, [location]);
 
   useEffect(() => {
+    // Set the session cookie whenever the session state changes
     if (session) {
+    }
+    if (session) {
+      Cookies.set('session', session, { expires: 7 }); // Cookie expires in 7 days
       console.log("ChatSession:", session);
       getUUID();
     }
@@ -174,14 +185,14 @@ function Chat() {
                   const file: File = e.target.files[0]
                   const formData = new FormData()
                   formData.append("uploadedfile", file)
-                  const data = await fetch('http://0.0.0.0:8002/api/file?' + new URLSearchParams({
+                  const data = await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
                     'chatroom_uuid': currentChatroom,
                     'cookie': session
                   }).toString(), {method: "POST", body: formData});
 
                   const fileId = (await data.text()).replaceAll("\"", '');
                   console.log("got file id " + fileId);
-                  const parseResult = await fetch('http://0.0.0.0:8001/api/start_parsing?' + new URLSearchParams({
+                  const parseResult = await fetch('http://127.0.0.1:8001/api/start_parsing?' + new URLSearchParams({
                     'chatroom_uuid': currentChatroom,
                     'cookie': session,
                     'file_uuid': fileId,
@@ -209,7 +220,7 @@ function Chat() {
                     direction: 'outgoing',
                     position: 'single'
                   }]);
-                  await fetch('http://0.0.0.0:8003/api/message?' + new URLSearchParams({
+                  await fetch('http://127.0.0.1:8003/api/message?' + new URLSearchParams({
                     'chatroom_uuid': currentChatroom,
                     'cookie': session,
                     'message': msg,
