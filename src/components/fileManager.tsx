@@ -1,24 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Box, List, ListItem, ListItemText, IconButton, Typography, Divider } from "@mui/material";
+import { Delete, Download } from "@mui/icons-material";
 
+interface BackendFile {
+  File_UUID: string;
+  File_Name: string;
+}
 
-// this would be the pop up window that would show the files
-const FileManager = () => {
-  const [count, setCount] = useState(0);
+interface FileManagerProps {
+  chatroom: string;
+  sessionImport: string;
+  setFileList: React.Dispatch<React.SetStateAction<BackendFile[]>>;
+  fileList: BackendFile[];
+}
 
-  // Handler functions here
-  const incrementCount = () => {
-    setCount(count + 1);
+const FileManager: React.FC<FileManagerProps> = ({ chatroom, sessionImport, setFileList, fileList }) => {
+
+  useEffect(() => {
+    // Fetch the file list when the component mounts
+    const fetchFiles = async () => {
+      const response = await fetch('http://127.0.0.1:8002/api/filelist?' + new URLSearchParams({
+        'chatroom_uuid': chatroom,
+        'cookie': sessionImport,
+      }).toString(), { method: 'GET' });
+      const files = await response.json();
+      console.log("files", files)
+      setFileList(files.list);
+    };
+
+    fetchFiles();
+  }, [chatroom, sessionImport, setFileList]);
+
+  const handleDelete = async (fileName: string) => {
+    await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
+      'chatroom_uuid': chatroom,
+      'cookie': sessionImport,
+      'file_uuid': fileName,
+    }).toString(), { method: 'DELETE' });
+
+    setFileList(fileList.filter(file => file.File_UUID !== fileName));
   };
 
-  // Component render
-  // need Settings component
-  // 
+  const handleItemClick = (file: BackendFile) => {
+    console.log(`File clicked: ${file.File_Name}`);
+    const fetchFileDownload = async () => {
+      const response = await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
+        'chatroom_uuid': chatroom,
+        'cookie': sessionImport,
+        'file_uuid': file.File_UUID,
+      }).toString(), { method: 'GET' });
+      
+      if (!response.ok) {
+        console.error('Error fetching the file:', response.statusText);
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${file.File_Name}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    };
+    fetchFileDownload();
+  };
+
   return (
-    <div>
-      <h1>Hello, World!</h1>
-      <p>Count: {count}</p>
-      <button onClick={incrementCount}>Increment</button>
-    </div>
+    <Box p={2} bgcolor="#eeeeee">
+      <Typography variant="h6">Files: </Typography>
+      <Divider />
+      <List>
+        {fileList.map((file, index) => (
+          <ListItem 
+            key={index} 
+            divider
+          >
+            <ListItemText primary={file.File_Name} />
+            <IconButton edge="end" aria-label="download" onClick={() => handleItemClick(file)}>
+              <Download />
+            </IconButton>
+            <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(file.File_UUID)}>
+              <Delete />
+            </IconButton>
+          </ListItem>
+        ))}
+      </List>
+    </Box>
   );
 };
 

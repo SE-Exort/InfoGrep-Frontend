@@ -10,7 +10,7 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
-import { Delete, UploadFile } from "@mui/icons-material";
+import { Delete, UploadFile, Inventory2 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import Chatroom from "../components/chatroom";
@@ -27,6 +27,7 @@ import {
 } from "@chatscope/chat-ui-kit-react";
 import { current } from "@reduxjs/toolkit";
 import Cookies from 'js-cookie';
+import FileManager from "../components/fileManager";
 
 const theme = createTheme({
   palette: {
@@ -40,6 +41,11 @@ const theme = createTheme({
   },
 });
 
+interface BackendFile {
+  File_UUID: string;
+  File_Name: string;
+}
+
 function Chat() {
   const navigate = useNavigate();
   let location = useLocation();
@@ -48,6 +54,8 @@ function Chat() {
   const [messages, setMessages] = useState<MessageModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentChatroom, setCurrentChatroom] = useState<string>("");
+  const [fileList, setFileList] = useState<BackendFile[]>([]);
+  const [fileListShowing, setFileListShowing] = useState<boolean>(false);
 
   const refetchMessages = async () => {
     // refetch messages
@@ -141,6 +149,10 @@ function Chat() {
     console.log("File uploaded");
   };
 
+  const handleFileListButton = () => {
+    setFileListShowing(!fileListShowing);
+  };
+
   if (loading) {
     return <div>Loading...</div>; // Display loading screen
   }
@@ -171,44 +183,56 @@ function Chat() {
             bgcolor="#e0e0e0"
             p={2}
             display="flex"
-            flexDirection="column"
+            flexDirection="row"
             gap={2}
+            alignItems="center"
+            justifyContent="space-between"
           >
-            <Button
-              variant="contained"
-              startIcon={<UploadFile />}
-              onClick={handleFileUpload}
-              component='label'
-            >
-              <input type="file" hidden onChange={async (e) => {
-                if (e.target.files && e.target.files[0]) {
-                  const file: File = e.target.files[0]
-                  const formData = new FormData()
-                  formData.append("uploadedfile", file)
-                  const data = await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
-                    'chatroom_uuid': currentChatroom,
-                    'cookie': session
-                  }).toString(), {method: "POST", body: formData});
+            <Typography variant="h6" style={{ flexGrow: 1 }}>{currentChatroom}</Typography>
+            <Box display="flex" gap={2}>
+              <Button
+                variant="contained"
+                startIcon={<UploadFile />}
+                onClick={handleFileUpload}
+                component='label'
+              >
+                <input type="file" hidden onChange={async (e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    const file: File = e.target.files[0]
+                    const formData = new FormData()
+                    formData.append("uploadedfile", file)
+                    const data = await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
+                      'chatroom_uuid': currentChatroom,
+                      'cookie': session
+                    }).toString(), {method: "POST", body: formData});
 
-                  const fileId = (await data.text()).replaceAll("\"", '');
-                  console.log("got file id " + fileId);
-                  const parseResult = await fetch('http://127.0.0.1:8001/api/start_parsing?' + new URLSearchParams({
-                    'chatroom_uuid': currentChatroom,
-                    'cookie': session,
-                    'file_uuid': fileId,
-                    'filetype': 'PDF'
-                  }).toString(), {method: 'POST'});
+                    const fileId = (await data.text()).replaceAll("\"", '');
+                    console.log("got file id " + fileId);
+                    const parseResult = await fetch('http://127.0.0.1:8001/api/start_parsing?' + new URLSearchParams({
+                      'chatroom_uuid': currentChatroom,
+                      'cookie': session,
+                      'file_uuid': fileId,
+                      'filetype': 'PDF'
+                    }).toString(), {method: 'POST'});
 
-                  console.log("Parse result" + parseResult);
-                }
-                }}/>
-              Upload File
-            </Button>
-            <Divider />
+                    console.log("Parse result" + parseResult);
+                  }
+                  }}/>
+                Upload File
+              </Button>
+              <Divider />
+              <Button
+                variant="contained"
+                startIcon={<Inventory2 />}
+                onClick={handleFileListButton}
+              >
+                File List
+              </Button>
+            </Box>
           </Box>
           {/* Chat messages */}
-          <div style={{ position: "relative", flexGrow: 1 }}>
-            <MainContainer>
+          <div style={{ position: "relative", flexGrow: 1, display:'flex', flexDirection:"row" }}>
+            <MainContainer style={{ flex: fileListShowing ? '0 0 70%' : '1 1 auto' }}>
               <ChatContainer>
                 <MessageList>
                   {msgComponents}
@@ -229,6 +253,14 @@ function Chat() {
                 }} />
               </ChatContainer>
             </MainContainer>
+            {fileListShowing && (
+              <FileManager
+                chatroom={currentChatroom}
+                sessionImport={session}
+                setFileList={setFileList}
+                fileList={fileList}
+              />
+            )}
           </div>
         </Box>
       </Box>
