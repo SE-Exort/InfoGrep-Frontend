@@ -1,3 +1,17 @@
+Notes:
+May need to change 127.0.0.1 to 0.0.0.0 for mac?
+
+
+
+
+
+
+
+
+
+
+
+
 React-TypeScript-Electron sample with Create React App and Electron Builder
 ===========================================================================
 

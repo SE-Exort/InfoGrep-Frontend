@@ -5,6 +5,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Login from "./pages/login";
 import Chat from "./pages/chat";
 import { StyledEngineProvider } from "@mui/material/styles";
+import "./index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
@@ -20,11 +21,9 @@ const router = createBrowserRouter([
 ]);
 
 root.render(
-  <React.StrictMode>
-    <StyledEngineProvider injectFirst>
-      <RouterProvider router={router} />
-    </StyledEngineProvider>
-  </React.StrictMode>
+  <StyledEngineProvider injectFirst>
+    <RouterProvider router={router} />
+  </StyledEngineProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

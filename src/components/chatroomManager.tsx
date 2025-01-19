@@ -13,11 +13,11 @@ interface ChatroomManagerProps {
 }
 
 const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setChatroom }) => {
-  const [count, setCount] = useState(0);
   const [session, setSession] = useState<string>('');
   const [uuid, setUUID] = useState<string>('');
   const [chatrooms, setChatrooms] = useState<Chatroom[]>([]);
   const [minimized, setMinimized] = useState<boolean>(false);
+  const [currentChatRoom, setCurrentChatRoom] = useState<string>('');
 
   const minimizePanel = () => {
     minimized ? setMinimized(false) : setMinimized(true);
@@ -103,6 +103,9 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
       }
       
       setChatrooms(data.list);
+      if (data?.list?.length) {
+        setChatroom(data.list[0].CHATROOM_UUID)
+      }
       console.log('Chatroom grep successful:', data.list);
     } catch (error) {
       console.error('Chatroom grep error:', error);
@@ -147,7 +150,7 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
       </Box>
       <List>
       {chatrooms.map((cr, index) => (
-        <Box key={cr.CHATROOM_NAME} sx={{ bgcolor: 'secondary.main', borderRadius: '4px', mb: 1 }}>
+        <Box key={cr.CHATROOM_UUID} sx={{ bgcolor: 'secondary.main', borderRadius: '4px', mb: 1 }}>
           <ListItem secondaryAction={
             <IconButton edge="end" aria-label="delete" onClick={() => deleteChatroom(cr.CHATROOM_UUID)}> 
               <Delete />
