@@ -50,16 +50,21 @@ function Chat() {
 
   const refetchMessages = async () => {
     // refetch messages
-    const data = await fetch('http://0.0.0.0:8003/api/room?' + new URLSearchParams({
+    const data = await fetch('http://127.0.0.1:8003/api/room?' + new URLSearchParams({
       'chatroom_uuid': currentChatroom,
       'cookie': session,
     }).toString(), {method: 'GET'});
     const newMessages = await data.json();
-    
+
+    if (!newMessages.list || newMessages.list.length === 0) {
+      setMessages([]); // if empty room return empty messages
+      return;
+    }
+
     // get each individual message
     const newMessagesArr: MessageModel[] = [];
     newMessages.list.forEach(async ({Message_UUID, User_UUID} : {Message_UUID: string, User_UUID: string}) => {
-      const data = await fetch('http://0.0.0.0:8003/api/message?' + new URLSearchParams({
+      const data = await fetch('http://127.0.0.1:8003/api/message?' + new URLSearchParams({
         'chatroom_uuid': currentChatroom,
         'message_uuid': Message_UUID,
         'cookie': session,
@@ -136,7 +141,7 @@ function Chat() {
 
   console.log("render: ", messages)
   const msgComponents = messages.map(a => <Message model={a} key={a.message}/>);
-  console.log(msgComponents)
+  console.log("msgcomp:", msgComponents)
   return (
     <ThemeProvider theme={theme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
@@ -174,14 +179,14 @@ function Chat() {
                   const file: File = e.target.files[0]
                   const formData = new FormData()
                   formData.append("uploadedfile", file)
-                  const data = await fetch('http://0.0.0.0:8002/api/file?' + new URLSearchParams({
+                  const data = await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
                     'chatroom_uuid': currentChatroom,
                     'cookie': session
                   }).toString(), {method: "POST", body: formData});
 
                   const fileId = (await data.text()).replaceAll("\"", '');
                   console.log("got file id " + fileId);
-                  const parseResult = await fetch('http://0.0.0.0:8001/api/start_parsing?' + new URLSearchParams({
+                  const parseResult = await fetch('http://127.0.0.1:8001/api/start_parsing?' + new URLSearchParams({
                     'chatroom_uuid': currentChatroom,
                     'cookie': session,
                     'file_uuid': fileId,
@@ -209,7 +214,7 @@ function Chat() {
                     direction: 'outgoing',
                     position: 'single'
                   }]);
-                  await fetch('http://0.0.0.0:8003/api/message?' + new URLSearchParams({
+                  await fetch('http://127.0.0.1:8003/api/message?' + new URLSearchParams({
                     'chatroom_uuid': currentChatroom,
                     'cookie': session,
                     'message': msg,

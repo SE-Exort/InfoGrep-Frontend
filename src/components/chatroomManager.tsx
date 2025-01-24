@@ -68,6 +68,12 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
         throw new Error(data.status);
       }
       console.log('Chatroom creation successful:', data, data.list);
+
+      const newRoomID = data.detail;
+      //set the cur chat to newly created
+      setChatroom(newRoomID);
+
+
       getChatrooms();
     } catch (error) {
       console.error('Chatroom creation error:', error);
@@ -103,9 +109,9 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
       }
       
       setChatrooms(data.list);
-      if (data?.list?.length) {
-        setChatroom(data.list[0].CHATROOM_UUID)
-      }
+      // if (data?.list?.length) {
+      //   setChatroom(data.list[0].CHATROOM_UUID)
+      // }
       console.log('Chatroom grep successful:', data.list);
     } catch (error) {
       console.error('Chatroom grep error:', error);
