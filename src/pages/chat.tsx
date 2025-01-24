@@ -198,6 +198,16 @@ function Chat() {
                 }}/>
               Upload File
             </Button>
+            <Typography
+              variant="h6" 
+              align="center"
+              sx={{ 
+                color: 'darkgreen',
+                fontWeight: 'bold',
+              }}
+            >
+              {currentChatroom}
+            </Typography>
             <Divider />
           </Box>
           {/* Chat messages */}

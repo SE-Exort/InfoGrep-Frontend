@@ -17,7 +17,13 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
   const [uuid, setUUID] = useState<string>('');
   const [chatrooms, setChatrooms] = useState<Chatroom[]>([]);
   const [minimized, setMinimized] = useState<boolean>(false);
+  const [selectedChatroom, setSelectedChatroom] = useState<string>('');
   const [currentChatRoom, setCurrentChatRoom] = useState<string>('');
+
+  const handleSelectChatroom = (id:string) => {
+    setSelectedChatroom(id);
+    setChatroom(id);
+  };
 
   const minimizePanel = () => {
     minimized ? setMinimized(false) : setMinimized(true);
@@ -72,7 +78,7 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
       const newRoomID = data.detail;
       //set the cur chat to newly created
       setChatroom(newRoomID);
-
+      handleSelectChatroom(newRoomID);
 
       getChatrooms();
     } catch (error) {
@@ -156,13 +162,19 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
       </Box>
       <List>
       {chatrooms.map((cr, index) => (
-        <Box key={cr.CHATROOM_UUID} sx={{ bgcolor: 'secondary.main', borderRadius: '4px', mb: 1 }}>
-          <ListItem secondaryAction={
+        <Box key={cr.CHATROOM_UUID} sx={{ 
+          bgcolor: cr.CHATROOM_UUID !== selectedChatroom  ? 'secondary.main' : 'rgb(0 0 0 / 23%)', 
+          borderRadius: '4px', 
+          mb: 1,             
+          border: cr.CHATROOM_UUID === selectedChatroom 
+          ? '2px solid #096908;'
+          : '1px solid transparent',}}>
+          <ListItem selected={cr.CHATROOM_UUID === selectedChatroom} secondaryAction={
             <IconButton edge="end" aria-label="delete" onClick={() => deleteChatroom(cr.CHATROOM_UUID)}> 
               <Delete />
             </IconButton>
           }
-          onClick={() => setChatroom(cr.CHATROOM_UUID)}>
+          onClick={() => handleSelectChatroom(cr.CHATROOM_UUID)}>
             <ListItemText primary={cr.CHATROOM_UUID} 
               sx={{ color: 'primary.contrastText', 
                   overflow: 'hidden', 
