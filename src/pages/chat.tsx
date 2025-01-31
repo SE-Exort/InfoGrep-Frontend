@@ -31,6 +31,7 @@ import FileManager from "../components/fileManager";
 
 const theme = createTheme({
   palette: {
+    mode:'light',
     primary: {
       main: "#9feeba",
     },
@@ -40,7 +41,17 @@ const theme = createTheme({
     // Add more colors as needed
   },
 });
-
+const darkTheme = createTheme({
+  palette: {
+    mode:'dark',
+    primary: {
+      main: '#518764',
+    },
+    secondary: {
+      main: '#424f47',
+    },
+  },
+});
 interface BackendFile {
   File_UUID: string;
   File_Name: string;
@@ -56,6 +67,7 @@ function Chat() {
   const [currentChatroom, setCurrentChatroom] = useState<string>("");
   const [fileList, setFileList] = useState<BackendFile[]>([]);
   const [fileListShowing, setFileListShowing] = useState<boolean>(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   const refetchMessages = async () => {
     // refetch messages
@@ -161,16 +173,16 @@ function Chat() {
   const msgComponents = messages.map(a => <Message model={a} key={a.message}/>);
   console.log(msgComponents)
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={darkMode ? darkTheme : theme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
         <Box
           display="flex"
           flexDirection="column"
           gap={2}
-          bgcolor={"grey.200"}
+          bgcolor={darkMode ? '#647569' : 'grey.200'}
           height="100vh"
         >
-          <SettingsBar uuid={uuid} />
+          <SettingsBar uuid={uuid} darkMode={darkMode} setDarkMode={setDarkMode}  />
           <ChatroomManager
             sessionImport={session}
             setChatroom={setCurrentChatroom}
@@ -180,7 +192,7 @@ function Chat() {
         <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
           {/* File manager */}
           <Box
-            bgcolor="#e0e0e0"
+            bgcolor={darkMode ? '#696969' : "#e0e0e0"}
             p={2}
             display="flex"
             flexDirection="row"
@@ -234,7 +246,7 @@ function Chat() {
           <div style={{ position: "relative", flexGrow: 1, display:'flex', flexDirection:"row" }}>
             <MainContainer style={{ flex: fileListShowing ? '0 0 70%' : '1 1 auto' }}>
               <ChatContainer>
-                <MessageList>
+                <MessageList  style={{backgroundColor: darkMode ? '#6b7572' : '#f0f0f0'}}>
                   {msgComponents}
                 </MessageList>
                 <MessageInput placeholder="Type message here" onSend={async (msg) => {
