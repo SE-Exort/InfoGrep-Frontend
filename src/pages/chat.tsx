@@ -77,6 +77,11 @@ function Chat() {
     }).toString(), {method: 'GET'});
     const newMessages = await data.json();
     
+    if (!newMessages.list || newMessages.list.length === 0) {
+      setMessages([]); // if empty room return empty messages
+      return;
+    }
+    
     // get each individual message
     const newMessagesArr: MessageModel[] = [];
     newMessages.list.forEach(async ({Message_UUID, User_UUID} : {Message_UUID: string, User_UUID: string}) => {
