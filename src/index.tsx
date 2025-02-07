@@ -4,6 +4,8 @@ import reportWebVitals from "./reportWebVitals";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Login from "./pages/login";
 import Chat from "./pages/chat";
+import SettingsPage from "./pages/setting";
+import { SettingsProvider } from "./context/SettingsContext";
 import { StyledEngineProvider } from "@mui/material/styles";
 import "./index.css";
 
@@ -18,11 +20,17 @@ const router = createBrowserRouter([
     path: "/chat",
     element: <Chat />,
   },
+  {
+    path: "/settings",
+    element: <SettingsPage  />,
+  },
 ]);
 
 root.render(
   <StyledEngineProvider injectFirst>
-    <RouterProvider router={router} />
+    <SettingsProvider>
+      <RouterProvider router={router} />
+    </SettingsProvider>
   </StyledEngineProvider>
 );
 

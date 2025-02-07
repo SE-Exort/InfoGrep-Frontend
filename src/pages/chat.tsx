@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Box,
   Button,
@@ -28,30 +28,9 @@ import {
 import { current } from "@reduxjs/toolkit";
 import Cookies from 'js-cookie';
 import FileManager from "../components/fileManager";
+import { SettingsContext } from "../context/SettingsContext";
 
-const theme = createTheme({
-  palette: {
-    mode:'light',
-    primary: {
-      main: "#9feeba",
-    },
-    secondary: {
-      main: "#cfedd9",
-    },
-    // Add more colors as needed
-  },
-});
-const darkTheme = createTheme({
-  palette: {
-    mode:'dark',
-    primary: {
-      main: '#518764',
-    },
-    secondary: {
-      main: '#424f47',
-    },
-  },
-});
+
 interface BackendFile {
   File_UUID: string;
   File_Name: string;
@@ -67,8 +46,40 @@ function Chat() {
   const [currentChatroom, setCurrentChatroom] = useState<string>("");
   const [fileList, setFileList] = useState<BackendFile[]>([]);
   const [fileListShowing, setFileListShowing] = useState<boolean>(false);
-  const [darkMode, setDarkMode] = useState(false);
 
+  const { darkMode, fontSize } = useContext(SettingsContext);
+  const theme = createTheme({
+    palette: {
+      mode:'light',
+      primary: {
+        main: "#9feeba",
+      },
+      secondary: {
+        main: "#cfedd9",
+      },
+      
+      // Add more colors as needed
+    },
+    typography: {
+
+      fontSize,
+    },
+  });
+  const darkTheme = createTheme({
+    palette: {
+      mode:'dark',
+      primary: {
+        main: '#518764',
+      },
+      secondary: {
+        main: '#424f47',
+      },
+    },
+    typography: {
+
+      fontSize,
+    },
+  });
   const refetchMessages = async () => {
     // refetch messages
     const data = await fetch('http://127.0.0.1:8003/api/room?' + new URLSearchParams({
@@ -175,7 +186,11 @@ function Chat() {
   }
 
   console.log("render: ", messages)
-  const msgComponents = messages.map(a => <Message model={a} key={a.message}/>);
+  const msgComponents = messages.map((a: MessageModel) => (
+    <div key={a.message} style={{ fontSize: `${fontSize}px` }}>
+      <Message model={a} />
+    </div>
+  ));
   console.log(msgComponents)
   return (
     <ThemeProvider theme={darkMode ? darkTheme : theme}>
@@ -187,7 +202,8 @@ function Chat() {
           bgcolor={darkMode ? '#647569' : 'grey.200'}
           height="100vh"
         >
-          <SettingsBar uuid={uuid} darkMode={darkMode} setDarkMode={setDarkMode}  />
+          <SettingsBar/>
+
           <ChatroomManager
             sessionImport={session}
             setChatroom={setCurrentChatroom}
