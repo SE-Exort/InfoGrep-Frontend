@@ -4,12 +4,13 @@ import { loadSlim } from "@tsparticles/slim"; // if you are going to use `loadSl
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import logo from "../logo.png";
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
 function Login() {
   const [init, setInit] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [session, setSession] = useState(''); // encrypt later
+  const [session, setSession] = useState(Cookies.get('session') || ''); // encrypt later
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorDesc, setPasswordErrorDesc] = useState('');
 
@@ -67,6 +68,7 @@ function Login() {
       setSession(data.data); // may need to change
       // Handle success (e.g., store the token, redirect the user)
       console.log('Login successful:', data.data);
+      // also need to get admin or chat from this
     } catch (error) {
       if (error instanceof Error) {
         setPasswordError(true);
@@ -89,6 +91,10 @@ function Login() {
     }).then(() => {
       setInit(true);
     });
+
+    if (session !== '') {
+      goToChat();
+    }
   }, []);
 
   const options = useMemo(
@@ -606,12 +612,14 @@ function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (session != ''){
+    if (session !== ''){
+      Cookies.set('session', session, { expires: 7 }); // Cookie expires in 7 days
       goToChat();
     }
   }, [session]);
 
   const goToChat = () => {
+    // navigate('/admin', { state: { sessionID: session } }); // Use the path you defined in your Routes
     navigate('/chat', { state: { sessionID: session } }); // Use the path you defined in your Routes
     // pass session to chat
   };

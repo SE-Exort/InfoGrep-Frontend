@@ -26,7 +26,6 @@ import {
   MessageModel,
 } from "@chatscope/chat-ui-kit-react";
 import { current } from "@reduxjs/toolkit";
-import Cookies from 'js-cookie';
 import FileManager from "../components/fileManager";
 
 const theme = createTheme({
@@ -49,7 +48,7 @@ interface BackendFile {
 function Chat() {
   const navigate = useNavigate();
   let location = useLocation();
-  const [session, setSession] = useState<string>(Cookies.get('session') || '');
+  const [session, setSession] = useState<string>('');
   const [uuid, setUUID] = useState<string>("");
   const [messages, setMessages] = useState<MessageModel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +118,6 @@ function Chat() {
     if (session) {
     }
     if (session) {
-      Cookies.set('session', session, { expires: 7 }); // Cookie expires in 7 days
       console.log("ChatSession:", session);
       getUUID();
     }
@@ -175,7 +173,7 @@ function Chat() {
           bgcolor={"grey.200"}
           height="100vh"
         >
-          <SettingsBar uuid={uuid} />
+          <SettingsBar sessionToken={session} uuid={uuid} />
           <ChatroomManager
             sessionImport={session}
             setChatroom={setCurrentChatroom}
