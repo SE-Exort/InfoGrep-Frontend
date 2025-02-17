@@ -69,6 +69,22 @@ export const getUUID = async (sessionToken: string): Promise<string | null> => {
   }
 };
 
+export const logoutUser = async (sessionToken: string): Promise<void> => {
+  try {
+    const response = await fetch(`${AUTH_API_BASE_URL}/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionToken }),
+    });
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    console.log("OK: Logged out");
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
+
 // ================================
 // Chat API functions
 // ================================
