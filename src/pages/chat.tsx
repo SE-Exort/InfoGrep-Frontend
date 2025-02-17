@@ -1,19 +1,8 @@
-import React, { useState, useEffect } from "react";
-import {
-  Box,
-  Button,
-  TextField,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Divider,
-} from "@mui/material";
-import { Delete, UploadFile, Inventory2 } from "@mui/icons-material";
+import { useState, useEffect } from "react";
+import { Box, Button, Typography, Divider } from "@mui/material";
+import { UploadFile, Inventory2 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import Chatroom from "../components/chatroom";
+import { ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
@@ -25,25 +14,17 @@ import {
   MessageInput,
   MessageModel,
 } from "@chatscope/chat-ui-kit-react";
-import { current } from "@reduxjs/toolkit";
 import FileManager from "../components/fileManager";
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#9feeba",
-    },
-    secondary: {
-      main: "#cfedd9",
-    },
-    // Add more colors as needed
-  },
-});
-
-interface BackendFile {
-  File_UUID: string;
-  File_Name: string;
-}
+import {
+  fetchMessages,
+  fetchMessageDetails,
+  sendMessage,
+  getUUID,
+  uploadFile,
+  startParsing,
+  BackendFile,
+} from "../utils/api";
+import theme from "../style/theme";
 
 function Chat() {
   const navigate = useNavigate();
@@ -57,59 +38,30 @@ function Chat() {
   const [fileListShowing, setFileListShowing] = useState<boolean>(false);
 
   const refetchMessages = async () => {
-    // refetch messages
-    const data = await fetch(
-      "http://127.0.0.1:8003/api/room?" +
-        new URLSearchParams({
-          chatroom_uuid: currentChatroom,
-          cookie: session,
-        }).toString(),
-      { method: "GET" }
-    );
-    const newMessages = await data.json();
-
-    if (!newMessages.list || newMessages.list.length === 0) {
-      setMessages([]); // if empty room return empty messages
-      return;
-    }
-
-    // get each individual message
+    if (!currentChatroom || !session) return;
+    const messageList = await fetchMessages(currentChatroom, session);
     const newMessagesArr: MessageModel[] = [];
-    newMessages.list.forEach(
-      async ({
-        Message_UUID,
-        User_UUID,
-      }: {
-        Message_UUID: string;
-        User_UUID: string;
-      }) => {
-        const data = await fetch(
-          "http://127.0.0.1:8003/api/message?" +
-            new URLSearchParams({
-              chatroom_uuid: currentChatroom,
-              message_uuid: Message_UUID,
-              cookie: session,
-            }).toString(),
-          { method: "GET" }
-        );
-        const actualMsg = await data.text();
 
-        newMessagesArr.push({
-          message: actualMsg.replaceAll('[["', "").replaceAll('"]]', ""),
-          direction:
-            User_UUID === "00000000-0000-0000-0000-000000000000"
-              ? "incoming"
-              : "outgoing",
-          sender:
-            User_UUID === "00000000-0000-0000-0000-000000000000"
-              ? "InfoGrep"
-              : "You",
-          position: "single",
-        });
-        console.log("refetched msgs", newMessagesArr);
-        setMessages(newMessagesArr);
-      }
-    );
+    for (const { Message_UUID, User_UUID } of messageList) {
+      const actualMsg = await fetchMessageDetails(
+        currentChatroom,
+        Message_UUID,
+        session
+      );
+      newMessagesArr.push({
+        message: actualMsg,
+        direction:
+          User_UUID === "00000000-0000-0000-0000-000000000000"
+            ? "incoming"
+            : "outgoing",
+        sender:
+          User_UUID === "00000000-0000-0000-0000-000000000000"
+            ? "InfoGrep"
+            : "You",
+        position: "single",
+      });
+    }
+    setMessages(newMessagesArr);
   };
 
   useEffect(() => {
@@ -141,33 +93,19 @@ function Chat() {
     }
     if (session) {
       console.log("ChatSession:", session);
-      getUUID();
+      getUUID(session);
     }
   }, [session]);
 
-  const getUUID = async () => {
-    try {
-      const sessionToken = session;
-      const response = await fetch(`http://localhost:4000/check`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sessionToken }),
-      });
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.status);
-      }
-      setUUID(data.data);
-      console.log("UUID:", data.data);
-    } catch (error) {
-      console.error("UUID error:", error);
+  useEffect(() => {
+    if (session) {
+      getUUID(session).then((id) => id && setUUID(id));
+    } else if (location.state?.sessionID) {
+      setSession(location.state.sessionID);
+    } else {
+      navigate("/");
     }
-  };
+  }, [session, location, navigate]);
 
   const handleFileUpload = () => {
     // Handle file upload logic here
@@ -230,32 +168,21 @@ function Chat() {
                   hidden
                   onChange={async (e) => {
                     if (e.target.files && e.target.files[0]) {
-                      const file: File = e.target.files[0];
-                      const formData = new FormData();
-                      formData.append("uploadedfile", file);
-                      const data = await fetch(
-                        "http://127.0.0.1:8002/api/file?" +
-                          new URLSearchParams({
-                            chatroom_uuid: currentChatroom,
-                            cookie: session,
-                          }).toString(),
-                        { method: "POST", body: formData }
+                      const file = e.target.files[0];
+                      const fileId = await uploadFile(
+                        currentChatroom,
+                        session,
+                        file
                       );
-
-                      const fileId = (await data.text()).replaceAll('"', "");
                       console.log("got file id " + fileId);
-                      const parseResult = await fetch(
-                        "http://127.0.0.1:8001/api/start_parsing?" +
-                          new URLSearchParams({
-                            chatroom_uuid: currentChatroom,
-                            cookie: session,
-                            file_uuid: fileId,
-                            filetype: "PDF",
-                          }).toString(),
-                        { method: "POST" }
-                      );
-
-                      console.log("Parse result" + parseResult);
+                      if (fileId) {
+                        const parseResult = await startParsing(
+                          currentChatroom,
+                          session,
+                          fileId
+                        );
+                        console.log("Parse result" + parseResult);
+                      }
                     }
                   }}
                 />
@@ -297,15 +224,7 @@ function Chat() {
                         position: "single",
                       },
                     ]);
-                    await fetch(
-                      "http://127.0.0.1:8003/api/message?" +
-                        new URLSearchParams({
-                          chatroom_uuid: currentChatroom,
-                          cookie: session,
-                          message: msg,
-                        }).toString(),
-                      { method: "POST" }
-                    );
+                    await sendMessage(currentChatroom, session, msg);
                     refetchMessages();
                   }}
                 />
