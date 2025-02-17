@@ -1,5 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Box, List, ListItem, ListItemText, IconButton, Typography, Divider } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+  Typography,
+  Divider,
+} from "@mui/material";
 import { Delete, Download } from "@mui/icons-material";
 
 interface BackendFile {
@@ -14,17 +22,25 @@ interface FileManagerProps {
   fileList: BackendFile[];
 }
 
-const FileManager: React.FC<FileManagerProps> = ({ chatroom, sessionImport, setFileList, fileList }) => {
-
+const FileManager: React.FC<FileManagerProps> = ({
+  chatroom,
+  sessionImport,
+  setFileList,
+  fileList,
+}) => {
   useEffect(() => {
     // Fetch the file list when the component mounts
     const fetchFiles = async () => {
-      const response = await fetch('http://127.0.0.1:8002/api/filelist?' + new URLSearchParams({
-        'chatroom_uuid': chatroom,
-        'cookie': sessionImport,
-      }).toString(), { method: 'GET' });
+      const response = await fetch(
+        "http://127.0.0.1:8002/api/filelist?" +
+          new URLSearchParams({
+            chatroom_uuid: chatroom,
+            cookie: sessionImport,
+          }).toString(),
+        { method: "GET" }
+      );
       const files = await response.json();
-      console.log("files", files)
+      console.log("files", files);
       setFileList(files.list);
     };
 
@@ -32,34 +48,42 @@ const FileManager: React.FC<FileManagerProps> = ({ chatroom, sessionImport, setF
   }, [chatroom, sessionImport, setFileList]);
 
   const handleDelete = async (fileName: string) => {
-    await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
-      'chatroom_uuid': chatroom,
-      'cookie': sessionImport,
-      'file_uuid': fileName,
-    }).toString(), { method: 'DELETE' });
+    await fetch(
+      "http://127.0.0.1:8002/api/file?" +
+        new URLSearchParams({
+          chatroom_uuid: chatroom,
+          cookie: sessionImport,
+          file_uuid: fileName,
+        }).toString(),
+      { method: "DELETE" }
+    );
 
-    setFileList(fileList.filter(file => file.File_UUID !== fileName));
+    setFileList(fileList.filter((file) => file.File_UUID !== fileName));
   };
 
   const handleItemClick = (file: BackendFile) => {
     console.log(`File clicked: ${file.File_Name}`);
     const fetchFileDownload = async () => {
-      const response = await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
-        'chatroom_uuid': chatroom,
-        'cookie': sessionImport,
-        'file_uuid': file.File_UUID,
-      }).toString(), { method: 'GET' });
-      
+      const response = await fetch(
+        "http://127.0.0.1:8002/api/file?" +
+          new URLSearchParams({
+            chatroom_uuid: chatroom,
+            cookie: sessionImport,
+            file_uuid: file.File_UUID,
+          }).toString(),
+        { method: "GET" }
+      );
+
       if (!response.ok) {
-        console.error('Error fetching the file:', response.statusText);
+        console.error("Error fetching the file:", response.statusText);
         return;
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `${file.File_Name}`);
+      link.setAttribute("download", `${file.File_Name}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -73,15 +97,20 @@ const FileManager: React.FC<FileManagerProps> = ({ chatroom, sessionImport, setF
       <Divider />
       <List>
         {fileList.map((file, index) => (
-          <ListItem 
-            key={index} 
-            divider
-          >
+          <ListItem key={index} divider>
             <ListItemText primary={file.File_Name} />
-            <IconButton edge="end" aria-label="download" onClick={() => handleItemClick(file)}>
+            <IconButton
+              edge="end"
+              aria-label="download"
+              onClick={() => handleItemClick(file)}
+            >
               <Download />
             </IconButton>
-            <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(file.File_UUID)}>
+            <IconButton
+              edge="end"
+              aria-label="delete"
+              onClick={() => handleDelete(file.File_UUID)}
+            >
               <Delete />
             </IconButton>
           </ListItem>
