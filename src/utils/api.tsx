@@ -2,7 +2,7 @@
 export const AUTH_API_BASE_URL =
   process.env.REACT_APP_AUTH_API_BASE_URL || "http://localhost:4000";
 export const PARSE_API_BASE_URL =
-  process.env.REACT_APP_FILE_API_BASE_URL || "http://localhost:8001/api";
+  process.env.REACT_APP_FILE_API_BASE_URL || "http://localhost:8004/api";
 export const FILE_API_BASE_URL =
   process.env.REACT_APP_FILE_API_BASE_URL || "http://localhost:8002/api";
 export const CHAT_API_BASE_URL =
@@ -197,5 +197,79 @@ export const startParsing = async (
     );
   } catch (error) {
     console.error("Error starting file parsing:", error);
+  }
+};
+
+export const fetchFiles = async (
+  chatroomUUID: string,
+  session: string
+): Promise<BackendFile[]> => {
+  try {
+    const response = await fetch(
+      `${FILE_API_BASE_URL}/file?` +
+        new URLSearchParams({
+          chatroom_uuid: chatroomUUID,
+          cookie: session,
+        }).toString(),
+      { method: "GET" }
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching files:", error);
+    return [];
+  }
+};
+
+export const deleteFile = async (
+  chatroomUUID: string,
+  session: string,
+  fileUUID: string
+): Promise<void> => {
+  try {
+    await fetch(
+      `${FILE_API_BASE_URL}/file?` +
+        new URLSearchParams({
+          chatroom_uuid: chatroomUUID,
+          cookie: session,
+          file_uuid: fileUUID,
+        }).toString(),
+      { method: "DELETE" }
+    );
+  } catch (error) {
+    console.error("Error deleting file:", error);
+  }
+};
+
+export const fetchFileDownload = async (
+  chatroomUUID: string,
+  session: string,
+  file: BackendFile
+): Promise<void> => {
+  try {
+    const response = await fetch(
+      `${FILE_API_BASE_URL}/file?` +
+        new URLSearchParams({
+          chatroom_uuid: chatroomUUID,
+          cookie: session,
+          file_uuid: file.File_UUID,
+        }).toString(),
+      { method: "GET" }
+    );
+
+    if (!response.ok) {
+      console.error("Error fetching the file:", response.statusText);
+      return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${file.File_Name}`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error("Error downloading file:", error);
   }
 };

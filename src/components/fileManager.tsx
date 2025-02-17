@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   List,
@@ -9,11 +9,12 @@ import {
   Divider,
 } from "@mui/material";
 import { Delete, Download } from "@mui/icons-material";
-
-interface BackendFile {
-  File_UUID: string;
-  File_Name: string;
-}
+import {
+  BackendFile,
+  fetchFileDownload,
+  deleteFile,
+  fetchFiles,
+} from "../utils/api";
 
 interface FileManagerProps {
   chatroom: string;
@@ -30,65 +31,34 @@ const FileManager: React.FC<FileManagerProps> = ({
 }) => {
   useEffect(() => {
     // Fetch the file list when the component mounts
-    const fetchFiles = async () => {
-      const response = await fetch(
-        "http://127.0.0.1:8002/api/filelist?" +
-          new URLSearchParams({
-            chatroom_uuid: chatroom,
-            cookie: sessionImport,
-          }).toString(),
-        { method: "GET" }
-      );
-      const files = await response.json();
-      console.log("files", files);
-      setFileList(files.list);
+    const loadFiles = async () => {
+      try {
+        const response = await fetchFiles(chatroom, sessionImport);
+        console.log("files", response);
+        setFileList(response);
+      } catch (error) {
+        console.error("Error loading files:", error);
+      }
     };
-
-    fetchFiles();
+    loadFiles();
   }, [chatroom, sessionImport, setFileList]);
 
   const handleDelete = async (fileName: string) => {
-    await fetch(
-      "http://127.0.0.1:8002/api/file?" +
-        new URLSearchParams({
-          chatroom_uuid: chatroom,
-          cookie: sessionImport,
-          file_uuid: fileName,
-        }).toString(),
-      { method: "DELETE" }
-    );
-
-    setFileList(fileList.filter((file) => file.File_UUID !== fileName));
+    try {
+      await deleteFile(chatroom, sessionImport, fileName);
+      setFileList(fileList.filter((file) => file.File_UUID !== fileName));
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    }
   };
 
-  const handleItemClick = (file: BackendFile) => {
-    console.log(`File clicked: ${file.File_Name}`);
-    const fetchFileDownload = async () => {
-      const response = await fetch(
-        "http://127.0.0.1:8002/api/file?" +
-          new URLSearchParams({
-            chatroom_uuid: chatroom,
-            cookie: sessionImport,
-            file_uuid: file.File_UUID,
-          }).toString(),
-        { method: "GET" }
-      );
-
-      if (!response.ok) {
-        console.error("Error fetching the file:", response.statusText);
-        return;
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `${file.File_Name}`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    };
-    fetchFileDownload();
+  const handleItemClick = async (file: BackendFile) => {
+    try {
+      console.log(`File clicked: ${file.File_Name}`);
+      await fetchFileDownload(chatroom, sessionImport, file);
+    } catch (error) {
+      console.error("Error downloading file:", error);
+    }
   };
 
   return (
