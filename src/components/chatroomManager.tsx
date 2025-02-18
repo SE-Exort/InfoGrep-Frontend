@@ -8,11 +8,14 @@ import {
   IconButton,
 } from "@mui/material";
 import { Delete, Add, Menu } from "@mui/icons-material";
+import {
+  fetchChatrooms,
+  createChatroom,
+  deleteChatroom,
+  getUUID,
+  Chatroom,
+} from "../utils/api";
 
-interface Chatroom {
-  CHATROOM_UUID: string;
-  CHATROOM_NAME: string;
-}
 interface ChatroomManagerProps {
   sessionImport: string;
   setChatroom: React.Dispatch<React.SetStateAction<string>>;
@@ -22,12 +25,10 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({
   sessionImport,
   setChatroom,
 }) => {
-  const [session, setSession] = useState<string>("");
   const [uuid, setUUID] = useState<string>("");
   const [chatrooms, setChatrooms] = useState<Chatroom[]>([]);
   const [minimized, setMinimized] = useState<boolean>(false);
   const [selectedChatroom, setSelectedChatroom] = useState<string>("");
-  const [currentChatRoom, setCurrentChatRoom] = useState<string>("");
 
   const handleSelectChatroom = (id: string) => {
     setSelectedChatroom(id);
@@ -38,133 +39,60 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({
     minimized ? setMinimized(false) : setMinimized(true);
   };
 
-  const getUUID = async () => {
-    try {
-      const sessionToken = session;
-      console.log(JSON.stringify({ sessionToken }));
-      const response = await fetch(`http://localhost:4000/check`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sessionToken }),
-      });
-      if (!response.ok) {
-        throw new Error("Request failed");
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        console.log("Fetching UUID...");
+        const userUUID = await getUUID(sessionImport);
+        if (userUUID) {
+          setUUID(userUUID);
+          console.log("UUID fetched successfully:", userUUID);
+        }
+      } catch (error) {
+        console.error("Error fetching UUID:", error);
       }
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.status);
-      }
-      setUUID(data.data);
-      console.log("UUID:", data.data);
-    } catch (error) {
-      console.error("UUID error:", error);
+    };
+    fetchData();
+  }, [sessionImport]);
+
+  useEffect(() => {
+    if (uuid) {
+      console.log("Fetching chatrooms...");
+      fetchChatrooms(sessionImport)
+        .then((rooms) => {
+          setChatrooms(rooms);
+          console.log("Chatrooms fetched successfully:", rooms);
+        })
+        .catch((error) => console.error("Error fetching chatrooms:", error));
     }
-  };
+  }, [uuid]);
 
   const newChatroom = async () => {
     try {
-      const cookie = session;
-      // const response = await fetch(`http://localhost:8003/api/room?` + new URLSearchParams({ cookie }).toString());
-      const response = await fetch(
-        `http://localhost:8003/api/room?` +
-          new URLSearchParams({ cookie }).toString(),
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded", // or 'application/json' if sending JSON data
-          },
-          body: new URLSearchParams({ cookie }).toString(), // Send the data in the body
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Request failed");
+      console.log("Creating chatroom...");
+      const newRoomID = await createChatroom(sessionImport);
+      if (newRoomID) {
+        console.log("Chatroom created successfully:", newRoomID);
+        setChatroom(newRoomID);
+        handleSelectChatroom(newRoomID);
+        console.log("Fetching updated chatrooms...");
+        const updatedRooms = await fetchChatrooms(sessionImport); // Fetch updated list directly
+        setChatrooms(updatedRooms); // Update chatrooms state
+        console.log("Chatrooms updated successfully:", updatedRooms);
       }
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.status);
-      }
-      console.log("Chatroom creation successful:", data, data.list);
-
-      const newRoomID = data.detail;
-      //set the cur chat to newly created
-      setChatroom(newRoomID);
-      handleSelectChatroom(newRoomID);
-
-      getChatrooms();
     } catch (error) {
       console.error("Chatroom creation error:", error);
     }
   };
 
-  useEffect(() => {
-    setSession(sessionImport);
-  }, []);
-
-  useEffect(() => {
-    if (session) {
-      getUUID();
-    }
-  }, [session]);
-
-  useEffect(() => {
-    if (uuid) {
-      getChatrooms();
-    }
-  }, [uuid]);
-
-  const getChatrooms = async () => {
+  const handleDeleteChatroom = async (chatroom_uuid: string) => {
     try {
-      const cookie = session;
-      const response = await fetch(
-        `http://localhost:8003/api/rooms?` +
-          new URLSearchParams({ cookie }).toString()
-      );
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.status);
-      }
-
-      setChatrooms(data.list);
-      // if (data?.list?.length) {
-      //   setChatroom(data.list[0].CHATROOM_UUID)
-      // }
-      console.log("Chatroom grep successful:", data.list);
-    } catch (error) {
-      console.error("Chatroom grep error:", error);
-    }
-  };
-
-  const deleteChatroom = async (chatroom_uuid: string) => {
-    try {
-      const cookie = session;
-      // const response = await fetch(`http://localhost:8003/api/room?` + new URLSearchParams({ cookie }).toString());
-      const response = await fetch(
-        `http://localhost:8003/api/room?` +
-          new URLSearchParams({ chatroom_uuid, cookie }).toString(),
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded", // or 'application/json' if sending JSON data
-          },
-          body: new URLSearchParams({ chatroom_uuid, cookie }).toString(), // Send the data in the body
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.status);
-      }
-      console.log("Chatroom delete successful:", data);
-      getChatrooms();
+      await deleteChatroom(sessionImport, chatroom_uuid);
+      console.log("Chatroom delete successful:", chatroom_uuid);
+      console.log("Fetching updated chatrooms...");
+      const updatedRooms = await fetchChatrooms(sessionImport); // Fetch updated list directly
+      setChatrooms(updatedRooms); // Update chatrooms state
+      console.log("Chatrooms updated successfully:", updatedRooms);
     } catch (error) {
       console.error("Chatroom delete error:", error);
     }
@@ -209,7 +137,7 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({
                 <IconButton
                   edge="end"
                   aria-label="delete"
-                  onClick={() => deleteChatroom(cr.CHATROOM_UUID)}
+                  onClick={() => handleDeleteChatroom(cr.CHATROOM_UUID)}
                 >
                   <Delete />
                 </IconButton>

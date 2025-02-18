@@ -19,6 +19,11 @@ export interface BackendFile {
   File_Name: string;
 }
 
+export interface Chatroom {
+  CHATROOM_UUID: string;
+  CHATROOM_NAME: string;
+}
+
 // ================================
 // Authentication API functions
 // ================================
@@ -271,5 +276,98 @@ export const fetchFileDownload = async (
     link.remove();
   } catch (error) {
     console.error("Error downloading file:", error);
+  }
+};
+
+// ================================
+// Chatroom API Functions
+// ================================
+export const fetchChatrooms = async (session: string): Promise<Chatroom[]> => {
+  try {
+    console.log("Fetching chatrooms...");
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/rooms?` +
+        new URLSearchParams({ cookie: session }).toString(),
+      { method: "GET" }
+    );
+
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.status);
+    }
+    console.log("Chatroom fetch successful:", data.list);
+
+    return data.list.map(
+      (room: { CHATROOM_UUID: string; Chatroom_Name: string }) => ({
+        CHATROOM_UUID: room.CHATROOM_UUID,
+        Chatroom_Name: room.Chatroom_Name,
+      })
+    );
+  } catch (error) {
+    console.error("Chatroom fetch error:", error);
+    return [];
+  }
+};
+
+export const createChatroom = async (
+  session: string
+): Promise<string | null> => {
+  try {
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/room?` +
+        new URLSearchParams({ cookie: session }).toString(),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ cookie: session }).toString(),
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.status);
+    }
+    return data.detail;
+  } catch (error) {
+    console.error("Chatroom creation error:", error);
+    return null;
+  }
+};
+
+export const deleteChatroom = async (
+  session: string,
+  chatroomUUID: string
+): Promise<void> => {
+  try {
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/room?` +
+        new URLSearchParams({
+          chatroom_uuid: chatroomUUID,
+          cookie: session,
+        }).toString(),
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          chatroom_uuid: chatroomUUID,
+          cookie: session,
+        }).toString(),
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.status);
+    }
+    console.log("Chatroom delete successful:", data);
+  } catch (error) {
+    console.error("Chatroom deletion error:", error);
   }
 };
