@@ -5,7 +5,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Login from "./pages/login";
 import Chat from "./pages/chat";
 import { StyledEngineProvider } from "@mui/material/styles";
-import "./index.css";
+import "./style/index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
