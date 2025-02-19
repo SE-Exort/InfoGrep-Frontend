@@ -39,65 +39,81 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({
     minimized ? setMinimized(false) : setMinimized(true);
   };
 
+  // First useEffect: Fetch UUID when sessionImport changes
   useEffect(() => {
     const fetchData = async () => {
       try {
         console.log("Fetching UUID...");
-        const userUUID = await getUUID(sessionImport);
+        const userUUID = await getUUID(sessionImport); // Call function to get user UUID
+
         if (userUUID) {
-          setUUID(userUUID);
+          // If a UUID is returned
+          setUUID(userUUID); // Update state with the new UUID
           console.log("UUID fetched successfully:", userUUID);
         }
       } catch (error) {
-        console.error("Error fetching UUID:", error);
+        console.error("Error fetching UUID:", error); // Log any errors
       }
     };
-    fetchData();
-  }, [sessionImport]);
 
+    fetchData(); // Execute fetch function
+  }, [sessionImport]); // Runs only when sessionImport changes
+
+  // Second useEffect: Fetch chatrooms when UUID is set
   useEffect(() => {
     if (uuid) {
+      // Ensure UUID exists before fetching chatrooms
       console.log("Fetching chatrooms...");
-      fetchChatrooms(sessionImport)
+
+      fetchChatrooms(sessionImport) // Call function to fetch chatrooms
         .then((rooms) => {
-          setChatrooms(rooms);
+          setChatrooms(rooms); // Update state with fetched chatrooms
           console.log("Chatrooms fetched successfully:", rooms);
         })
-        .catch((error) => console.error("Error fetching chatrooms:", error));
+        .catch((error) => console.error("Error fetching chatrooms:", error)); // Log any errors
     }
-  }, [uuid]);
+  }, [uuid]); // Runs only when uuid changes (after it's fetched)
 
+  // Function to create a new chatroom
   const newChatroom = async () => {
     try {
       console.log("Creating chatroom...");
+
+      // Call API to create a new chatroom and get its UUID
       const newRoomID = await createChatroom(sessionImport);
+
       if (newRoomID) {
+        // If a new chatroom was successfully created
         console.log("Chatroom created successfully:", newRoomID);
-        setChatroom(newRoomID);
-        handleSelectChatroom(newRoomID);
+
+        setChatroom(newRoomID); // Update the selected chatroom state
+        handleSelectChatroom(newRoomID); // Select the newly created chatroom
+
         console.log("Fetching updated chatrooms...");
-        const updatedRooms = await fetchChatrooms(sessionImport); // Fetch updated list directly
+        const updatedRooms = await fetchChatrooms(sessionImport); // Fetch the updated list of chatrooms
         setChatrooms(updatedRooms); // Update chatrooms state
         console.log("Chatrooms updated successfully:", updatedRooms);
       }
     } catch (error) {
-      console.error("Chatroom creation error:", error);
+      console.error("Chatroom creation error:", error); // Log any errors
     }
   };
 
+  // Function to delete a chatroom
   const handleDeleteChatroom = async (chatroom_uuid: string) => {
     try {
+      // Call API to delete the chatroom with the given UUID
       await deleteChatroom(sessionImport, chatroom_uuid);
       console.log("Chatroom delete successful:", chatroom_uuid);
+
       console.log("Fetching updated chatrooms...");
-      const updatedRooms = await fetchChatrooms(sessionImport); // Fetch updated list directly
+      const updatedRooms = await fetchChatrooms(sessionImport); // Fetch the updated list of chatrooms
       setChatrooms(updatedRooms); // Update chatrooms state
       console.log("Chatrooms updated successfully:", updatedRooms);
     } catch (error) {
-      console.error("Chatroom delete error:", error);
+      console.error("Chatroom delete error:", error); // Log any errors
     }
   };
-
   return (
     <Box
       width={minimized ? `max(133px, 40%)` : "100%"}

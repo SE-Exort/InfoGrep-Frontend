@@ -103,7 +103,7 @@ export const fetchMessages = async (
         new URLSearchParams({
           chatroom_uuid: chatroomUUID,
           cookie: session,
-        }).toString,
+        }).toString(),
       { method: "GET" }
     );
     const data = await response.json();
