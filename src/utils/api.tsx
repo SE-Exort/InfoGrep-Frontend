@@ -25,7 +25,7 @@ export interface Chatroom {
 }
 
 // ================================
-// Authentication API functions
+// Authentication API functions for login, register, and logout
 // ================================
 export const authenticateUser = async (
   type: "login" | "register",
@@ -103,7 +103,7 @@ export const fetchMessages = async (
         new URLSearchParams({
           chatroom_uuid: chatroomUUID,
           cookie: session,
-        }),
+        }).toString,
       { method: "GET" }
     );
     const data = await response.json();
