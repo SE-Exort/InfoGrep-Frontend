@@ -1,12 +1,18 @@
+const PROTOCOL = "http://";
+const HOST = "localhost";
+
 // Base URLs for each service
 export const AUTH_API_BASE_URL =
-  process.env.REACT_APP_AUTH_API_BASE_URL || "http://localhost:4000";
-export const PARSE_API_BASE_URL =
-  process.env.REACT_APP_FILE_API_BASE_URL || "http://localhost:8004/api";
+  process.env.REACT_APP_AUTH_API_BASE_URL || `${PROTOCOL}${HOST}:4000`;
+
 export const FILE_API_BASE_URL =
-  process.env.REACT_APP_FILE_API_BASE_URL || "http://localhost:8002/api";
+  process.env.REACT_APP_FILE_API_BASE_URL || `${PROTOCOL}${HOST}:8002/api`;
+
 export const CHAT_API_BASE_URL =
-  process.env.REACT_APP_CHAT_API_BASE_URL || "http://localhost:8003/api";
+  process.env.REACT_APP_CHAT_API_BASE_URL || `${PROTOCOL}${HOST}:8003/api`;
+
+export const PARSE_API_BASE_URL =
+  process.env.REACT_APP_FILE_API_BASE_URL || `${PROTOCOL}${HOST}:8004/api`;
 
 // Interfaces for API responses
 interface AuthResponse {
