@@ -8,6 +8,8 @@ import Cookies from 'js-cookie';
 
 const SettingsBar = ({ sessionToken, uuid }: { sessionToken: string, uuid: string }) => {
   const [count, setCount] = useState(0);
+
+  const [fontSize, setFontSize] = useState(16);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -35,15 +37,15 @@ const SettingsBar = ({ sessionToken, uuid }: { sessionToken: string, uuid: strin
 
   };
 
-  const handleSettings = () => {
-    console.log('Settings');
-    //navigate('/settings');
-  }
-
   return (
     <Box sx={{ p: 2 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-        <IconButton onClick={handleSettings}>
+      <Box sx={{
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'space-between', 
+        mt: 2
+      }}>
+        <IconButton onClick={() => navigate("/settings")}>
           <SettingsIcon />
         </IconButton>
         <IconButton onClick={handleLogout}>
