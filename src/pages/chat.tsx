@@ -35,7 +35,9 @@ interface BackendFile {
   File_Name: string;
 }
 
-function Chat() {
+const CHATBOT_UUID = "00000000-0000-0000-0000-000000000000";
+
+const Chat = () => {
   const navigate = useNavigate();
   let location = useLocation();
   const [session, setSession] = useState<string>('');
@@ -84,30 +86,19 @@ function Chat() {
     const data = await fetch('http://127.0.0.1:8003/api/room?' + new URLSearchParams({
       'chatroom_uuid': currentChatroom,
       'cookie': session,
-    }).toString(), {method: 'GET'});
+    }).toString(), { method: 'GET' });
     const newMessages = await data.json();
-    
-    if (!newMessages.list || newMessages.list.length === 0) {
-      setMessages([]); // if empty room return empty messages
-      return;
-    }
-    
-    // get each individual message
-    const newMessagesArr: MessageModel[] = [];
-    newMessages.list.forEach(async ({Message_UUID, User_UUID} : {Message_UUID: string, User_UUID: string}) => {
-      const data = await fetch('http://127.0.0.1:8003/api/message?' + new URLSearchParams({
-        'chatroom_uuid': currentChatroom,
-        'message_uuid': Message_UUID,
-        'cookie': session,
-      }).toString(), {method: 'GET'});
-      const actualMsg = await data.text();
 
+    // process each individual message
+    const newMessagesArr: MessageModel[] = [];
+    newMessages.list.forEach(async ({ Message_UUID, User_UUID, Message }: { Message_UUID: string, User_UUID: string, Message: string }) => {
       newMessagesArr.push({
-        message: actualMsg.replaceAll("[[\"", '').replaceAll("\"]]", ''),
-        direction: User_UUID === "00000000-0000-0000-0000-000000000000" ? 'incoming' : 'outgoing',
-        sender: User_UUID === "00000000-0000-0000-0000-000000000000" ? 'InfoGrep' : 'You',
+        message: Message.replaceAll("[[\"", '').replaceAll("\"]]", ''),
+        direction: User_UUID === CHATBOT_UUID ? 'incoming' : 'outgoing',
+        sender: User_UUID === CHATBOT_UUID ? 'InfoGrep' : 'You',
         position: 'single',
       })
+      
       console.log("refetched msgs", newMessagesArr);
       setMessages(newMessagesArr);
     })
@@ -118,7 +109,7 @@ function Chat() {
       refetchMessages();
     }
   }, [currentChatroom, session])
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false); // This will switch to the main content after 2 seconds
@@ -127,8 +118,8 @@ function Chat() {
   }, []); // Empty dependency array means this effect runs once on mount
 
   useEffect(() => {
-    if(session === '') {
-      if(location.state && location.state.sessionID){
+    if (session === '') {
+      if (location.state && location.state.sessionID) {
         setSession(location.state.sessionID);
       } else {
         navigate('/')
@@ -190,6 +181,7 @@ function Chat() {
     </div>
   ));
   console.log(msgComponents)
+
   return (
     <ThemeProvider theme={darkMode ? darkTheme : theme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
@@ -234,7 +226,7 @@ function Chat() {
                     const data = await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
                       'chatroom_uuid': currentChatroom,
                       'cookie': session
-                    }).toString(), {method: "POST", body: formData});
+                    }).toString(), { method: "POST", body: formData });
 
                     const fileId = (await data.text()).replaceAll("\"", '');
                     console.log("got file id " + fileId);
@@ -243,11 +235,11 @@ function Chat() {
                       'cookie': session,
                       'file_uuid': fileId,
                       'filetype': 'PDF'
-                    }).toString(), {method: 'POST'});
+                    }).toString(), { method: 'POST' });
 
                     console.log("Parse result" + parseResult);
                   }
-                  }}/>
+                }} />
                 Upload File
               </Button>
               <Divider />
@@ -261,7 +253,7 @@ function Chat() {
             </Box>
           </Box>
           {/* Chat messages */}
-          <div style={{ position: "relative", flexGrow: 1, display:'flex', flexDirection:"row" }}>
+          <div style={{ position: "relative", flexGrow: 1, display: 'flex', flexDirection: "row" }}>
             <MainContainer style={{ flex: fileListShowing ? '0 0 70%' : '1 1 auto' }}>
               <ChatContainer>
                 <MessageList  style={{backgroundColor: darkMode ? '#6b7572' : '#f0f0f0'}}>
@@ -278,7 +270,8 @@ function Chat() {
                     'chatroom_uuid': currentChatroom,
                     'cookie': session,
                     'message': msg,
-                  }).toString(), {method: 'POST'});
+                    'model': 'ollama'
+                  }).toString(), { method: 'POST' });
                   refetchMessages();
                 }} />
               </ChatContainer>
