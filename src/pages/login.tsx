@@ -1,44 +1,41 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import ParticlesBackground from "../style/loginBackground";
-import { authenticateUser } from "../utils/api";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../redux/store";
+import {
+  authenticateUserThunk,
+  setUsername,
+  clearAuthError,
+} from "../redux/slices/authSlice";
 
 function Login() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [session, setSession] = useState(Cookies.get("session") || "");
-  const [passwordError, setPasswordError] = useState(false);
-  const [passwordErrorDesc, setPasswordErrorDesc] = useState("");
-
+  const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
+  // Redux state
+  const session = useSelector((state: RootState) => state.auth.session);
+  const username = useSelector((state: RootState) => state.auth.username);
+  const authError = useSelector((state: RootState) => state.auth.authError);
+  const [password, setPassword] = React.useState("");
+
+  // Redirect if session exists
   useEffect(() => {
-    if (session !== "") {
+    if (session) {
       Cookies.set("session", session, { expires: 7 });
-      goToChat();
+      navigate("/chat", { state: { sessionID: session } });
     }
-  }, [session]);
+  }, [session, navigate]);
 
-  const goToChat = () => {
-    navigate("/chat", { state: { sessionID: session } });
-  };
-
+  // Handle Login/Register
   const handleSignIn = async (
     type: "login" | "register",
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.preventDefault();
-
-    const response = await authenticateUser(type, username, password);
-
-    if (response.error) {
-      setPasswordError(true);
-      setPasswordErrorDesc(response.status || "An unknown error occurred");
-    } else {
-      setSession(response.data || "");
-    }
+    dispatch(authenticateUserThunk({ type, username, password })); // Dispatch async thunk for authentication
   };
 
   return (
@@ -67,7 +64,7 @@ function Login() {
             variant="filled"
             placeholder="Enter username here.."
             value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            onChange={(e) => dispatch(setUsername(e.target.value))}
           />
           <TextField
             label="Password"
@@ -75,9 +72,12 @@ function Login() {
             variant="filled"
             placeholder="Enter password here.."
             value={password}
-            error={passwordError}
-            helperText={passwordErrorDesc}
-            onChange={(e) => setPassword(e.target.value)}
+            error={!!authError}
+            helperText={authError || ""}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              dispatch(clearAuthError()); // Clear error when typing
+            }}
           />
           <Box
             display="flex"

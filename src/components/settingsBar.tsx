@@ -4,29 +4,21 @@ import IconButton from "@mui/material/IconButton";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
-import { logoutUser } from "../utils/api";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../redux/store";
+import { logout } from "../redux/slices/authSlice";
 
-const SettingsBar = ({
-  sessionToken,
-  uuid,
-}: {
-  sessionToken: string;
-  uuid: string;
-}) => {
-  const [count, setCount] = useState(0);
+const SettingsBar = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+
+  // Fetch session & uuid from Redux
+  const session = useSelector((state: RootState) => state.auth.session);
+  const uuid = useSelector((state: RootState) => state.auth.uuid);
 
   const handleLogout = async () => {
-    try {
-      await logoutUser(sessionToken);
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
-    // stop processing things
-    Cookies.remove("session"); // remove session cookie
-    // call Auth Endpoint for logout
-    navigate("/"); // Use the path you defined in your Routes
+    dispatch(logout()); // Call Redux logout action
+    navigate("/"); // Redirect to login
   };
 
   const handleSettings = () => {

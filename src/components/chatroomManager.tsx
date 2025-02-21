@@ -44,7 +44,7 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({
     const fetchData = async () => {
       try {
         console.log("Fetching UUID...");
-        const userUUID = await getUUID(sessionImport); // Call function to get user UUID
+        const userUUID = await getUUID(); // Call function to get user UUID
 
         if (userUUID) {
           // If a UUID is returned

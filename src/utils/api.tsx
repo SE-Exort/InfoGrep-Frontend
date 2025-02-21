@@ -63,12 +63,12 @@ export const authenticateUser = async (
   }
 };
 
-export const getUUID = async (sessionToken: string): Promise<string | null> => {
+export const getUUID = async (): Promise<string | null> => {
   try {
     const response = await fetch(`${AUTH_API_BASE_URL}/check?`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionToken }),
+      credentials: "include",
     });
     if (!response.ok) throw new Error("Request failed");
     const data = await response.json();
@@ -80,12 +80,12 @@ export const getUUID = async (sessionToken: string): Promise<string | null> => {
   }
 };
 
-export const logoutUser = async (sessionToken: string): Promise<void> => {
+export const logoutUser = async (): Promise<void> => {
   try {
     const response = await fetch(`${AUTH_API_BASE_URL}/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionToken }),
+      credentials: "include",
     });
     if (!response.ok) {
       throw new Error("Request failed");

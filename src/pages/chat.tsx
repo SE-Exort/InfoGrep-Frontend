@@ -93,13 +93,13 @@ function Chat() {
     }
     if (session) {
       console.log("ChatSession:", session);
-      getUUID(session);
+      getUUID();
     }
   }, [session]);
 
   useEffect(() => {
     if (session) {
-      getUUID(session).then((id) => id && setUUID(id));
+      getUUID().then((id) => id && setUUID(id));
     } else if (location.state?.sessionID) {
       setSession(location.state.sessionID);
     } else {
@@ -135,7 +135,7 @@ function Chat() {
           bgcolor={"grey.200"}
           height="100vh"
         >
-          <SettingsBar sessionToken={session} uuid={uuid} />
+          <SettingsBar />
           <ChatroomManager
             sessionImport={session}
             setChatroom={setCurrentChatroom}
