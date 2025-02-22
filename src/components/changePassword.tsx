@@ -14,11 +14,13 @@ import {
 interface ChangePasswordDialogProps {
   open: boolean;
   onClose: () => void;
+  sessionImport: string;
 }
 
 const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
   open,
   onClose,
+  sessionImport,
 }) => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -32,30 +34,32 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
       setError("New password and confirmation do not match.");
       return;
     }
-
+    if (newPassword === "") {
+      setError("Please enter a valid password");
+      return;
+    }
     setError(null);
     setLoading(true);
 
     try {
-    //   // Replace URL
-    //   const response = await fetch("http://localhost:4000/api/change_password", {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //       currentPassword,
-    //       newPassword,
-    //     }),
-    //   });
 
-    //   const data = await response.json();
-    //   if (!response.ok) {
-    //     setError(data.message || "Error changing password.");
-    //   } else {
+      const response = await fetch("http://localhost:4000/user?sessionToken=" + sessionImport, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          password: newPassword
+        }),
+      });
 
-    //     onClose();
-    //   }
+      const data = await response.json();
+      if (data.error === false) {
+
+        setError("Password updated successfully!");
+      } else {
+        console.warn("Unexpected response:", data.status);
+      }
     } catch (err) {
       setError("An error occurred. Please try again.");
     }
@@ -67,13 +71,13 @@ const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
       <DialogTitle>Change Password</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-          <TextField
+          {/* <TextField
             type="password"
             label="Current Password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             fullWidth
-          />
+          /> */}
           <TextField
             type="password"
             label="New Password"

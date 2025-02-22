@@ -45,7 +45,7 @@ const SettingsBar = ({ sessionToken, uuid }: { sessionToken: string, uuid: strin
         justifyContent: 'space-between', 
         mt: 2
       }}>
-        <IconButton onClick={() => navigate("/settings")}>
+        <IconButton onClick={() => navigate("/settings", { state: { sessionToken } })}>
           <SettingsIcon />
         </IconButton>
         <IconButton onClick={handleLogout}>
