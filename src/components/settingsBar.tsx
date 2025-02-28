@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -7,9 +6,6 @@ import { useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
 const SettingsBar = ({ sessionToken, uuid }: { sessionToken: string, uuid: string }) => {
-  const [count, setCount] = useState(0);
-
-  const [fontSize, setFontSize] = useState(16);
   const navigate = useNavigate();
 
   const handleLogout = async () => {

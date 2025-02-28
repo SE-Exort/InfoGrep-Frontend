@@ -1,19 +1,13 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import {
   Box,
   Button,
-  TextField,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
   Divider,
 } from "@mui/material";
-import { Delete, UploadFile, Inventory2 } from "@mui/icons-material";
+import { UploadFile, Inventory2 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import Chatroom from "../components/chatroom";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
@@ -25,7 +19,6 @@ import {
   MessageInput,
   MessageModel,
 } from "@chatscope/chat-ui-kit-react";
-import { current } from "@reduxjs/toolkit";
 import FileManager from "../components/fileManager";
 import { SettingsContext } from "../context/SettingsContext";
 
@@ -81,7 +74,7 @@ const Chat = () => {
       fontSize,
     },
   });
-  const refetchMessages = async () => {
+  const refetchMessages = useCallback(async () => {
     // refetch messages
     const data = await fetch('http://127.0.0.1:8003/api/room?' + new URLSearchParams({
       'chatroom_uuid': currentChatroom,
@@ -102,13 +95,13 @@ const Chat = () => {
       console.log("refetched msgs", newMessagesArr);
       setMessages(newMessagesArr);
     })
-  };
+  }, [currentChatroom, session]);
 
   useEffect(() => {
     if (currentChatroom && session) {
       refetchMessages();
     }
-  }, [currentChatroom, session])
+  }, [currentChatroom, refetchMessages, session])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -125,19 +118,9 @@ const Chat = () => {
         navigate('/')
       };
     }
-  }, [location]);
+  }, [location, navigate, session]);
 
-  useEffect(() => {
-    // Set the session cookie whenever the session state changes
-    if (session) {
-    }
-    if (session) {
-      console.log("ChatSession:", session);
-      getUUID();
-    }
-  }, [session]);
-
-  const getUUID = async () => {
+  const getUUID = useCallback(async () => {
     try {
       const sessionToken = session;
       const response = await fetch(`http://localhost:4000/check`, {
@@ -159,7 +142,19 @@ const Chat = () => {
     } catch (error) {
       console.error("UUID error:", error);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    // Set the session cookie whenever the session state changes
+    if (session) {
+    }
+    if (session) {
+      console.log("ChatSession:", session);
+      getUUID();
+    }
+  }, [getUUID, session]);
+
+  
 
   const handleFileUpload = () => {
     // Handle file upload logic here

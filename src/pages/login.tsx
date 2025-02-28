@@ -1,5 +1,5 @@
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { loadSlim } from "@tsparticles/slim"; // if you are going to use `loadSlim`, install the "@tsparticles/slim" package too.
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import logo from "../logo.png";
@@ -18,35 +18,15 @@ function Login() {
     // if we want to check emails later
   }
 
-  const checkPassword = () => {
-    const minLength = 8;
-    const hasNumber = /\d/;
-    const hasLetter = /[a-zA-Z]/;
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/;
-
-    if (password.length < minLength) {
-      throw new Error('Password must be at least 8 characters long');
-    }
-    if (!hasNumber.test(password)) {
-      throw new Error('Password must contain at least one number');
-    }
-    if (!hasLetter.test(password)) {
-      throw new Error('Password must contain at least one letter');
-    }
-    if (!hasSpecialChar.test(password)) {
-      throw new Error('Password must contain at least one special character');
-    }
-  }
-
   const handleSignIn = async (type: string, e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault(); // Prevent form from submitting normally
 
     try {
       checkEmail();
       // checkPassword();
-      if(type=="register" && (username == '' || password == '')){
+      if (type === "register" && (username === '' || password === '')) {
         throw new Error('Please fill out all fields');
-      } 
+      }
       console.log(JSON.stringify({ username, password }));
       const response = await fetch(`http://localhost:4000/${type}`, {
         method: 'POST',
@@ -59,7 +39,7 @@ function Login() {
       if (!response.ok) {
         throw new Error('Request failed');
       }
-      
+
       const data = await response.json();
 
       if (data.error) {
@@ -78,6 +58,14 @@ function Login() {
     }
   };
 
+  const navigate = useNavigate();
+
+  const goToChat = useCallback(() => {
+    // navigate('/admin', { state: { sessionID: session } }); // Use the path you defined in your Routes
+    navigate('/chat', { state: { sessionID: session } }); // Use the path you defined in your Routes
+    // pass session to chat
+  }, [navigate, session]);
+
   // this should be run only once per application lifetime
   useEffect(() => {
     initParticlesEngine(async (engine) => {
@@ -95,7 +83,7 @@ function Login() {
     if (session !== '') {
       goToChat();
     }
-  }, []);
+  }, [goToChat, session]);
 
   const options = useMemo(
     () => ({
@@ -609,20 +597,12 @@ function Login() {
     []
   );
 
-  const navigate = useNavigate();
-
   useEffect(() => {
-    if (session !== ''){
+    if (session !== '') {
       Cookies.set('session', session, { expires: 7 }); // Cookie expires in 7 days
       goToChat();
     }
-  }, [session]);
-
-  const goToChat = () => {
-    // navigate('/admin', { state: { sessionID: session } }); // Use the path you defined in your Routes
-    navigate('/chat', { state: { sessionID: session } }); // Use the path you defined in your Routes
-    // pass session to chat
-  };
+  }, [goToChat, session]);
 
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(event.target.value);
@@ -641,7 +621,7 @@ function Login() {
       ></img>
       <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
         <Button variant="contained" color='primary' onClick={goToChat}>Go to Chat</Button>
-      </Box>  
+      </Box>
       <Box
         display="flex"
         justifyContent="center"
@@ -650,40 +630,40 @@ function Login() {
       >
         {init && <Particles id="tsparticles" options={options as any} />}
         <Paper
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 20,
-          padding: 50,
-          zIndex: 99,
-        }}
-      >
-        <Typography variant="h4" fontWeight="bold" marginBottom={5}>
-          Welcome to InfoGrep
-        </Typography>
-        <TextField
-          label="Email"
-          variant="filled"
-          placeholder="Enter username here.."
-          value={username}
-          onChange={handleUsernameChange}
-        />
-        <TextField
-          label="Password"
-          type="password"
-          variant="filled"
-          placeholder="Enter password here.."
-          value={password}
-          error={passwordError}
-          helperText={passwordErrorDesc}
-          onChange={handlePasswordChange}
-        />
-  
-        <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
-          <Button variant="contained" color='primary' onClick={(e) => handleSignIn("login", e)}>Login</Button>
-          <Button variant="contained" color='secondary' onClick={(e) => handleSignIn("register", e)}>Sign up</Button>
-        </Box>
-      </Paper>
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 20,
+            padding: 50,
+            zIndex: 99,
+          }}
+        >
+          <Typography variant="h4" fontWeight="bold" marginBottom={5}>
+            Welcome to InfoGrep
+          </Typography>
+          <TextField
+            label="Email"
+            variant="filled"
+            placeholder="Enter username here.."
+            value={username}
+            onChange={handleUsernameChange}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="filled"
+            placeholder="Enter password here.."
+            value={password}
+            error={passwordError}
+            helperText={passwordErrorDesc}
+            onChange={handlePasswordChange}
+          />
+
+          <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
+            <Button variant="contained" color='primary' onClick={(e) => handleSignIn("login", e)}>Login</Button>
+            <Button variant="contained" color='secondary' onClick={(e) => handleSignIn("register", e)}>Sign up</Button>
+          </Box>
+        </Paper>
       </Box>
     </>
   );

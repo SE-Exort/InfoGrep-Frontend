@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Divider } from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Box, Button, List, ListItem, ListItemText, IconButton } from '@mui/material';
 import { Delete, Add, Menu } from '@mui/icons-material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 interface Chatroom {
   CHATROOM_UUID: string;
@@ -18,7 +17,6 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
   const [chatrooms, setChatrooms] = useState<Chatroom[]>([]);
   const [minimized, setMinimized] = useState<boolean>(false);
   const [selectedChatroom, setSelectedChatroom] = useState<string>('');
-  const [currentChatRoom, setCurrentChatRoom] = useState<string>('');
 
   const handleSelectChatroom = (id:string) => {
     setSelectedChatroom(id);
@@ -29,7 +27,7 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
     minimized ? setMinimized(false) : setMinimized(true);
   };
 
-  const getUUID = async () => {
+  const getUUID = useCallback(async () => {
     try {
       const sessionToken = session;
       console.log(JSON.stringify({ sessionToken }));
@@ -52,7 +50,7 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
     } catch (error) {
       console.error('UUID error:', error);
     }
-  };
+  }, [session]);
 
   const newChatroom = async () => {
     try {
@@ -88,21 +86,15 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
 
   useEffect(() => {
     setSession(sessionImport);
-  }, []);
+  }, [sessionImport]);
 
   useEffect(() => {
     if(session){
       getUUID();
     }
-  }, [session]);
+  }, [getUUID, session]);
 
-  useEffect(() => {
-    if(uuid){
-      getChatrooms();
-    }
-  }, [uuid]);
-
-  const getChatrooms = async () => {
+  const getChatrooms = useCallback(async () => {
     try {
       const cookie = session;
       const response = await fetch(`http://localhost:8003/api/rooms?` + new URLSearchParams({ cookie }).toString());
@@ -122,7 +114,15 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
     } catch (error) {
       console.error('Chatroom grep error:', error);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    if(uuid){
+      getChatrooms();
+    }
+  }, [getChatrooms, uuid]);
+
+  
 
   const deleteChatroom = async (chatroom_uuid: string) => {
     try {
