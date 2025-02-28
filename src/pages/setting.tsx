@@ -10,12 +10,17 @@ import {
   Switch,
   Button,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useLocation,useNavigate } from "react-router-dom";
 import { SettingsContext } from "../context/SettingsContext";
 import ChangePasswordDialog from "../components/changePassword";
 
 const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
+
+  const location = useLocation();
+
+  const session = location.state?.sessionToken;
+  
   const { darkMode, setDarkMode, fontSize, setFontSize } = useContext(SettingsContext);
 
   const handleDarkModeToggle = () => {
@@ -117,6 +122,7 @@ const SettingsPage: React.FC = () => {
     <ChangePasswordDialog
         open={openChangePassword}
         onClose={() => setOpenChangePassword(false)}
+        sessionImport={session}
       />
     </>
   );
