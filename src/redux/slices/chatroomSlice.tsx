@@ -7,39 +7,38 @@ import {
 } from "../../utils/api";
 import { RootState } from "../store";
 
-// **Define Chatroom State**
 interface ChatroomState {
   chatrooms: Chatroom[];
-  currentChatroom: string;
-  minimized: boolean; //ui state for minimizing panel
+  selectedChatroom: string;
+  loading: boolean;
+  error: string | null;
 }
 
 const initialState: ChatroomState = {
   chatrooms: [],
-  currentChatroom: "",
-  minimized: false, // Default state is expanded
+  selectedChatroom: "",
+  loading: false,
+  error: null,
 };
 
-// **Thunk to Fetch Chatrooms**
 export const fetchChatroomsThunk = createAsyncThunk(
-  "chatroom/fetchChatrooms",
+  "chatrooms/fetchChatrooms",
   async (_, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
-    const session = state.auth.session;
+    const session = state.auth.session; // Get session from Redux
 
     if (!session) return rejectWithValue("No session found");
 
     try {
       return await fetchChatrooms(session);
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue("Failed to fetch chatrooms");
     }
   }
 );
 
-// **Thunk to Create a Chatroom**
 export const createChatroomThunk = createAsyncThunk(
-  "chatroom/createChatroom",
+  "chatrooms/createChatroom",
   async (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
@@ -48,17 +47,18 @@ export const createChatroomThunk = createAsyncThunk(
 
     try {
       const newChatroomUUID = await createChatroom(session);
-      dispatch(fetchChatroomsThunk()); // Refresh chatroom list after creation
+      if (newChatroomUUID) {
+        dispatch(fetchChatroomsThunk()); // Refresh chatrooms after creation
+      }
       return newChatroomUUID;
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue("Failed to create chatroom");
     }
   }
 );
 
-// **Thunk to Delete a Chatroom**
 export const deleteChatroomThunk = createAsyncThunk(
-  "chatroom/deleteChatroom",
+  "chatrooms/deleteChatroom",
   async (chatroomUUID: string, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
@@ -66,41 +66,45 @@ export const deleteChatroomThunk = createAsyncThunk(
     if (!session) return rejectWithValue("No session found");
 
     try {
-      await deleteChatroom(chatroomUUID, session);
-      dispatch(fetchChatroomsThunk()); // Refresh chatroom list after deletion
+      await deleteChatroom(session, chatroomUUID);
+      dispatch(fetchChatroomsThunk()); // Refresh chatrooms after deletion
     } catch (error) {
-      return rejectWithValue(error);
+      return rejectWithValue("Failed to delete chatroom");
     }
   }
 );
 
+// Create Redux Slice
 const chatroomSlice = createSlice({
-  name: "chatroom",
+  name: "chatrooms",
   initialState,
   reducers: {
-    setCurrentChatroom: (state, action: PayloadAction<string>) => {
-      state.currentChatroom = action.payload;
-    },
-    toggleMinimize: (state) => {
-      state.minimized = !state.minimized;
+    setSelectedChatroom: (state, action: PayloadAction<string>) => {
+      state.selectedChatroom = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder
+      .addCase(fetchChatroomsThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchChatroomsThunk.fulfilled, (state, action) => {
+        state.loading = false;
         state.chatrooms = action.payload;
       })
-      .addCase(fetchChatroomsThunk.rejected, (_, action) => {
-        console.error("Fetch Chatrooms Error:", action.payload);
+      .addCase(fetchChatroomsThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       })
-      .addCase(createChatroomThunk.rejected, (_, action) => {
-        console.error("Create Chatroom Error:", action.payload);
+      .addCase(createChatroomThunk.rejected, (state, action) => {
+        state.error = action.payload as string;
       })
-      .addCase(deleteChatroomThunk.rejected, (_, action) => {
-        console.error("Delete Chatroom Error:", action.payload);
+      .addCase(deleteChatroomThunk.rejected, (state, action) => {
+        state.error = action.payload as string;
       });
   },
 });
 
-export const { setCurrentChatroom, toggleMinimize } = chatroomSlice.actions;
+export const { setSelectedChatroom } = chatroomSlice.actions;
 export default chatroomSlice.reducer;

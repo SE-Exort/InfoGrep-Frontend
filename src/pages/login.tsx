@@ -10,15 +10,20 @@ import {
   setUsername,
   clearAuthError,
 } from "../redux/slices/authSlice";
+import {
+  selectSession,
+  selectUsername,
+  selectAuthError,
+} from "../redux/selectors";
 
 function Login() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
 
   // Redux state
-  const session = useSelector((state: RootState) => state.auth.session);
-  const username = useSelector((state: RootState) => state.auth.username);
-  const authError = useSelector((state: RootState) => state.auth.authError);
+  const session = useSelector(selectSession);
+  const username = useSelector(selectUsername);
+  const authError = useSelector(selectAuthError);
   const [password, setPassword] = React.useState("");
 
   // Redirect if session exists

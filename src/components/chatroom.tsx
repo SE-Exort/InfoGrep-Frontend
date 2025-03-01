@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 // Left side of the screen
 const Chatroom = () => {
@@ -11,7 +11,7 @@ const Chatroom = () => {
 
   // Component render
   // need Settings component
-  // 
+  //
   return (
     <div>
       <h1>Hello, World!</h1>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Button,
@@ -8,112 +8,59 @@ import {
   IconButton,
 } from "@mui/material";
 import { Delete, Add, Menu } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../redux/store";
 import {
-  fetchChatrooms,
-  createChatroom,
-  deleteChatroom,
-  getUUID,
-  Chatroom,
-} from "../utils/api";
+  fetchChatroomsThunk,
+  createChatroomThunk,
+  deleteChatroomThunk,
+  setSelectedChatroom,
+} from "../redux/slices/chatroomSlice";
+import { fetchUUIDThunk } from "../redux/slices/authSlice";
+import {
+  selectChatrooms,
+  selectSelectedChatroom,
+  selectChatroomLoading,
+  selectChatroomError,
+  selectSession,
+  selectUUID,
+} from "../redux/selectors";
 
-interface ChatroomManagerProps {
-  sessionImport: string;
-  setChatroom: React.Dispatch<React.SetStateAction<string>>;
-}
+const ChatroomManager: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
 
-const ChatroomManager: React.FC<ChatroomManagerProps> = ({
-  sessionImport,
-  setChatroom,
-}) => {
-  const [uuid, setUUID] = useState<string>("");
-  const [chatrooms, setChatrooms] = useState<Chatroom[]>([]);
-  const [minimized, setMinimized] = useState<boolean>(false);
-  const [selectedChatroom, setSelectedChatroom] = useState<string>("");
+  // Redux data
+  const chatrooms = useSelector(selectChatrooms);
+  const selectedChatroom = useSelector(selectSelectedChatroom);
+  const loading = useSelector(selectChatroomLoading);
+  const error = useSelector(selectChatroomError);
+  const session = useSelector(selectSession);
+  const uuid = useSelector(selectUUID); // Get UUID from Redux
+
+  const [minimized, setMinimized] = React.useState(false);
+
+  // Fetch UUID if its missing
+  useEffect(() => {
+    if (session && !uuid) {
+      dispatch(fetchUUIDThunk()); // Get UUID from Redux
+    }
+  }, [session, uuid, dispatch]);
+
+  // Fetch chatrooms
+  useEffect(() => {
+    if (uuid) {
+      dispatch(fetchChatroomsThunk());
+    }
+  }, [uuid, dispatch]);
 
   const handleSelectChatroom = (id: string) => {
-    setSelectedChatroom(id);
-    setChatroom(id);
+    dispatch(setSelectedChatroom(id));
   };
 
   const minimizePanel = () => {
-    minimized ? setMinimized(false) : setMinimized(true);
+    setMinimized(!minimized);
   };
 
-  // First useEffect: Fetch UUID when sessionImport changes
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        console.log("Fetching UUID...");
-        const userUUID = await getUUID(); // Call function to get user UUID
-
-        if (userUUID) {
-          // If a UUID is returned
-          setUUID(userUUID); // Update state with the new UUID
-          console.log("UUID fetched successfully:", userUUID);
-        }
-      } catch (error) {
-        console.error("Error fetching UUID:", error); // Log any errors
-      }
-    };
-
-    fetchData(); // Execute fetch function
-  }, [sessionImport]); // Runs only when sessionImport changes
-
-  // Second useEffect: Fetch chatrooms when UUID is set
-  useEffect(() => {
-    if (uuid) {
-      // Ensure UUID exists before fetching chatrooms
-      console.log("Fetching chatrooms...");
-
-      fetchChatrooms(sessionImport) // Call function to fetch chatrooms
-        .then((rooms) => {
-          setChatrooms(rooms); // Update state with fetched chatrooms
-          console.log("Chatrooms fetched successfully:", rooms);
-        })
-        .catch((error) => console.error("Error fetching chatrooms:", error)); // Log any errors
-    }
-  }, [uuid]); // Runs only when uuid changes (after it's fetched)
-
-  // Function to create a new chatroom
-  const newChatroom = async () => {
-    try {
-      console.log("Creating chatroom...");
-
-      // Call API to create a new chatroom and get its UUID
-      const newRoomID = await createChatroom(sessionImport);
-
-      if (newRoomID) {
-        // If a new chatroom was successfully created
-        console.log("Chatroom created successfully:", newRoomID);
-
-        setChatroom(newRoomID); // Update the selected chatroom state
-        handleSelectChatroom(newRoomID); // Select the newly created chatroom
-
-        console.log("Fetching updated chatrooms...");
-        const updatedRooms = await fetchChatrooms(sessionImport); // Fetch the updated list of chatrooms
-        setChatrooms(updatedRooms); // Update chatrooms state
-        console.log("Chatrooms updated successfully:", updatedRooms);
-      }
-    } catch (error) {
-      console.error("Chatroom creation error:", error); // Log any errors
-    }
-  };
-
-  // Function to delete a chatroom
-  const handleDeleteChatroom = async (chatroom_uuid: string) => {
-    try {
-      // Call API to delete the chatroom with the given UUID
-      await deleteChatroom(sessionImport, chatroom_uuid);
-      console.log("Chatroom delete successful:", chatroom_uuid);
-
-      console.log("Fetching updated chatrooms...");
-      const updatedRooms = await fetchChatrooms(sessionImport); // Fetch the updated list of chatrooms
-      setChatrooms(updatedRooms); // Update chatrooms state
-      console.log("Chatrooms updated successfully:", updatedRooms);
-    } catch (error) {
-      console.error("Chatroom delete error:", error); // Log any errors
-    }
-  };
   return (
     <Box
       width={minimized ? `max(133px, 40%)` : "100%"}
@@ -126,53 +73,65 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({
         <Button variant="contained" color="primary" onClick={minimizePanel}>
           <Menu />
         </Button>
-        <Button variant="contained" color="primary" onClick={newChatroom}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => dispatch(createChatroomThunk())}
+        >
           <Add />
         </Button>
       </Box>
-      <List>
-        {chatrooms.map((cr, index) => (
-          <Box
-            key={cr.CHATROOM_UUID}
-            sx={{
-              bgcolor:
-                cr.CHATROOM_UUID !== selectedChatroom
-                  ? "secondary.main"
-                  : "rgb(0 0 0 / 23%)",
-              borderRadius: "4px",
-              mb: 1,
-              border:
-                cr.CHATROOM_UUID === selectedChatroom
-                  ? "2px solid #096908;"
-                  : "1px solid transparent",
-            }}
-          >
-            <ListItem
-              selected={cr.CHATROOM_UUID === selectedChatroom}
-              secondaryAction={
-                <IconButton
-                  edge="end"
-                  aria-label="delete"
-                  onClick={() => handleDeleteChatroom(cr.CHATROOM_UUID)}
-                >
-                  <Delete />
-                </IconButton>
-              }
-              onClick={() => handleSelectChatroom(cr.CHATROOM_UUID)}
+      {loading ? (
+        <p>Loading chatrooms...</p>
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
+      ) : (
+        <List>
+          {chatrooms.map((cr) => (
+            <Box
+              key={cr.CHATROOM_UUID}
+              sx={{
+                bgcolor:
+                  cr.CHATROOM_UUID !== selectedChatroom
+                    ? "secondary.main"
+                    : "rgb(0 0 0 / 23%)",
+                borderRadius: "4px",
+                mb: 1,
+                border:
+                  cr.CHATROOM_UUID === selectedChatroom
+                    ? "2px solid #096908;"
+                    : "1px solid transparent",
+              }}
             >
-              <ListItemText
-                primary={cr.CHATROOM_UUID}
-                sx={{
-                  color: "primary.contrastText",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              />
-            </ListItem>
-          </Box>
-        ))}
-      </List>
+              <ListItem
+                selected={cr.CHATROOM_UUID === selectedChatroom}
+                secondaryAction={
+                  <IconButton
+                    edge="end"
+                    aria-label="delete"
+                    onClick={() =>
+                      dispatch(deleteChatroomThunk(cr.CHATROOM_UUID))
+                    }
+                  >
+                    <Delete />
+                  </IconButton>
+                }
+                onClick={() => handleSelectChatroom(cr.CHATROOM_UUID)}
+              >
+                <ListItemText
+                  primary={cr.CHATROOM_NAME}
+                  sx={{
+                    color: "primary.contrastText",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                />
+              </ListItem>
+            </Box>
+          ))}
+        </List>
+      )}
     </Box>
   );
 };

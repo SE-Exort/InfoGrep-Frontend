@@ -1,9 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
+import chatroomReducer from "./slices/chatroomSlice";
+import chatReducer from "./slices/chatSlice";
+import fileReducer from "./slices/fileSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    chatroom: chatroomReducer,
+    chat: chatReducer,
+    file: fileReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

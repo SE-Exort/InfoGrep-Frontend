@@ -1,91 +1,93 @@
 import React, { useEffect } from "react";
 import {
   Box,
+  Button,
   List,
   ListItem,
   ListItemText,
   IconButton,
-  Typography,
-  Divider,
 } from "@mui/material";
-import { Delete, Download } from "@mui/icons-material";
+import { Delete, Download, PlayArrow } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../redux/store";
 import {
-  BackendFile,
-  fetchFileDownload,
-  deleteFile,
-  fetchFiles,
-} from "../utils/api";
+  fetchFilesThunk,
+  uploadFileThunk,
+  deleteFileThunk,
+  fetchFileDownloadThunk,
+  startParsingThunk,
+} from "../redux/slices/fileSlice";
+import {
+  selectFiles,
+  selectFileLoading,
+  selectFileError,
+} from "../redux/selectors";
 
 interface FileManagerProps {
   chatroom: string;
   sessionImport: string;
-  setFileList: React.Dispatch<React.SetStateAction<BackendFile[]>>;
-  fileList: BackendFile[];
+  fileList: any[];
 }
 
 const FileManager: React.FC<FileManagerProps> = ({
   chatroom,
   sessionImport,
-  setFileList,
   fileList,
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
+
+  const files = useSelector(selectFiles);
+  const loading = useSelector(selectFileLoading);
+  const error = useSelector(selectFileError);
+
   useEffect(() => {
-    // Fetch the file list when the component mounts
-    const loadFiles = async () => {
-      try {
-        const response = await fetchFiles(chatroom, sessionImport);
-        console.log("files", response);
-        setFileList(response);
-      } catch (error) {
-        console.error("Error loading files:", error);
-      }
-    };
-    loadFiles();
-  }, [chatroom, sessionImport, setFileList]);
-
-  const handleDelete = async (fileName: string) => {
-    try {
-      await deleteFile(chatroom, sessionImport, fileName);
-      setFileList(fileList.filter((file) => file.File_UUID !== fileName));
-    } catch (error) {
-      console.error("Error deleting file:", error);
+    if (chatroom) {
+      dispatch(fetchFilesThunk());
     }
-  };
-
-  const handleItemClick = async (file: BackendFile) => {
-    try {
-      console.log(`File clicked: ${file.File_Name}`);
-      await fetchFileDownload(chatroom, sessionImport, file);
-    } catch (error) {
-      console.error("Error downloading file:", error);
-    }
-  };
+  }, [chatroom, dispatch]);
 
   return (
-    <Box p={2} bgcolor="#eeeeee">
-      <Typography variant="h6">Files: </Typography>
-      <Divider />
+    <Box display="flex" flexDirection="column" gap={2}>
       <List>
-        {fileList.map((file, index) => (
-          <ListItem key={index} divider>
-            <ListItemText primary={file.File_Name} />
-            <IconButton
-              edge="end"
-              aria-label="download"
-              onClick={() => handleItemClick(file)}
-            >
-              <Download />
-            </IconButton>
-            <IconButton
-              edge="end"
-              aria-label="delete"
-              onClick={() => handleDelete(file.File_UUID)}
-            >
-              <Delete />
-            </IconButton>
-          </ListItem>
-        ))}
+        {loading ? (
+          <p>Loading files...</p>
+        ) : error ? (
+          <p style={{ color: "red" }}>{error}</p>
+        ) : (
+          files.map((file) => (
+            <ListItem key={file.File_UUID}>
+              <ListItemText primary={file.File_Name} />
+              <IconButton
+                onClick={() => dispatch(fetchFileDownloadThunk(file))}
+              >
+                <Download />
+              </IconButton>
+              <IconButton
+                onClick={() => dispatch(startParsingThunk(file.File_UUID))}
+              >
+                <PlayArrow />
+              </IconButton>
+              <IconButton
+                onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
+              >
+                <Delete />
+              </IconButton>
+            </ListItem>
+          ))
+        )}
       </List>
+      <Button variant="contained" component="label">
+        Upload File
+        <input
+          type="file"
+          hidden
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              dispatch(uploadFileThunk(e.target.files[0]));
+            }
+          }}
+        />
+      </Button>
     </Box>
   );
 };

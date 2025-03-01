@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Box, Button, Typography, Divider } from "@mui/material";
 import { UploadFile, Inventory2 } from "@mui/icons-material";
-import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
@@ -12,119 +11,66 @@ import {
   MessageList,
   Message,
   MessageInput,
-  MessageModel,
 } from "@chatscope/chat-ui-kit-react";
 import FileManager from "../components/fileManager";
-import {
-  fetchMessages,
-  fetchMessageDetails,
-  sendMessage,
-  getUUID,
-  uploadFile,
-  startParsing,
-  BackendFile,
-} from "../utils/api";
 import theme from "../style/theme";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "../redux/store";
+import {
+  fetchMessagesThunk,
+  sendMessageThunk,
+} from "../redux/slices/chatSlice";
+import { fetchFilesThunk } from "../redux/slices/fileSlice";
+import { fetchUUIDThunk } from "../redux/slices/authSlice";
+import {
+  selectSession,
+  selectMessages,
+  selectChatLoading,
+  selectSelectedChatroom,
+  selectFiles,
+  selectFileLoading,
+} from "../redux/selectors";
 
-function Chat() {
-  const navigate = useNavigate();
-  let location = useLocation();
-  const [session, setSession] = useState<string>("");
-  const [uuid, setUUID] = useState<string>("");
-  const [messages, setMessages] = useState<MessageModel[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentChatroom, setCurrentChatroom] = useState<string>("");
-  const [fileList, setFileList] = useState<BackendFile[]>([]);
-  const [fileListShowing, setFileListShowing] = useState<boolean>(false);
+const Chat: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
 
-  const refetchMessages = async () => {
-    if (!currentChatroom || !session) return;
-    const messageList = await fetchMessages(currentChatroom, session);
-    const newMessagesArr: MessageModel[] = [];
-
-    for (const { Message_UUID, User_UUID } of messageList) {
-      const actualMsg = await fetchMessageDetails(
-        currentChatroom,
-        Message_UUID,
-        session
-      );
-      newMessagesArr.push({
-        message: actualMsg,
-        direction:
-          User_UUID === "00000000-0000-0000-0000-000000000000"
-            ? "incoming"
-            : "outgoing",
-        sender:
-          User_UUID === "00000000-0000-0000-0000-000000000000"
-            ? "InfoGrep"
-            : "You",
-        position: "single",
-      });
-    }
-    setMessages(newMessagesArr);
-  };
-
-  useEffect(() => {
-    if (currentChatroom && session) {
-      refetchMessages();
-    }
-  }, [currentChatroom, session]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false); // This will switch to the main content after 2 seconds
-    }, 1000);
-    return () => clearTimeout(timer); // Cleanup the timer
-  }, []); // Empty dependency array means this effect runs once on mount
-
-  useEffect(() => {
-    if (session === "") {
-      if (location.state && location.state.sessionID) {
-        setSession(location.state.sessionID);
-      } else {
-        navigate("/");
-      }
-    }
-  }, [location]);
-
-  useEffect(() => {
-    // Set the session cookie whenever the session state changes
-    if (session) {
-    }
-    if (session) {
-      console.log("ChatSession:", session);
-      getUUID();
-    }
-  }, [session]);
+  // Redux
+  const session = useSelector(selectSession);
+  // const uuid = useSelector((state: RootState) => state.auth.uuid);
+  const messages = useSelector(selectMessages);
+  const loading = useSelector(selectChatLoading);
+  const currentChatroom = useSelector(selectSelectedChatroom);
+  const fileList = useSelector(selectFiles);
+  const fileListShowing = useSelector(selectFileLoading);
 
   useEffect(() => {
     if (session) {
-      getUUID().then((id) => id && setUUID(id));
-    } else if (location.state?.sessionID) {
-      setSession(location.state.sessionID);
-    } else {
-      navigate("/");
+      dispatch(fetchUUIDThunk()); // Get user UUID
     }
-  }, [session, location, navigate]);
+    if (currentChatroom) {
+      dispatch(fetchMessagesThunk()); // Load chat messages
+      dispatch(fetchFilesThunk()); // Load files for the chatroom
+    }
+  }, [session, currentChatroom, dispatch]);
 
   const handleFileUpload = () => {
-    // Handle file upload logic here
     console.log("File uploaded");
   };
 
   const handleFileListButton = () => {
-    setFileListShowing(!fileListShowing);
+    // Toggle file list visibility
+    console.log("Toggle file list");
   };
 
   if (loading) {
-    return <div>Loading...</div>; // Display loading screen
+    return <div>Loading...</div>;
   }
 
   console.log("render: ", messages);
-  const msgComponents = messages.map((a) => (
-    <Message model={a} key={a.message} />
+  const msgComponents = messages.map((msg, index) => (
+    <Message model={{ ...msg, position: "single" }} key={index} />
   ));
-  console.log(msgComponents);
+
   return (
     <ThemeProvider theme={theme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
@@ -136,14 +82,10 @@ function Chat() {
           height="100vh"
         >
           <SettingsBar />
-          <ChatroomManager
-            sessionImport={session}
-            setChatroom={setCurrentChatroom}
-          />
+          <ChatroomManager />
         </Box>
 
         <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
-          {/* File manager */}
           <Box
             bgcolor="#e0e0e0"
             p={2}
@@ -166,23 +108,9 @@ function Chat() {
                 <input
                   type="file"
                   hidden
-                  onChange={async (e) => {
+                  onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
-                      const file = e.target.files[0];
-                      const fileId = await uploadFile(
-                        currentChatroom,
-                        session,
-                        file
-                      );
-                      console.log("got file id " + fileId);
-                      if (fileId) {
-                        const parseResult = await startParsing(
-                          currentChatroom,
-                          session,
-                          fileId
-                        );
-                        console.log("Parse result" + parseResult);
-                      }
+                      console.log("Uploading file", e.target.files[0]);
                     }
                   }}
                 />
@@ -198,7 +126,7 @@ function Chat() {
               </Button>
             </Box>
           </Box>
-          {/* Chat messages */}
+
           <div
             style={{
               position: "relative",
@@ -214,18 +142,8 @@ function Chat() {
                 <MessageList>{msgComponents}</MessageList>
                 <MessageInput
                   placeholder="Type message here"
-                  onSend={async (msg) => {
-                    // send to our chatroom service
-                    setMessages([
-                      ...messages,
-                      {
-                        message: msg,
-                        direction: "outgoing",
-                        position: "single",
-                      },
-                    ]);
-                    await sendMessage(currentChatroom, session, msg);
-                    refetchMessages();
+                  onSend={(msg) => {
+                    dispatch(sendMessageThunk(msg));
                   }}
                 />
               </ChatContainer>
@@ -234,7 +152,6 @@ function Chat() {
               <FileManager
                 chatroom={currentChatroom}
                 sessionImport={session}
-                setFileList={setFileList}
                 fileList={fileList}
               />
             )}
@@ -243,6 +160,6 @@ function Chat() {
       </Box>
     </ThemeProvider>
   );
-}
+};
 
 export default Chat;

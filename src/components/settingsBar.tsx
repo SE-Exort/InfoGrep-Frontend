@@ -1,20 +1,20 @@
-import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../redux/store";
+import { AppDispatch } from "../redux/store";
 import { logout } from "../redux/slices/authSlice";
+import { selectSession, selectUUID } from "../redux/selectors";
 
 const SettingsBar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
 
   // Fetch session & uuid from Redux
-  const session = useSelector((state: RootState) => state.auth.session);
-  const uuid = useSelector((state: RootState) => state.auth.uuid);
+  const session = useSelector(selectSession);
+  const uuid = useSelector(selectUUID);
 
   const handleLogout = async () => {
     dispatch(logout()); // Call Redux logout action
