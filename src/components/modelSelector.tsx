@@ -1,0 +1,104 @@
+
+import React, { useEffect, useState } from "react";
+import {
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Box,
+    Button,
+    Select,
+    MenuItem,
+    InputLabel,
+    FormControl,
+    TextField,
+} from "@mui/material";
+
+interface ModelSelectorDialogProps {
+    open: boolean;
+    onClose: () => void;
+    newChatroom: Function;
+}
+
+interface Model {
+    provider: string;
+    model: string;
+}
+
+const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
+    open,
+    onClose,
+    newChatroom
+}) => {
+    const [loading, setLoading] = useState(false);
+    const [chatModel, setChatModel] = useState<Model[]>([]);
+    const [chatroomName, setChatroomName] = useState('');
+    const [selectedChatModel, setSelectedChatModel] = useState('');
+    const [embeddingModel, setEmbeddingModel] = useState<Model[]>([]);
+    const [selectedEmbeddingModel, setSelectedEmbeddingModel] = useState('');
+    const handleSubmit = async () => {
+        newChatroom(chatroomName, selectedChatModel, selectedEmbeddingModel);
+        onClose();
+    };
+
+    useEffect(() => {
+        const fetchModels = async () => {
+            setLoading(true);
+            console.log('fetching model list..')
+            const response = await fetch("http://localhost:8004/api/models", {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            });
+
+            const data = await response.json();
+            console.log(data)
+            if (!data.error) {
+                setChatModel(data.data.chat);
+                setEmbeddingModel(data.data.embedding);
+            } else {
+                console.warn("Unexpected response:", data.status);
+            }
+            setLoading(false);
+        }
+        fetchModels();
+    }, []);
+
+    return (
+        <Dialog open={open} onClose={onClose} fullWidth>
+            <DialogTitle>New FlowZone</DialogTitle>
+            <DialogContent>
+                <Box display='flex' p={1} flexDirection='column' gap={2}>
+                    <TextField
+                        label="Zone Name"
+                        value={chatroomName}
+                        onChange={(e) => setChatroomName(e.target.value)}
+                    />
+                    <TextField
+                        label="Chat Model"
+                        value={selectedChatModel}
+                        select
+                        onChange={(e) => setSelectedChatModel(e.target.value)}
+                    >
+                        {chatModel.map(m => <MenuItem key={m.model} value={m.model}>{m.model}</MenuItem>)}
+                    </TextField>
+                    <TextField
+                        value={selectedEmbeddingModel}
+                        label="Embedding Model"
+                        select
+                        onChange={(e) => setSelectedEmbeddingModel(e.target.value)}
+                    >
+                        {embeddingModel.map(m => <MenuItem key={m.model} value={m.model}>{m.model}</MenuItem>)}
+                    </TextField>
+                </Box>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleSubmit} variant="contained" disabled={loading}>
+                    {loading ? "Saving..." : "Create"}
+                </Button>
+            </DialogActions>
+        </Dialog>
+    );
+};
+
+export default ModelSelectorDialog;

@@ -21,6 +21,7 @@ import {
 } from "@chatscope/chat-ui-kit-react";
 import FileManager from "../components/fileManager";
 import { SettingsContext } from "../context/SettingsContext";
+import { current } from "@reduxjs/toolkit";
 
 
 interface BackendFile {
@@ -38,30 +39,30 @@ const Chat = () => {
   const [messages, setMessages] = useState<MessageModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentChatroom, setCurrentChatroom] = useState<string>("");
+  const [currentChatroomName, setChatroomName] = useState<string>("");
   const [fileList, setFileList] = useState<BackendFile[]>([]);
   const [fileListShowing, setFileListShowing] = useState<boolean>(false);
 
   const { darkMode, fontSize } = useContext(SettingsContext);
   const theme = createTheme({
     palette: {
-      mode:'light',
+      mode: 'light',
       primary: {
         main: "#9feeba",
       },
       secondary: {
         main: "#cfedd9",
       },
-      
+
       // Add more colors as needed
     },
     typography: {
-
       fontSize,
     },
   });
   const darkTheme = createTheme({
     palette: {
-      mode:'dark',
+      mode: 'dark',
       primary: {
         main: '#518764',
       },
@@ -91,10 +92,9 @@ const Chat = () => {
         sender: User_UUID === CHATBOT_UUID ? 'InfoGrep' : 'You',
         position: 'single',
       })
-      
-      console.log("refetched msgs", newMessagesArr);
-      setMessages(newMessagesArr);
     })
+    console.log("refetched msgs", newMessagesArr);
+    setMessages(newMessagesArr);
   }, [currentChatroom, session]);
 
   useEffect(() => {
@@ -154,7 +154,7 @@ const Chat = () => {
     }
   }, [getUUID, session]);
 
-  
+
 
   const handleFileUpload = () => {
     // Handle file upload logic here
@@ -191,6 +191,7 @@ const Chat = () => {
           <ChatroomManager
             sessionImport={session}
             setChatroom={setCurrentChatroom}
+            setChatroomName={setChatroomName}
           />
         </Box>
 
@@ -205,7 +206,7 @@ const Chat = () => {
             alignItems="center"
             justifyContent="space-between"
           >
-            <Typography variant="h6" style={{ flexGrow: 1 }}>{currentChatroom}</Typography>
+            <Typography variant="h6" style={{ flexGrow: 1 }}>{currentChatroomName}</Typography>
             <Box display="flex" gap={2}>
               <Button
                 variant="contained"
@@ -251,7 +252,7 @@ const Chat = () => {
           <div style={{ position: "relative", flexGrow: 1, display: 'flex', flexDirection: "row" }}>
             <MainContainer style={{ flex: fileListShowing ? '0 0 70%' : '1 1 auto' }}>
               <ChatContainer>
-                <MessageList  style={{backgroundColor: darkMode ? '#6b7572' : '#f0f0f0'}}>
+                <MessageList style={{ backgroundColor: darkMode ? '#6b7572' : '#f0f0f0' }}>
                   {msgComponents}
                 </MessageList>
                 <MessageInput placeholder="Type message here" onSend={async (msg) => {
