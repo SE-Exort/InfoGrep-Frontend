@@ -6,7 +6,6 @@ import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import Login from "./pages/login";
 import Chat from "./pages/chat";
-import { SettingsProvider } from "./context/SettingsContext";
 import { StyledEngineProvider } from "@mui/material/styles";
 import "./style/index.css";
 
@@ -26,9 +25,7 @@ const router = createBrowserRouter([
 root.render(
   <Provider store={store}>
     <StyledEngineProvider injectFirst>
-      <SettingsProvider>
         <RouterProvider router={router} />
-      </SettingsProvider>
     </StyledEngineProvider>
   </Provider>
 );
