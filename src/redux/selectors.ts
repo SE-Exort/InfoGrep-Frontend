@@ -20,5 +20,10 @@ export const selectChatLoading = (state: RootState) => state.chat.loading;
 
 // File Selectors
 export const selectFiles = (state: RootState) => state.file.files;
+export const selectFileListShowing = (state: RootState) => state.file.fileListShowing;
 export const selectFileLoading = (state: RootState) => state.file.loading;
 export const selectFileError = (state: RootState) => state.file.error;
+
+// App selectors
+export const selectFontSize = (state: RootState) => state.app.fontSize;
+export const selectDarkMode = (state: RootState) => state.app.darkMode;

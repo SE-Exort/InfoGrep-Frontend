@@ -13,12 +13,14 @@ interface FileState {
   files: BackendFile[]; // Stores all uploaded files
   loading: boolean; // Indicates loading state
   error: string | null; // Stores any error messages
+  fileListShowing: boolean;
 }
 
 const initialState: FileState = {
   files: [],
   loading: false,
   error: null,
+  fileListShowing: false
 };
 
 export const fetchFilesThunk = createAsyncThunk(
@@ -116,7 +118,11 @@ export const startParsingThunk = createAsyncThunk(
 const fileSlice = createSlice({
   name: "files",
   initialState,
-  reducers: {},
+  reducers: {
+    setFileListShowing: (state, action: PayloadAction<boolean>) => {
+      state.fileListShowing = action.payload;
+  },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchFilesThunk.pending, (state) => {
@@ -143,4 +149,5 @@ const fileSlice = createSlice({
   },
 });
 
+export const { setFileListShowing } = fileSlice.actions;
 export default fileSlice.reducer;

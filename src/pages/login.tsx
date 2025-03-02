@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
 import ParticlesBackground from "../style/loginBackground";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../redux/store";
+import { AppDispatch } from "../redux/store";
 import {
   authenticateUserThunk,
   setUsername,

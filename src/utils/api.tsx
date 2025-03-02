@@ -63,12 +63,15 @@ export const authenticateUser = async (
   }
 };
 
-export const getUUID = async (): Promise<string | null> => {
+export const getUUID = async (sessionToken: string): Promise<string> => {
   try {
-    const response = await fetch(`${AUTH_API_BASE_URL}/check?`, {
+    const response = await fetch(`${AUTH_API_BASE_URL}/check`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
+      body: JSON.stringify({
+        sessionToken
+      })
     });
     if (!response.ok) throw new Error("Request failed");
     const data = await response.json();
@@ -76,7 +79,7 @@ export const getUUID = async (): Promise<string | null> => {
     return data.data;
   } catch (error) {
     console.error("UUID error:", error);
-    return null;
+    return '';
   }
 };
 
@@ -106,10 +109,10 @@ export const fetchMessages = async (
   try {
     const response = await fetch(
       `${CHAT_API_BASE_URL}/room?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          cookie: session,
-        }).toString(),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+      }).toString(),
       { method: "GET" }
     );
     const data = await response.json();
@@ -128,11 +131,11 @@ export const fetchMessageDetails = async (
   try {
     const response = await fetch(
       `${CHAT_API_BASE_URL}/message?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          message_uuid: messageUUID,
-          cookie: session,
-        }),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        message_uuid: messageUUID,
+        cookie: session,
+      }),
       { method: "GET" }
     );
     return await response.text();
@@ -150,11 +153,11 @@ export const sendMessage = async (
   try {
     await fetch(
       `${CHAT_API_BASE_URL}/message?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          cookie: session,
-          message: message,
-        }).toString(),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+        message: message,
+      }).toString(),
       { method: "POST" }
     );
   } catch (error) {
@@ -176,10 +179,10 @@ export const uploadFile = async (
 
     const response = await fetch(
       `${FILE_API_BASE_URL}/file?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          cookie: session,
-        }),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+      }),
       { method: "POST", body: formData }
     );
 
@@ -198,12 +201,12 @@ export const startParsing = async (
   try {
     await fetch(
       `${PARSE_API_BASE_URL}/start_parsing?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          cookie: session,
-          file_uuid: fileUUID,
-          filetype: "PDF",
-        }),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+        file_uuid: fileUUID,
+        filetype: "PDF",
+      }),
       { method: "POST" }
     );
   } catch (error) {
@@ -218,10 +221,10 @@ export const fetchFiles = async (
   try {
     const response = await fetch(
       `${FILE_API_BASE_URL}/file?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          cookie: session,
-        }).toString(),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+      }).toString(),
       { method: "GET" }
     );
     return await response.json();
@@ -239,11 +242,11 @@ export const deleteFile = async (
   try {
     await fetch(
       `${FILE_API_BASE_URL}/file?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          cookie: session,
-          file_uuid: fileUUID,
-        }).toString(),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+        file_uuid: fileUUID,
+      }).toString(),
       { method: "DELETE" }
     );
   } catch (error) {
@@ -259,11 +262,11 @@ export const fetchFileDownload = async (
   try {
     const response = await fetch(
       `${FILE_API_BASE_URL}/file?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          cookie: session,
-          file_uuid: file.File_UUID,
-        }).toString(),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+        file_uuid: file.File_UUID,
+      }).toString(),
       { method: "GET" }
     );
 
@@ -293,7 +296,7 @@ export const fetchChatrooms = async (session: string): Promise<Chatroom[]> => {
     console.log("Fetching chatrooms...");
     const response = await fetch(
       `${CHAT_API_BASE_URL}/rooms?` +
-        new URLSearchParams({ cookie: session }).toString(),
+      new URLSearchParams({ cookie: session }).toString(),
       { method: "GET" }
     );
 
@@ -307,9 +310,9 @@ export const fetchChatrooms = async (session: string): Promise<Chatroom[]> => {
     console.log("Chatroom fetch successful:", data.list);
 
     return data.list.map(
-      (room: { CHATROOM_UUID: string; Chatroom_Name: string }) => ({
+      (room: { CHATROOM_UUID: string; CHATROOM_NAME: string }) => ({
         CHATROOM_UUID: room.CHATROOM_UUID,
-        Chatroom_Name: room.Chatroom_Name,
+        CHATROOM_NAME: room.CHATROOM_NAME,
       })
     );
   } catch (error) {
@@ -319,16 +322,16 @@ export const fetchChatrooms = async (session: string): Promise<Chatroom[]> => {
 };
 
 export const createChatroom = async (
-  session: string
+  session: string,
+  chatroomName: string,
+  chatModel: string,
+  embeddingModel: string
 ): Promise<string | null> => {
   try {
     const response = await fetch(
-      `${CHAT_API_BASE_URL}/room?` +
-        new URLSearchParams({ cookie: session }).toString(),
+      `${CHAT_API_BASE_URL}/room?` + new URLSearchParams({ cookie: session, embedding_model: embeddingModel, chat_model: chatModel, provider: 'ollama', chatroom_name: chatroomName }).toString(),
       {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ cookie: session }).toString(),
       }
     );
     if (!response.ok) {
@@ -338,7 +341,7 @@ export const createChatroom = async (
     if (data.error) {
       throw new Error(data.status);
     }
-    return data.detail;
+    return data.id;
   } catch (error) {
     console.error("Chatroom creation error:", error);
     return null;
@@ -352,10 +355,10 @@ export const deleteChatroom = async (
   try {
     const response = await fetch(
       `${CHAT_API_BASE_URL}/room?` +
-        new URLSearchParams({
-          chatroom_uuid: chatroomUUID,
-          cookie: session,
-        }).toString(),
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+      }).toString(),
       {
         method: "DELETE",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },

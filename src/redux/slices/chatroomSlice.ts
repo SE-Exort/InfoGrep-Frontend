@@ -8,14 +8,14 @@ import {
 import { RootState } from "../store";
 
 interface ChatroomState {
-  chatrooms: Chatroom[];
+  chatrooms: Map<string, Chatroom>;
   selectedChatroom: string;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: ChatroomState = {
-  chatrooms: [],
+  chatrooms: new Map<string, Chatroom>(),
   selectedChatroom: "",
   loading: false,
   error: null,
@@ -39,14 +39,14 @@ export const fetchChatroomsThunk = createAsyncThunk(
 
 export const createChatroomThunk = createAsyncThunk(
   "chatrooms/createChatroom",
-  async (_, { getState, dispatch, rejectWithValue }) => {
+  async ({ chatroomName, chatModel, embeddingModel }: { chatroomName: string, chatModel: string, embeddingModel: string }, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
 
     if (!session) return rejectWithValue("No session found");
 
     try {
-      const newChatroomUUID = await createChatroom(session);
+      const newChatroomUUID = await createChatroom(session, chatroomName, chatModel, embeddingModel);
       if (newChatroomUUID) {
         dispatch(fetchChatroomsThunk()); // Refresh chatrooms after creation
       }
@@ -91,7 +91,8 @@ const chatroomSlice = createSlice({
       })
       .addCase(fetchChatroomsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.chatrooms = action.payload;
+        state.chatrooms = new Map<string, Chatroom>();
+        action.payload.map(chatroom => state.chatrooms.set(chatroom.CHATROOM_UUID, chatroom));
       })
       .addCase(fetchChatroomsThunk.rejected, (state, action) => {
         state.loading = false;
@@ -102,6 +103,9 @@ const chatroomSlice = createSlice({
       })
       .addCase(deleteChatroomThunk.rejected, (state, action) => {
         state.error = action.payload as string;
+      })
+      .addCase(deleteChatroomThunk.fulfilled, (state, action) => {
+        state.selectedChatroom = '';
       });
   },
 });

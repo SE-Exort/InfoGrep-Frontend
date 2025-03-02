@@ -3,28 +3,22 @@ import IconButton from "@mui/material/IconButton";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import { logout } from "../redux/slices/authSlice";
-import { selectSession, selectUUID } from "../redux/selectors";
+import { useState } from "react";
+import SettingsDialog from "./settingsDialog";
 
 const SettingsBar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-
-  // Fetch session & uuid from Redux
-  const session = useSelector(selectSession);
-  const uuid = useSelector(selectUUID);
 
   const handleLogout = async () => {
     dispatch(logout()); // Call Redux logout action
     navigate("/"); // Redirect to login
   };
 
-  const handleSettings = () => {
-    console.log("Settings");
-    //navigate('/settings');
-  };
+  const [showSettings, setShowSettings] = useState(false);
 
   return (
     <Box sx={{ p: 2 }}>
@@ -36,12 +30,13 @@ const SettingsBar = () => {
           mt: 2,
         }}
       >
-        <IconButton onClick={handleSettings}>
+        <IconButton onClick={() => setShowSettings(true)}>
           <SettingsIcon />
         </IconButton>
         <IconButton onClick={handleLogout}>
           <LogoutIcon />
         </IconButton>
+        <SettingsDialog open={showSettings} onClose={() => setShowSettings(false)}/>
       </Box>
     </Box>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -9,10 +9,9 @@ import {
 } from "@mui/material";
 import { Delete, Add, Menu } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../redux/store";
+import { AppDispatch } from "../redux/store";
 import {
   fetchChatroomsThunk,
-  createChatroomThunk,
   deleteChatroomThunk,
   setSelectedChatroom,
 } from "../redux/slices/chatroomSlice";
@@ -25,6 +24,7 @@ import {
   selectSession,
   selectUUID,
 } from "../redux/selectors";
+import ModelSelectorDialog from "./modelDialog";
 
 const ChatroomManager: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -37,7 +37,8 @@ const ChatroomManager: React.FC = () => {
   const session = useSelector(selectSession);
   const uuid = useSelector(selectUUID); // Get UUID from Redux
 
-  const [minimized, setMinimized] = React.useState(false);
+  const [minimized, setMinimized] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Fetch UUID if its missing
   useEffect(() => {
@@ -48,10 +49,10 @@ const ChatroomManager: React.FC = () => {
 
   // Fetch chatrooms
   useEffect(() => {
-    if (uuid) {
+    if (session) {
       dispatch(fetchChatroomsThunk());
     }
-  }, [uuid, dispatch]);
+  }, [session, dispatch]);
 
   const handleSelectChatroom = (id: string) => {
     dispatch(setSelectedChatroom(id));
@@ -76,7 +77,7 @@ const ChatroomManager: React.FC = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={() => dispatch(createChatroomThunk())}
+          onClick={() => setShowCreateDialog(true)}
         >
           <Add />
         </Button>
@@ -87,7 +88,7 @@ const ChatroomManager: React.FC = () => {
         <p style={{ color: "red" }}>{error}</p>
       ) : (
         <List>
-          {chatrooms.map((cr) => (
+          {Array.from(chatrooms.entries()).map(([, cr]) => (
             <Box
               key={cr.CHATROOM_UUID}
               sx={{
@@ -132,6 +133,7 @@ const ChatroomManager: React.FC = () => {
           ))}
         </List>
       )}
+      <ModelSelectorDialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)}/>
     </Box>
   );
 };

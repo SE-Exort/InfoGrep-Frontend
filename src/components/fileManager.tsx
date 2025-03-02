@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   Box,
   Button,
@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { Delete, Download, PlayArrow } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../redux/store";
+import { AppDispatch } from "../redux/store";
 import {
   fetchFilesThunk,
   uploadFileThunk,
@@ -21,30 +21,22 @@ import {
   selectFiles,
   selectFileLoading,
   selectFileError,
+  selectSelectedChatroom,
 } from "../redux/selectors";
 
-interface FileManagerProps {
-  chatroom: string;
-  sessionImport: string;
-  fileList: any[];
-}
-
-const FileManager: React.FC<FileManagerProps> = ({
-  chatroom,
-  sessionImport,
-  fileList,
-}) => {
+const FileManager = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const files = useSelector(selectFiles);
   const loading = useSelector(selectFileLoading);
   const error = useSelector(selectFileError);
+  const selectedChatroom = useSelector(selectSelectedChatroom);
 
   useEffect(() => {
-    if (chatroom) {
+    if (selectedChatroom) {
       dispatch(fetchFilesThunk());
     }
-  }, [chatroom, dispatch]);
+  }, [selectedChatroom, dispatch]);
 
   return (
     <Box display="flex" flexDirection="column" gap={2}>

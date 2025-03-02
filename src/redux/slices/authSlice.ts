@@ -51,7 +51,7 @@ export const fetchUUIDThunk = createAsyncThunk(
     const session = state.auth.session; // Extract seesion tocken from the auth state
     if (!session) throw new Error("No session found");
 
-    return await getUUID();
+    return await getUUID(session);
   }
 );
 

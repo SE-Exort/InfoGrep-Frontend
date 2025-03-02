@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Box, Button, Typography, Divider } from "@mui/material";
 import { UploadFile, Inventory2 } from "@mui/icons-material";
-import { ThemeProvider } from "@mui/material/styles";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
@@ -15,23 +15,24 @@ import {
 import FileManager from "../components/fileManager";
 import theme from "../style/theme";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState, AppDispatch } from "../redux/store";
+import { AppDispatch } from "../redux/store";
 import {
   fetchMessagesThunk,
   sendMessageThunk,
 } from "../redux/slices/chatSlice";
-import { fetchFilesThunk } from "../redux/slices/fileSlice";
+import { fetchFilesThunk, setFileListShowing } from "../redux/slices/fileSlice";
 import { fetchUUIDThunk } from "../redux/slices/authSlice";
 import {
   selectSession,
   selectMessages,
   selectChatLoading,
   selectSelectedChatroom,
-  selectFiles,
-  selectFileLoading,
+  selectFontSize,
+  selectDarkMode,
+  selectFileListShowing,
 } from "../redux/selectors";
 
-const Chat: React.FC = () => {
+const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   // Redux
@@ -40,8 +41,23 @@ const Chat: React.FC = () => {
   const messages = useSelector(selectMessages);
   const loading = useSelector(selectChatLoading);
   const currentChatroom = useSelector(selectSelectedChatroom);
-  const fileList = useSelector(selectFiles);
-  const fileListShowing = useSelector(selectFileLoading);
+  const fileListShowing = useSelector(selectFileListShowing);
+  const fontSize = useSelector(selectFontSize);
+  const darkMode = useSelector(selectDarkMode);
+  const darkTheme = createTheme({
+    palette: {
+      mode: 'dark',
+      primary: {
+        main: '#518764',
+      },
+      secondary: {
+        main: '#424f47',
+      },
+    },
+    typography: {
+      fontSize,
+    },
+  });
 
   useEffect(() => {
     if (session) {
@@ -59,26 +75,25 @@ const Chat: React.FC = () => {
 
   const handleFileListButton = () => {
     // Toggle file list visibility
-    console.log("Toggle file list");
+    dispatch(setFileListShowing(!fileListShowing));
   };
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  console.log("render: ", messages);
   const msgComponents = messages.map((msg, index) => (
     <Message model={{ ...msg, position: "single" }} key={index} />
   ));
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={darkMode ? darkTheme : theme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
         <Box
           display="flex"
           flexDirection="column"
           gap={2}
-          bgcolor={"grey.200"}
+          bgcolor={darkMode ? '#647569' : 'grey.200'}
           height="100vh"
         >
           <SettingsBar />
@@ -87,7 +102,7 @@ const Chat: React.FC = () => {
 
         <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
           <Box
-            bgcolor="#e0e0e0"
+            bgcolor={darkMode ? '#696969' : "#e0e0e0"}
             p={2}
             display="flex"
             flexDirection="row"
@@ -149,11 +164,7 @@ const Chat: React.FC = () => {
               </ChatContainer>
             </MainContainer>
             {fileListShowing && (
-              <FileManager
-                chatroom={currentChatroom}
-                sessionImport={session}
-                fileList={fileList}
-              />
+              <FileManager />
             )}
           </div>
         </Box>
