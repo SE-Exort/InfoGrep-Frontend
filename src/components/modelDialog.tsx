@@ -7,17 +7,16 @@ import {
     DialogActions,
     Box,
     Button,
-    Select,
     MenuItem,
-    InputLabel,
-    FormControl,
     TextField,
 } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { createChatroomThunk } from "../redux/slices/chatroomSlice";
+import { AppDispatch } from "../redux/store";
 
 interface ModelSelectorDialogProps {
     open: boolean;
     onClose: () => void;
-    newChatroom: Function;
 }
 
 interface Model {
@@ -28,7 +27,6 @@ interface Model {
 const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
     open,
     onClose,
-    newChatroom
 }) => {
     const [loading, setLoading] = useState(false);
     const [chatModel, setChatModel] = useState<Model[]>([]);
@@ -36,8 +34,10 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
     const [selectedChatModel, setSelectedChatModel] = useState('');
     const [embeddingModel, setEmbeddingModel] = useState<Model[]>([]);
     const [selectedEmbeddingModel, setSelectedEmbeddingModel] = useState('');
+    const dispatch = useDispatch<AppDispatch>();
+    
     const handleSubmit = async () => {
-        newChatroom(chatroomName, selectedChatModel, selectedEmbeddingModel);
+        dispatch(createChatroomThunk({chatroomName, chatModel: selectedChatModel, embeddingModel: selectedEmbeddingModel}));
         onClose();
     };
 

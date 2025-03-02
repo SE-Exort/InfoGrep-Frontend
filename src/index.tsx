@@ -2,12 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import reportWebVitals from "./reportWebVitals";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
 import Login from "./pages/login";
 import Chat from "./pages/chat";
-import SettingsPage from "./pages/setting";
 import { SettingsProvider } from "./context/SettingsContext";
 import { StyledEngineProvider } from "@mui/material/styles";
-import "./index.css";
+import "./style/index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
@@ -19,19 +20,17 @@ const router = createBrowserRouter([
   {
     path: "/chat",
     element: <Chat />,
-  },
-  {
-    path: "/settings",
-    element: <SettingsPage  />,
-  },
+  }
 ]);
 
 root.render(
-  <StyledEngineProvider injectFirst>
-    <SettingsProvider>
-      <RouterProvider router={router} />
-    </SettingsProvider>
-  </StyledEngineProvider>
+  <Provider store={store}>
+    <StyledEngineProvider injectFirst>
+      <SettingsProvider>
+        <RouterProvider router={router} />
+      </SettingsProvider>
+    </StyledEngineProvider>
+  </Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function
