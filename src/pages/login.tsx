@@ -29,10 +29,6 @@ function Login() {
   const [password, setPassword] = React.useState("");
   const isAdmin = useSelector(selectIsAdmin);
 
-  const goToAdmin = useCallback(() => {
-
-  }, [navigate, password, session, username]);
-
   // Redirect if session exists
   useEffect(() => {
     if (session) {
@@ -43,7 +39,7 @@ function Login() {
         navigate("/chat", { state: { sessionID: session } });
       }
     }
-  }, [session, isAdmin, navigate]);
+  }, [session, isAdmin, navigate, username, password]);
 
   // Handle Login/Register
   const handleSignIn = async (
@@ -52,10 +48,6 @@ function Login() {
   ) => {
     dispatch(authenticateUserThunk({ type, username, password })); // Dispatch async thunk for authentication
     dispatch(checkUserThunk());
-    if (isAdmin) {
-      console.log(isAdmin)
-      goToAdmin();
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
