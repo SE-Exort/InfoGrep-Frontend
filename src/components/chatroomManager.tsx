@@ -18,7 +18,7 @@ import {
 import { checkUserThunk } from "../redux/slices/authSlice";
 import {
   selectChatrooms,
-  selectSelectedChatroom,
+  selectCurrentChatroomID,
   selectChatroomLoading,
   selectChatroomError,
   selectSession,
@@ -31,7 +31,7 @@ const ChatroomManager: React.FC = () => {
 
   // Redux data
   const chatrooms = useSelector(selectChatrooms);
-  const selectedChatroom = useSelector(selectSelectedChatroom);
+  const selectedChatroom = useSelector(selectCurrentChatroomID);
   const loading = useSelector(selectChatroomLoading);
   const error = useSelector(selectChatroomError);
   const session = useSelector(selectSession);

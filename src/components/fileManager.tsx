@@ -22,7 +22,7 @@ import {
   selectFiles,
   selectFileLoading,
   selectFileError,
-  selectSelectedChatroom,
+  selectCurrentChatroomID,
 } from "../redux/selectors";
 
 const FileManager = () => {
@@ -31,7 +31,7 @@ const FileManager = () => {
   const files = useSelector(selectFiles);
   const loading = useSelector(selectFileLoading);
   const error = useSelector(selectFileError);
-  const selectedChatroom = useSelector(selectSelectedChatroom);
+  const selectedChatroom = useSelector(selectCurrentChatroomID);
 
   useEffect(() => {
     if (selectedChatroom) {

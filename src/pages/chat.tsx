@@ -26,10 +26,11 @@ import {
   selectSession,
   selectMessages,
   selectChatLoading,
-  selectSelectedChatroom,
+  selectCurrentChatroomID,
   selectFontSize,
   selectDarkMode,
   selectFileListShowing,
+  selectCurrentChatroomName,
 } from "../redux/selectors";
 
 const Chat = () => {
@@ -40,7 +41,8 @@ const Chat = () => {
   // const uuid = useSelector((state: RootState) => state.auth.uuid);
   const messages = useSelector(selectMessages);
   const loading = useSelector(selectChatLoading);
-  const currentChatroom = useSelector(selectSelectedChatroom);
+  const currentChatroomID = useSelector(selectCurrentChatroomID);
+  const currentChatroomName = useSelector(selectCurrentChatroomName);
   const fileListShowing = useSelector(selectFileListShowing);
   const fontSize = useSelector(selectFontSize);
   const darkMode = useSelector(selectDarkMode);
@@ -63,11 +65,11 @@ const Chat = () => {
     if (session) {
       dispatch(checkUserThunk()); // Get user UUID
     }
-    if (currentChatroom) {
+    if (currentChatroomID) {
       dispatch(fetchMessagesThunk()); // Load chat messages
       dispatch(fetchFilesThunk()); // Load files for the chatroom
     }
-  }, [session, currentChatroom, dispatch]);
+  }, [session, currentChatroomID, dispatch]);
 
   const handleFileUpload = () => {
     console.log("File uploaded");
@@ -111,7 +113,7 @@ const Chat = () => {
             justifyContent="space-between"
           >
             <Typography variant="h6" style={{ flexGrow: 1 }}>
-              {currentChatroom}
+              {currentChatroomName}
             </Typography>
             <Box display="flex" gap={2}>
               <Button
