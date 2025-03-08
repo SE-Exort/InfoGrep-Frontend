@@ -21,7 +21,7 @@ import {
   sendMessageThunk,
 } from "../redux/slices/chatSlice";
 import { fetchFilesThunk, setFileListShowing } from "../redux/slices/fileSlice";
-import { fetchUUIDThunk } from "../redux/slices/authSlice";
+import { checkUserThunk } from "../redux/slices/authSlice";
 import {
   selectSession,
   selectMessages,
@@ -61,7 +61,7 @@ const Chat = () => {
 
   useEffect(() => {
     if (session) {
-      dispatch(fetchUUIDThunk()); // Get user UUID
+      dispatch(checkUserThunk()); // Get user UUID
     }
     if (currentChatroom) {
       dispatch(fetchMessagesThunk()); // Load chat messages

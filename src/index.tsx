@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import { store } from "./redux/store";
 import Login from "./pages/login";
 import Chat from "./pages/chat";
+import Admin from "./pages/admin";
 import { StyledEngineProvider } from "@mui/material/styles";
 import "./style/index.css";
 
@@ -19,7 +20,11 @@ const router = createBrowserRouter([
   {
     path: "/chat",
     element: <Chat />,
-  }
+  },
+  {
+    path: "/admin",
+    element: <Admin />,
+  },
 ]);
 
 root.render(
