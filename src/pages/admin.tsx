@@ -1,35 +1,14 @@
 import React, { useState, useEffect } from "react";
 import {
   Box,
-  Button,
-  TextField,
-  Typography,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Divider,
   Snackbar,
   Alert,
 } from "@mui/material";
-import { Delete, UploadFile, Inventory2 } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
-import Chatroom from "../components/chatroom";
 import SettingsBar from "../components/settingsBar";
-import ChatroomManager from "../components/chatroomManager";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import {
-  MainContainer,
-  ChatContainer,
-  MessageList,
-  Message,
-  MessageInput,
-  MessageModel,
-} from "@chatscope/chat-ui-kit-react";
-import { current } from "@reduxjs/toolkit";
 import Cookies from 'js-cookie';
-import FileManager from "../components/fileManager";
 import AdminControlPanel from "../components/adminControlPanel";
 
 const theme = createTheme({
@@ -148,7 +127,7 @@ function Admin() {
           bgcolor={"grey.200"}
           height="100vh"
         >
-          <SettingsBar sessionToken={session} uuid={uuid} />
+          <SettingsBar />
         </Box>
         <AdminControlPanel session={session} uuid={uuid}/>
 

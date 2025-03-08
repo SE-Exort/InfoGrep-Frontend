@@ -6,6 +6,7 @@ import {
   ListItem,
   ListItemText,
   IconButton,
+  Typography,
 } from "@mui/material";
 import { Delete, Download, PlayArrow } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,7 +47,7 @@ const FileManager = () => {
         ) : error ? (
           <p style={{ color: "red" }}>{error}</p>
         ) : (
-          files.map((file) => (
+          (files?.length ? files?.map((file) => (
             <ListItem key={file.File_UUID}>
               <ListItemText primary={file.File_Name} />
               <IconButton
@@ -65,7 +66,7 @@ const FileManager = () => {
                 <Delete />
               </IconButton>
             </ListItem>
-          ))
+          )) : <Typography>No files available</Typography>)
         )}
       </List>
       <Button variant="contained" component="label">

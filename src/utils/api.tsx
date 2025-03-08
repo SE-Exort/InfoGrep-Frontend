@@ -63,7 +63,12 @@ export const authenticateUser = async (
   }
 };
 
-export const getUUID = async (sessionToken: string): Promise<string> => {
+export const checkUser = async (sessionToken: string): Promise<Partial<{
+  is_admin: boolean;
+  id: string;
+  status: string;
+  error: boolean;
+}>> => {
   try {
     const response = await fetch(`${AUTH_API_BASE_URL}/check`, {
       method: "POST",
@@ -76,10 +81,10 @@ export const getUUID = async (sessionToken: string): Promise<string> => {
     if (!response.ok) throw new Error("Request failed");
     const data = await response.json();
     if (data.error) throw new Error(data.status);
-    return data.data;
+    return data;
   } catch (error) {
     console.error("UUID error:", error);
-    return '';
+    return {error: true};
   }
 };
 
@@ -220,14 +225,14 @@ export const fetchFiles = async (
 ): Promise<BackendFile[]> => {
   try {
     const response = await fetch(
-      `${FILE_API_BASE_URL}/file?` +
+      `${FILE_API_BASE_URL}/filelist?` +
       new URLSearchParams({
         chatroom_uuid: chatroomUUID,
         cookie: session,
       }).toString(),
       { method: "GET" }
     );
-    return await response.json();
+    return (await response.json()).list;
   } catch (error) {
     console.error("Error fetching files:", error);
     return [];
