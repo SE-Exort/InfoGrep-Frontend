@@ -8,7 +8,7 @@ import {
   IconButton,
   Typography,
 } from "@mui/material";
-import { Delete, Download, PlayArrow } from "@mui/icons-material";
+import { Delete, Download, PlayArrow, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
@@ -24,6 +24,7 @@ import {
   selectFileError,
   selectCurrentChatroomID,
 } from "../redux/selectors";
+import CircularProgress from '@mui/material/CircularProgress';
 
 const FileManager = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -31,19 +32,24 @@ const FileManager = () => {
   const files = useSelector(selectFiles);
   const loading = useSelector(selectFileLoading);
   const error = useSelector(selectFileError);
-  const selectedChatroom = useSelector(selectCurrentChatroomID);
+  const selectedChatroomID = useSelector(selectCurrentChatroomID);
 
   useEffect(() => {
-    if (selectedChatroom) {
+    if (selectedChatroomID) {
       dispatch(fetchFilesThunk());
     }
-  }, [selectedChatroom, dispatch]);
+  }, [selectedChatroomID, dispatch]);
 
+  if (!selectedChatroomID) {
+    return <Box display="flex" flexDirection="column" justifyContent='center' alignItems='center' flexGrow={1}>
+      <Typography>Please select a chatroom first</Typography>
+    </Box>
+  }
   return (
-    <Box display="flex" flexDirection="column" gap={2}>
+    <Box display="flex" flexDirection="column" gap={2} flexGrow={1} m={2} alignItems='center'>
       <List>
         {loading ? (
-          <p>Loading files...</p>
+          <CircularProgress />
         ) : error ? (
           <p style={{ color: "red" }}>{error}</p>
         ) : (
@@ -69,7 +75,7 @@ const FileManager = () => {
           )) : <Typography>No files available</Typography>)
         )}
       </List>
-      <Button variant="contained" component="label">
+      <Button variant="contained" component="label" startIcon={<UploadFile />} fullWidth>
         Upload File
         <input
           type="file"

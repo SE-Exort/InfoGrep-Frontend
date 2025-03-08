@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Box, Button, Typography, Divider } from "@mui/material";
+import { Box, Button, Typography, Divider, Tooltip } from "@mui/material";
 import { UploadFile, Inventory2 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
@@ -115,33 +115,18 @@ const Chat = () => {
             <Typography variant="h6" style={{ flexGrow: 1 }}>
               {currentChatroomName}
             </Typography>
-            <Box display="flex" gap={2}>
-              <Button
-                variant="contained"
-                startIcon={<UploadFile />}
-                onClick={handleFileUpload}
-                component="label"
-              >
-                <input
-                  type="file"
-                  hidden
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      console.log("Uploading file", e.target.files[0]);
-                    }
-                  }}
-                />
-                Upload File
-              </Button>
-              <Divider />
-              <Button
-                variant="contained"
-                startIcon={<Inventory2 />}
-                onClick={handleFileListButton}
-              >
-                File List
-              </Button>
-            </Box>
+            <Tooltip title={!currentChatroomID && "Please select a chatroom"}>
+              <span>
+                <Button
+                  variant="contained"
+                  startIcon={<Inventory2 />}
+                  onClick={handleFileListButton}
+                  disabled={!currentChatroomID}
+                >
+                  File List
+                </Button>
+              </span>
+            </Tooltip>
           </Box>
 
           <div
