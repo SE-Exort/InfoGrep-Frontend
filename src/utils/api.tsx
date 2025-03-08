@@ -1,0 +1,382 @@
+const PROTOCOL = "http://";
+const HOST = "localhost";
+
+// Base URLs for each service
+export const AUTH_API_BASE_URL =
+  process.env.REACT_APP_AUTH_API_BASE_URL || `${PROTOCOL}${HOST}:4000`;
+
+export const FILE_API_BASE_URL =
+  process.env.REACT_APP_FILE_API_BASE_URL || `${PROTOCOL}${HOST}:8002/api`;
+
+export const CHAT_API_BASE_URL =
+  process.env.REACT_APP_CHAT_API_BASE_URL || `${PROTOCOL}${HOST}:8003/api`;
+
+export const PARSE_API_BASE_URL =
+  process.env.REACT_APP_FILE_API_BASE_URL || `${PROTOCOL}${HOST}:8004/api`;
+
+// Interfaces for API responses
+interface AuthResponse {
+  data?: string;
+  error?: boolean;
+  status?: string;
+}
+export interface BackendFile {
+  File_UUID: string;
+  File_Name: string;
+}
+
+export interface Chatroom {
+  CHATROOM_UUID: string;
+  CHATROOM_NAME: string;
+}
+
+// ================================
+// Authentication API functions for login, register, and logout
+// ================================
+export const authenticateUser = async (
+  type: "login" | "register",
+  username: string,
+  password: string
+): Promise<AuthResponse> => {
+  try {
+    if (type === "register" && (!username || !password)) {
+      throw new Error("Please fill out all fields");
+    }
+
+    const response = await fetch(`${AUTH_API_BASE_URL}/${type}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!response.ok) throw new Error("Request failed");
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.status);
+
+    return data;
+  } catch (error) {
+    if (error instanceof Error) {
+      return { error: true, status: error.message };
+    }
+    return { error: true, status: "An unknown error occurred" };
+  }
+};
+
+export const getUUID = async (sessionToken: string): Promise<string> => {
+  try {
+    const response = await fetch(`${AUTH_API_BASE_URL}/check`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        sessionToken
+      })
+    });
+    if (!response.ok) throw new Error("Request failed");
+    const data = await response.json();
+    if (data.error) throw new Error(data.status);
+    return data.data;
+  } catch (error) {
+    console.error("UUID error:", error);
+    return '';
+  }
+};
+
+export const logoutUser = async (): Promise<void> => {
+  try {
+    const response = await fetch(`${AUTH_API_BASE_URL}/logout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    console.log("OK: Logged out");
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
+
+// ================================
+// Chat API functions
+// ================================
+export const fetchMessages = async (
+  chatroomUUID: string,
+  session: string
+): Promise<any[]> => {
+  try {
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/room?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+      }).toString(),
+      { method: "GET" }
+    );
+    const data = await response.json();
+    return data.list || [];
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    return [];
+  }
+};
+
+export const fetchMessageDetails = async (
+  chatroomUUID: string,
+  messageUUID: string,
+  session: string
+): Promise<string> => {
+  try {
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/message?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        message_uuid: messageUUID,
+        cookie: session,
+      }),
+      { method: "GET" }
+    );
+    return await response.text();
+  } catch (error) {
+    console.error("Error fetching message details:", error);
+    return "";
+  }
+};
+
+export const sendMessage = async (
+  chatroomUUID: string,
+  session: string,
+  message: string
+): Promise<void> => {
+  try {
+    await fetch(
+      `${CHAT_API_BASE_URL}/message?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+        message: message,
+      }).toString(),
+      { method: "POST" }
+    );
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+};
+
+// ================================
+// File API functions
+// ================================
+export const uploadFile = async (
+  chatroomUUID: string,
+  session: string,
+  file: File
+): Promise<string> => {
+  try {
+    const formData = new FormData();
+    formData.append("uploadedfile", file);
+
+    const response = await fetch(
+      `${FILE_API_BASE_URL}/file?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+      }),
+      { method: "POST", body: formData }
+    );
+
+    return (await response.text()).replaceAll('"', "");
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    return "";
+  }
+};
+
+export const startParsing = async (
+  chatroomUUID: string,
+  session: string,
+  fileUUID: string
+): Promise<void> => {
+  try {
+    await fetch(
+      `${PARSE_API_BASE_URL}/start_parsing?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+        file_uuid: fileUUID,
+        filetype: "PDF",
+      }),
+      { method: "POST" }
+    );
+  } catch (error) {
+    console.error("Error starting file parsing:", error);
+  }
+};
+
+export const fetchFiles = async (
+  chatroomUUID: string,
+  session: string
+): Promise<BackendFile[]> => {
+  try {
+    const response = await fetch(
+      `${FILE_API_BASE_URL}/file?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+      }).toString(),
+      { method: "GET" }
+    );
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching files:", error);
+    return [];
+  }
+};
+
+export const deleteFile = async (
+  chatroomUUID: string,
+  session: string,
+  fileUUID: string
+): Promise<void> => {
+  try {
+    await fetch(
+      `${FILE_API_BASE_URL}/file?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+        file_uuid: fileUUID,
+      }).toString(),
+      { method: "DELETE" }
+    );
+  } catch (error) {
+    console.error("Error deleting file:", error);
+  }
+};
+
+export const fetchFileDownload = async (
+  chatroomUUID: string,
+  session: string,
+  file: BackendFile
+): Promise<void> => {
+  try {
+    const response = await fetch(
+      `${FILE_API_BASE_URL}/file?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+        file_uuid: file.File_UUID,
+      }).toString(),
+      { method: "GET" }
+    );
+
+    if (!response.ok) {
+      console.error("Error fetching the file:", response.statusText);
+      return;
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${file.File_Name}`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error("Error downloading file:", error);
+  }
+};
+
+// ================================
+// Chatroom API Functions
+// ================================
+export const fetchChatrooms = async (session: string): Promise<Chatroom[]> => {
+  try {
+    console.log("Fetching chatrooms...");
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/rooms?` +
+      new URLSearchParams({ cookie: session }).toString(),
+      { method: "GET" }
+    );
+
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.status);
+    }
+    console.log("Chatroom fetch successful:", data.list);
+
+    return data.list.map(
+      (room: { CHATROOM_UUID: string; CHATROOM_NAME: string }) => ({
+        CHATROOM_UUID: room.CHATROOM_UUID,
+        CHATROOM_NAME: room.CHATROOM_NAME,
+      })
+    );
+  } catch (error) {
+    console.error("Chatroom fetch error:", error);
+    return [];
+  }
+};
+
+export const createChatroom = async (
+  session: string,
+  chatroomName: string,
+  chatModel: string,
+  embeddingModel: string
+): Promise<string | null> => {
+  try {
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/room?` + new URLSearchParams({ cookie: session, embedding_model: embeddingModel, chat_model: chatModel, provider: 'ollama', chatroom_name: chatroomName }).toString(),
+      {
+        method: "POST",
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.status);
+    }
+    return data.id;
+  } catch (error) {
+    console.error("Chatroom creation error:", error);
+    return null;
+  }
+};
+
+export const deleteChatroom = async (
+  session: string,
+  chatroomUUID: string
+): Promise<void> => {
+  try {
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/room?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomUUID,
+        cookie: session,
+      }).toString(),
+      {
+        method: "DELETE",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          chatroom_uuid: chatroomUUID,
+          cookie: session,
+        }).toString(),
+      }
+    );
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.status);
+    }
+    console.log("Chatroom delete successful:", data);
+  } catch (error) {
+    console.error("Chatroom deletion error:", error);
+  }
+};

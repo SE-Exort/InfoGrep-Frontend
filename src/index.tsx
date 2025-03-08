@@ -2,11 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import reportWebVitals from "./reportWebVitals";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
 import Login from "./pages/login";
 import Chat from "./pages/chat";
 import Admin from "./pages/admin";
 import { StyledEngineProvider } from "@mui/material/styles";
-import "./index.css";
+import "./style/index.css";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
@@ -26,9 +28,11 @@ const router = createBrowserRouter([
 ]);
 
 root.render(
-  <StyledEngineProvider injectFirst>
-    <RouterProvider router={router} />
-  </StyledEngineProvider>
+  <Provider store={store}>
+    <StyledEngineProvider injectFirst>
+        <RouterProvider router={router} />
+    </StyledEngineProvider>
+  </Provider>
 );
 
 // If you want to start measuring performance in your app, pass a function

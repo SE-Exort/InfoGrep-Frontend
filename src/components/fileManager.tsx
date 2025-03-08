@@ -1,87 +1,85 @@
-import React, { useState, useEffect } from 'react';
-import { Box, List, ListItem, ListItemText, IconButton, Typography, Divider } from "@mui/material";
-import { Delete, Download } from "@mui/icons-material";
+import { useEffect } from "react";
+import {
+  Box,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  IconButton,
+} from "@mui/material";
+import { Delete, Download, PlayArrow } from "@mui/icons-material";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "../redux/store";
+import {
+  fetchFilesThunk,
+  uploadFileThunk,
+  deleteFileThunk,
+  fetchFileDownloadThunk,
+  startParsingThunk,
+} from "../redux/slices/fileSlice";
+import {
+  selectFiles,
+  selectFileLoading,
+  selectFileError,
+  selectSelectedChatroom,
+} from "../redux/selectors";
 
-interface BackendFile {
-  File_UUID: string;
-  File_Name: string;
-}
+const FileManager = () => {
+  const dispatch = useDispatch<AppDispatch>();
 
-interface FileManagerProps {
-  chatroom: string;
-  sessionImport: string;
-  setFileList: React.Dispatch<React.SetStateAction<BackendFile[]>>;
-  fileList: BackendFile[];
-  fetchFiles: () => void;
-}
-
-const FileManager: React.FC<FileManagerProps> = ({ chatroom, sessionImport, setFileList, fileList, fetchFiles }) => {
-
+  const files = useSelector(selectFiles);
+  const loading = useSelector(selectFileLoading);
+  const error = useSelector(selectFileError);
+  const selectedChatroom = useSelector(selectSelectedChatroom);
 
   useEffect(() => {
-    fetchFiles();
-  }, [chatroom, sessionImport, setFileList]);
-
-  const handleDelete = async (fileName: string) => {
-    await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
-      'chatroom_uuid': chatroom,
-      'cookie': sessionImport,
-      'file_uuid': fileName,
-    }).toString(), { method: 'DELETE' });
-
-    setFileList(fileList.filter(file => file.File_UUID !== fileName));
-  };
-
-  const handleItemClick = (file: BackendFile) => {
-    console.log(`File clicked: ${file.File_Name}`);
-    const fetchFileDownload = async () => {
-      const response = await fetch('http://127.0.0.1:8002/api/file?' + new URLSearchParams({
-        'chatroom_uuid': chatroom,
-        'cookie': sessionImport,
-        'file_uuid': file.File_UUID,
-      }).toString(), { method: 'GET' });
-      
-      if (!response.ok) {
-        console.error('Error fetching the file:', response.statusText);
-        return;
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `${file.File_Name}`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    };
-    fetchFileDownload();
-  };
+    if (selectedChatroom) {
+      dispatch(fetchFilesThunk());
+    }
+  }, [selectedChatroom, dispatch]);
 
   return (
-    <Box p={2} bgcolor="#eeeeee">
-      <Typography variant="h6">Files: </Typography>
-      <Divider />
-      {!fileList || fileList.length === 0 ? (
-        <Typography variant="body1">No files available.</Typography>
-      ) : (
-        <List>
-          {fileList.map((file, index) => (
-            <ListItem 
-              key={index} 
-              divider
-            >
+    <Box display="flex" flexDirection="column" gap={2}>
+      <List>
+        {loading ? (
+          <p>Loading files...</p>
+        ) : error ? (
+          <p style={{ color: "red" }}>{error}</p>
+        ) : (
+          files.map((file) => (
+            <ListItem key={file.File_UUID}>
               <ListItemText primary={file.File_Name} />
-              <IconButton edge="end" aria-label="download" onClick={() => handleItemClick(file)}>
+              <IconButton
+                onClick={() => dispatch(fetchFileDownloadThunk(file))}
+              >
                 <Download />
               </IconButton>
-              <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(file.File_UUID)}>
+              <IconButton
+                onClick={() => dispatch(startParsingThunk(file.File_UUID))}
+              >
+                <PlayArrow />
+              </IconButton>
+              <IconButton
+                onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
+              >
                 <Delete />
               </IconButton>
             </ListItem>
-          ))}
-        </List>
-      )}
+          ))
+        )}
+      </List>
+      <Button variant="contained" component="label">
+        Upload File
+        <input
+          type="file"
+          hidden
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              dispatch(uploadFileThunk(e.target.files[0]));
+            }
+          }}
+        />
+      </Button>
     </Box>
   );
 };
