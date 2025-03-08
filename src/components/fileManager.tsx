@@ -12,22 +12,13 @@ interface FileManagerProps {
   sessionImport: string;
   setFileList: React.Dispatch<React.SetStateAction<BackendFile[]>>;
   fileList: BackendFile[];
+  fetchFiles: () => void;
 }
 
-const FileManager: React.FC<FileManagerProps> = ({ chatroom, sessionImport, setFileList, fileList }) => {
+const FileManager: React.FC<FileManagerProps> = ({ chatroom, sessionImport, setFileList, fileList, fetchFiles }) => {
+
 
   useEffect(() => {
-    // Fetch the file list when the component mounts
-    const fetchFiles = async () => {
-      const response = await fetch('http://127.0.0.1:8002/api/filelist?' + new URLSearchParams({
-        'chatroom_uuid': chatroom,
-        'cookie': sessionImport,
-      }).toString(), { method: 'GET' });
-      const files = await response.json();
-      console.log("files", files)
-      setFileList(files.list);
-    };
-
     fetchFiles();
   }, [chatroom, sessionImport, setFileList]);
 
@@ -71,22 +62,26 @@ const FileManager: React.FC<FileManagerProps> = ({ chatroom, sessionImport, setF
     <Box p={2} bgcolor="#eeeeee">
       <Typography variant="h6">Files: </Typography>
       <Divider />
-      <List>
-        {fileList.map((file, index) => (
-          <ListItem 
-            key={index} 
-            divider
-          >
-            <ListItemText primary={file.File_Name} />
-            <IconButton edge="end" aria-label="download" onClick={() => handleItemClick(file)}>
-              <Download />
-            </IconButton>
-            <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(file.File_UUID)}>
-              <Delete />
-            </IconButton>
-          </ListItem>
-        ))}
-      </List>
+      {!fileList || fileList.length === 0 ? (
+        <Typography variant="body1">No files available.</Typography>
+      ) : (
+        <List>
+          {fileList.map((file, index) => (
+            <ListItem 
+              key={index} 
+              divider
+            >
+              <ListItemText primary={file.File_Name} />
+              <IconButton edge="end" aria-label="download" onClick={() => handleItemClick(file)}>
+                <Download />
+              </IconButton>
+              <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(file.File_UUID)}>
+                <Delete />
+              </IconButton>
+            </ListItem>
+          ))}
+        </List>
+      )}
     </Box>
   );
 };

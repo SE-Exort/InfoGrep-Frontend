@@ -11,6 +11,7 @@ function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [session, setSession] = useState(Cookies.get('session') || ''); // encrypt later
+  const [uuid, setUUID] = useState<string>("");
   const [passwordError, setPasswordError] = useState(false);
   const [passwordErrorDesc, setPasswordErrorDesc] = useState('');
 
@@ -38,13 +39,13 @@ function Login() {
     }
   }
 
-  const handleSignIn = async (type: string, e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSignIn = async (type: string, e: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLDivElement>) => {
     e.preventDefault(); // Prevent form from submitting normally
 
     try {
       checkEmail();
       // checkPassword();
-      if(type=="register" && (username == '' || password == '')){
+      if(username == '' || password == ''){
         throw new Error('Please fill out all fields');
       } 
       console.log(JSON.stringify({ username, password }));
@@ -75,6 +76,35 @@ function Login() {
         setPasswordErrorDesc(error.message);
       }
       console.error('Login error:', error);
+    }
+  };
+
+  const getUUID = async () => {
+    try {
+      const sessionToken = session;
+      const response = await fetch(`http://localhost:4000/check`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ sessionToken }),
+      });
+      if (!response.ok) {
+        throw new Error("Request failed");
+      }
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.status);
+      }
+      setUUID(data.id);
+      if(data.is_admin) {
+        goToAdmin();
+      } else {
+        goToChat();
+      }
+      console.log("UUID:", data);
+    } catch (error) {
+      console.error("UUID error:", error);
     }
   };
 
@@ -614,14 +644,25 @@ function Login() {
   useEffect(() => {
     if (session !== ''){
       Cookies.set('session', session, { expires: 7 }); // Cookie expires in 7 days
+      getUUID();
       goToChat();
     }
   }, [session]);
 
+  const goToAdmin = () => {
+    let renameFlag = false;
+    if (username === 'admin' || password === 'admin') {
+      renameFlag = true;
+    }
+    navigate('/admin', { state: { sessionID: session, renameFlag: renameFlag } }); // Use the path you defined in your Routes
+    // pass session to chat & uuid?
+  };
+
+  
   const goToChat = () => {
-    // navigate('/admin', { state: { sessionID: session } }); // Use the path you defined in your Routes
     navigate('/chat', { state: { sessionID: session } }); // Use the path you defined in your Routes
-    // pass session to chat
+    
+    // pass session to chat & uuid?
   };
 
   const handleUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -630,6 +671,12 @@ function Login() {
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      handleSignIn("login", e as unknown as React.MouseEvent<HTMLButtonElement>);
+    }
   };
 
   return (
@@ -667,6 +714,7 @@ function Login() {
           placeholder="Enter username here.."
           value={username}
           onChange={handleUsernameChange}
+          onKeyDown={handleKeyDown} 
         />
         <TextField
           label="Password"
@@ -677,11 +725,12 @@ function Login() {
           error={passwordError}
           helperText={passwordErrorDesc}
           onChange={handlePasswordChange}
+          onKeyDown={handleKeyDown}
         />
   
         <Box display="flex" gap={3} marginTop={5} justifyContent="space-around">
           <Button variant="contained" color='primary' onClick={(e) => handleSignIn("login", e)}>Login</Button>
-          <Button variant="contained" color='secondary' onClick={(e) => handleSignIn("register", e)}>Sign up</Button>
+          {/* <Button variant="contained" color='secondary' onClick={(e) => handleSignIn("register", e)}>Sign up</Button> */}
         </Box>
       </Paper>
       </Box>

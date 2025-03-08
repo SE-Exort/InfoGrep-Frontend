@@ -93,14 +93,10 @@ const ChatroomManager: React.FC<ChatroomManagerProps> = ({ sessionImport, setCha
   useEffect(() => {
     if(session){
       getUUID();
+      getChatrooms();
     }
   }, [session]);
 
-  useEffect(() => {
-    if(uuid){
-      getChatrooms();
-    }
-  }, [uuid]);
 
   const getChatrooms = async () => {
     try {

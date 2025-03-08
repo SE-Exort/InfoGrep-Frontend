@@ -56,6 +56,18 @@ function Chat() {
   const [fileList, setFileList] = useState<BackendFile[]>([]);
   const [fileListShowing, setFileListShowing] = useState<boolean>(false);
 
+  
+  // Fetch the file list when the component mounts
+  const fetchFiles = async () => {
+    const response = await fetch('http://127.0.0.1:8002/api/filelist?' + new URLSearchParams({
+      'chatroom_uuid': currentChatroom,
+      'cookie': session,
+    }).toString(), { method: 'GET' });
+    const files = await response.json();
+    console.log("files", files)
+    setFileList(files.list);
+  };
+
   const refetchMessages = async () => {
     // refetch messages
     const data = await fetch('http://127.0.0.1:8003/api/room?' + new URLSearchParams({
@@ -210,13 +222,15 @@ function Chat() {
                     }).toString(), {method: "POST", body: formData});
 
                     const fileId = (await data.text()).replaceAll("\"", '');
+                    fetchFiles();
+
                     console.log("got file id " + fileId);
-                    const parseResult = await fetch('http://127.0.0.1:8001/api/start_parsing?' + new URLSearchParams({
+                    const parseResult = await fetch('http://127.0.0.1:8004/api/start_parsing?' + new URLSearchParams({
                       'chatroom_uuid': currentChatroom,
                       'cookie': session,
                       'file_uuid': fileId,
                       'filetype': 'PDF'
-                    }).toString(), {method: 'POST'});
+                    }).toString(), {method: 'POST'}); // FIX TODO
 
                     console.log("Parse result" + parseResult);
                   }
@@ -262,6 +276,8 @@ function Chat() {
                 sessionImport={session}
                 setFileList={setFileList}
                 fileList={fileList}
+                fetchFiles={fetchFiles}
+
               />
             )}
           </div>
