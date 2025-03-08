@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
@@ -7,13 +7,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
   authenticateUserThunk,
-  setUsername,
   clearAuthError,
   checkUserThunk,
 } from "../redux/slices/authSlice";
 import {
   selectSession,
-  selectUsername,
   selectAuthError,
   selectIsAdmin,
 } from "../redux/selectors";
