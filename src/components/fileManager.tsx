@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -7,6 +7,7 @@ import {
   ListItemText,
   IconButton,
   Typography,
+  Dialog,
 } from "@mui/material";
 import { Delete, Download, PlayArrow, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,8 +24,14 @@ import {
   selectFileLoading,
   selectFileError,
   selectCurrentChatroomID,
+  selectSession,
 } from "../redux/selectors";
 import CircularProgress from '@mui/material/CircularProgress';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { setPriority } from "os";
+import { FILE_API_BASE_URL } from "../utils/api";
+import DocViewer, { DocViewerRenderers, PNGRenderer } from "react-doc-viewer";
+import CustomPDFRenderer from "./customPdfRenderer";
 
 const FileManager = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -33,6 +40,8 @@ const FileManager = () => {
   const loading = useSelector(selectFileLoading);
   const error = useSelector(selectFileError);
   const selectedChatroomID = useSelector(selectCurrentChatroomID);
+  const [previewFileURL, setPreviewFileURL] = useState('');
+  const session = useSelector(selectSession);
 
   useEffect(() => {
     if (selectedChatroomID) {
@@ -61,10 +70,23 @@ const FileManager = () => {
               >
                 <Download />
               </IconButton>
-              <IconButton
+              {/* Let's do this automatically for the user... */}
+
+              {/* <IconButton
                 onClick={() => dispatch(startParsingThunk(file.File_UUID))}
               >
                 <PlayArrow />
+              </IconButton> */}
+              <IconButton
+                onClick={() => setPreviewFileURL(
+                      `${FILE_API_BASE_URL}/file?` +
+                      new URLSearchParams({
+                        chatroom_uuid: selectedChatroomID,
+                        cookie: session,
+                        file_uuid: file.File_UUID,
+                      }).toString())}
+              >
+                <VisibilityIcon />
               </IconButton>
               <IconButton
                 onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
@@ -75,6 +97,9 @@ const FileManager = () => {
           )) : <Typography>No files available</Typography>)
         )}
       </List>
+      <Dialog open={!!previewFileURL} onClose={() => setPreviewFileURL('')}>
+        <DocViewer documents={[{ uri: previewFileURL}]} pluginRenderers={[CustomPDFRenderer, PNGRenderer]} />
+      </Dialog>
       <Button variant="contained" component="label" startIcon={<UploadFile />} fullWidth>
         Upload File
         <input

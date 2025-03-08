@@ -71,10 +71,6 @@ const Chat = () => {
     }
   }, [session, currentChatroomID, dispatch]);
 
-  const handleFileUpload = () => {
-    console.log("File uploaded");
-  };
-
   const handleFileListButton = () => {
     // Toggle file list visibility
     dispatch(setFileListShowing(!fileListShowing));
