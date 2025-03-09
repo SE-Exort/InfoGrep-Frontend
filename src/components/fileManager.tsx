@@ -8,8 +8,9 @@ import {
   IconButton,
   Typography,
   Dialog,
+  DialogTitle,
 } from "@mui/material";
-import { Delete, Download, PlayArrow, UploadFile } from "@mui/icons-material";
+import { Delete, Download, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
@@ -17,7 +18,6 @@ import {
   uploadFileThunk,
   deleteFileThunk,
   fetchFileDownloadThunk,
-  startParsingThunk,
 } from "../redux/slices/fileSlice";
 import {
   selectFiles,
@@ -28,10 +28,13 @@ import {
 } from "../redux/selectors";
 import CircularProgress from '@mui/material/CircularProgress';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { setPriority } from "os";
-import { FILE_API_BASE_URL } from "../utils/api";
-import DocViewer, { DocViewerRenderers, PNGRenderer } from "react-doc-viewer";
-import CustomPDFRenderer from "./customPdfRenderer";
+import { BackendFile, FILE_API_BASE_URL } from "../utils/api";
+import { pdfjs } from "react-pdf";
+import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.worker.min.mjs`;
 
 const FileManager = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -40,8 +43,8 @@ const FileManager = () => {
   const loading = useSelector(selectFileLoading);
   const error = useSelector(selectFileError);
   const selectedChatroomID = useSelector(selectCurrentChatroomID);
-  const [previewFileURL, setPreviewFileURL] = useState('');
   const session = useSelector(selectSession);
+  const [currentFile, setCurrentFile] = useState<BackendFile | null>(null);
 
   useEffect(() => {
     if (selectedChatroomID) {
@@ -78,13 +81,7 @@ const FileManager = () => {
                 <PlayArrow />
               </IconButton> */}
               <IconButton
-                onClick={() => setPreviewFileURL(
-                      `${FILE_API_BASE_URL}/file?` +
-                      new URLSearchParams({
-                        chatroom_uuid: selectedChatroomID,
-                        cookie: session,
-                        file_uuid: file.File_UUID,
-                      }).toString())}
+                onClick={() => setCurrentFile(file)}
               >
                 <VisibilityIcon />
               </IconButton>
@@ -97,9 +94,22 @@ const FileManager = () => {
           )) : <Typography>No files available</Typography>)
         )}
       </List>
-      <Dialog open={!!previewFileURL} onClose={() => setPreviewFileURL('')}>
-        <DocViewer documents={[{ uri: previewFileURL}]} pluginRenderers={[CustomPDFRenderer, PNGRenderer]} />
-      </Dialog>
+      {currentFile ?
+        <Dialog open={true} onClose={() => setCurrentFile(null)} fullWidth>
+          <DialogTitle id="alert-dialog-title">
+            {currentFile.File_Name}
+          </DialogTitle>
+          <DocViewer documents={[{
+            uri: `${FILE_API_BASE_URL}/file?` +
+              new URLSearchParams({
+                chatroom_uuid: selectedChatroomID,
+                cookie: session,
+                file_uuid: currentFile.File_UUID,
+              })
+          }]} pluginRenderers={DocViewerRenderers} config={{ header: { disableHeader: true } }} />
+        </Dialog> : <></>
+      }
+
       <Button variant="contained" component="label" startIcon={<UploadFile />} fullWidth>
         Upload File
         <input
