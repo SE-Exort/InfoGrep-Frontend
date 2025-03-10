@@ -380,3 +380,31 @@ export const deleteChatroom = async (
     console.error("Chatroom deletion error:", error);
   }
 };
+
+export const changePassword = async (
+  sessionImport: string,
+  newPassword: string
+): Promise<void> => {
+
+  try {
+
+    const response = await fetch("http://localhost:4000/user?sessionToken=" + sessionImport, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        password: newPassword
+      }),
+    });
+
+    const data = await response.json();
+    if (data.error === false) {
+      console.log("Password updated successfully!");
+    } else {
+      console.warn("Unexpected response:", data.status);
+    }
+  } catch (err) {
+    console.log("An error occurred. Please try again.");
+  }
+};

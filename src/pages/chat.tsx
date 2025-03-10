@@ -58,7 +58,20 @@ const Chat = () => {
       fontSize,
     },
   });
-
+  const lightTheme = createTheme({
+    palette: {
+      mode: 'light',
+      primary: {
+        main: '#6ff522',
+      },
+      secondary: {
+        main: '#5cbd24',
+      },
+    },
+    typography: {
+      fontSize,
+    },
+  });
   useEffect(() => {
     if (session) {
       dispatch(fetchUUIDThunk()); // Get user UUID
@@ -83,11 +96,11 @@ const Chat = () => {
   }
 
   const msgComponents = messages.map((msg, index) => (
-    <Message model={{ ...msg, position: "single" }} key={index} />
+    <Message style = {{ fontSize: fontSize}}model={{ ...msg, position: "single" }} key={index} />
   ));
 
   return (
-    <ThemeProvider theme={darkMode ? darkTheme : theme}>
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
         <Box
           display="flex"
@@ -154,7 +167,7 @@ const Chat = () => {
               style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto" }}
             >
               <ChatContainer>
-                <MessageList>{msgComponents}</MessageList>
+                <MessageList style={{ backgroundColor: darkMode ? '#49613c' : "#f3ffed"}}>{msgComponents}</MessageList>
                 <MessageInput
                   placeholder="Type message here"
                   onSend={(msg) => {
