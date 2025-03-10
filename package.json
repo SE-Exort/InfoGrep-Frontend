@@ -33,6 +33,7 @@
     "js-cookie": "^3.0.5",
     "react": "^18.2.0",
     "react-bootstrap": "^2.10.4",
+    "react-doc-viewer": "^0.1.14",
     "react-dom": "^18.2.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^6.23.1",

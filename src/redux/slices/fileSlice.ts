@@ -28,7 +28,7 @@ export const fetchFilesThunk = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
-    const currentChatroom = state.chatroom.selectedChatroom;
+    const currentChatroom = state.chatroom.currentChatroomID;
 
     if (!session || !currentChatroom)
       return rejectWithValue("No session or chatroom found");
@@ -46,7 +46,7 @@ export const uploadFileThunk = createAsyncThunk(
   async (file: File, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
-    const currentChatroom = state.chatroom.selectedChatroom;
+    const currentChatroom = state.chatroom.currentChatroomID;
 
     if (!session || !currentChatroom)
       return rejectWithValue("No session or chatroom found");
@@ -65,7 +65,7 @@ export const deleteFileThunk = createAsyncThunk(
   async (fileUUID: string, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
-    const currentChatroom = state.chatroom.selectedChatroom;
+    const currentChatroom = state.chatroom.currentChatroomID;
 
     if (!session || !currentChatroom)
       return rejectWithValue("No session or chatroom found");
@@ -84,7 +84,7 @@ export const fetchFileDownloadThunk = createAsyncThunk(
   async (file: BackendFile, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
-    const currentChatroom = state.chatroom.selectedChatroom;
+    const currentChatroom = state.chatroom.currentChatroomID;
 
     if (!session || !currentChatroom)
       return rejectWithValue("No session or chatroom found");
@@ -102,7 +102,7 @@ export const startParsingThunk = createAsyncThunk(
   async (fileUUID: string, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
-    const currentChatroom = state.chatroom.selectedChatroom;
+    const currentChatroom = state.chatroom.currentChatroomID;
 
     if (!session || !currentChatroom)
       return rejectWithValue("No session or chatroom found");

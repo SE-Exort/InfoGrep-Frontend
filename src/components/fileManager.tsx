@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -6,8 +6,11 @@ import {
   ListItem,
   ListItemText,
   IconButton,
+  Typography,
+  Dialog,
+  DialogTitle,
 } from "@mui/material";
-import { Delete, Download, PlayArrow } from "@mui/icons-material";
+import { Delete, Download, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
@@ -15,14 +18,23 @@ import {
   uploadFileThunk,
   deleteFileThunk,
   fetchFileDownloadThunk,
-  startParsingThunk,
 } from "../redux/slices/fileSlice";
 import {
   selectFiles,
   selectFileLoading,
   selectFileError,
-  selectSelectedChatroom,
+  selectCurrentChatroomID,
+  selectSession,
 } from "../redux/selectors";
+import CircularProgress from '@mui/material/CircularProgress';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { BackendFile, FILE_API_BASE_URL } from "../utils/api";
+import { pdfjs } from "react-pdf";
+import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.worker.min.mjs`;
 
 const FileManager = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -30,23 +42,30 @@ const FileManager = () => {
   const files = useSelector(selectFiles);
   const loading = useSelector(selectFileLoading);
   const error = useSelector(selectFileError);
-  const selectedChatroom = useSelector(selectSelectedChatroom);
+  const selectedChatroomID = useSelector(selectCurrentChatroomID);
+  const session = useSelector(selectSession);
+  const [currentFile, setCurrentFile] = useState<BackendFile | null>(null);
 
   useEffect(() => {
-    if (selectedChatroom) {
+    if (selectedChatroomID) {
       dispatch(fetchFilesThunk());
     }
-  }, [selectedChatroom, dispatch]);
+  }, [selectedChatroomID, dispatch]);
 
+  if (!selectedChatroomID) {
+    return <Box display="flex" flexDirection="column" justifyContent='center' alignItems='center' flexGrow={1}>
+      <Typography>Please select a chatroom first</Typography>
+    </Box>
+  }
   return (
-    <Box display="flex" flexDirection="column" gap={2}>
+    <Box display="flex" flexDirection="column" gap={2} flexGrow={1} m={2} alignItems='center'>
       <List>
         {loading ? (
-          <p>Loading files...</p>
+          <CircularProgress />
         ) : error ? (
           <p style={{ color: "red" }}>{error}</p>
         ) : (
-          files.map((file) => (
+          (files?.length ? files?.map((file) => (
             <ListItem key={file.File_UUID}>
               <ListItemText primary={file.File_Name} />
               <IconButton
@@ -54,10 +73,17 @@ const FileManager = () => {
               >
                 <Download />
               </IconButton>
-              <IconButton
+              {/* Let's do this automatically for the user... */}
+
+              {/* <IconButton
                 onClick={() => dispatch(startParsingThunk(file.File_UUID))}
               >
                 <PlayArrow />
+              </IconButton> */}
+              <IconButton
+                onClick={() => setCurrentFile(file)}
+              >
+                <VisibilityIcon />
               </IconButton>
               <IconButton
                 onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
@@ -65,10 +91,26 @@ const FileManager = () => {
                 <Delete />
               </IconButton>
             </ListItem>
-          ))
+          )) : <Typography>No files available</Typography>)
         )}
       </List>
-      <Button variant="contained" component="label">
+      {currentFile ?
+        <Dialog open={true} onClose={() => setCurrentFile(null)} fullWidth>
+          <DialogTitle id="alert-dialog-title">
+            {currentFile.File_Name}
+          </DialogTitle>
+          <DocViewer documents={[{
+            uri: `${FILE_API_BASE_URL}/file?` +
+              new URLSearchParams({
+                chatroom_uuid: selectedChatroomID,
+                cookie: session,
+                file_uuid: currentFile.File_UUID,
+              })
+          }]} pluginRenderers={DocViewerRenderers} config={{ header: { disableHeader: true } }} />
+        </Dialog> : <></>
+      }
+
+      <Button variant="contained" component="label" startIcon={<UploadFile />} fullWidth>
         Upload File
         <input
           type="file"

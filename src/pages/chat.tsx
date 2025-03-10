@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Box, Button, Typography, Divider } from "@mui/material";
+import { Box, Button, Typography, Divider, Tooltip } from "@mui/material";
 import { UploadFile, Inventory2 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
@@ -21,15 +21,16 @@ import {
   sendMessageThunk,
 } from "../redux/slices/chatSlice";
 import { fetchFilesThunk, setFileListShowing } from "../redux/slices/fileSlice";
-import { fetchUUIDThunk } from "../redux/slices/authSlice";
+import { checkUserThunk } from "../redux/slices/authSlice";
 import {
   selectSession,
   selectMessages,
   selectChatLoading,
-  selectSelectedChatroom,
+  selectCurrentChatroomID,
   selectFontSize,
   selectDarkMode,
   selectFileListShowing,
+  selectCurrentChatroomName,
 } from "../redux/selectors";
 
 const Chat = () => {
@@ -40,7 +41,8 @@ const Chat = () => {
   // const uuid = useSelector((state: RootState) => state.auth.uuid);
   const messages = useSelector(selectMessages);
   const loading = useSelector(selectChatLoading);
-  const currentChatroom = useSelector(selectSelectedChatroom);
+  const currentChatroomID = useSelector(selectCurrentChatroomID);
+  const currentChatroomName = useSelector(selectCurrentChatroomName);
   const fileListShowing = useSelector(selectFileListShowing);
   const fontSize = useSelector(selectFontSize);
   const darkMode = useSelector(selectDarkMode);
@@ -74,17 +76,13 @@ const Chat = () => {
   });
   useEffect(() => {
     if (session) {
-      dispatch(fetchUUIDThunk()); // Get user UUID
+      dispatch(checkUserThunk()); // Get user UUID
     }
-    if (currentChatroom) {
+    if (currentChatroomID) {
       dispatch(fetchMessagesThunk()); // Load chat messages
       dispatch(fetchFilesThunk()); // Load files for the chatroom
     }
-  }, [session, currentChatroom, dispatch]);
-
-  const handleFileUpload = () => {
-    console.log("File uploaded");
-  };
+  }, [session, currentChatroomID, dispatch]);
 
   const handleFileListButton = () => {
     // Toggle file list visibility
@@ -124,35 +122,20 @@ const Chat = () => {
             justifyContent="space-between"
           >
             <Typography variant="h6" style={{ flexGrow: 1 }}>
-              {currentChatroom}
+              {currentChatroomName}
             </Typography>
-            <Box display="flex" gap={2}>
-              <Button
-                variant="contained"
-                startIcon={<UploadFile />}
-                onClick={handleFileUpload}
-                component="label"
-              >
-                <input
-                  type="file"
-                  hidden
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      console.log("Uploading file", e.target.files[0]);
-                    }
-                  }}
-                />
-                Upload File
-              </Button>
-              <Divider />
-              <Button
-                variant="contained"
-                startIcon={<Inventory2 />}
-                onClick={handleFileListButton}
-              >
-                File List
-              </Button>
-            </Box>
+            <Tooltip title={!currentChatroomID && "Please select a chatroom"}>
+              <span>
+                <Button
+                  variant="contained"
+                  startIcon={<Inventory2 />}
+                  onClick={handleFileListButton}
+                  disabled={!currentChatroomID}
+                >
+                  File List
+                </Button>
+              </span>
+            </Tooltip>
           </Box>
 
           <div

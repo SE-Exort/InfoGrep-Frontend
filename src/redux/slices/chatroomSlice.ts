@@ -8,15 +8,15 @@ import {
 import { RootState } from "../store";
 
 interface ChatroomState {
-  chatrooms: Map<string, Chatroom>;
-  selectedChatroom: string;
+  chatroomMap: Map<string, Chatroom>;
+  currentChatroomID: string;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: ChatroomState = {
-  chatrooms: new Map<string, Chatroom>(),
-  selectedChatroom: "",
+  chatroomMap: new Map<string, Chatroom>(),
+  currentChatroomID: "",
   loading: false,
   error: null,
 };
@@ -80,7 +80,7 @@ const chatroomSlice = createSlice({
   initialState,
   reducers: {
     setSelectedChatroom: (state, action: PayloadAction<string>) => {
-      state.selectedChatroom = action.payload;
+      state.currentChatroomID = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -91,8 +91,8 @@ const chatroomSlice = createSlice({
       })
       .addCase(fetchChatroomsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.chatrooms = new Map<string, Chatroom>();
-        action.payload.map(chatroom => state.chatrooms.set(chatroom.CHATROOM_UUID, chatroom));
+        state.chatroomMap = new Map<string, Chatroom>();
+        action.payload.map(chatroom => state.chatroomMap.set(chatroom.CHATROOM_UUID, chatroom));
       })
       .addCase(fetchChatroomsThunk.rejected, (state, action) => {
         state.loading = false;
@@ -105,7 +105,7 @@ const chatroomSlice = createSlice({
         state.error = action.payload as string;
       })
       .addCase(deleteChatroomThunk.fulfilled, (state, action) => {
-        state.selectedChatroom = '';
+        state.currentChatroomID = '';
       });
   },
 });

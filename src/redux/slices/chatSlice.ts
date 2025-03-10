@@ -27,7 +27,7 @@ export const fetchMessagesThunk = createAsyncThunk(
   async (_, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
-    const currentChatroom = state.chatroom.selectedChatroom;
+    const currentChatroom = state.chatroom.currentChatroomID;
 
     if (!session || !currentChatroom)
       return rejectWithValue("No session or chatroom found");
@@ -66,7 +66,7 @@ export const sendMessageThunk = createAsyncThunk(
   async (message: string, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
-    const currentChatroom = state.chatroom.selectedChatroom;
+    const currentChatroom = state.chatroom.currentChatroomID;
 
     if (!session || !currentChatroom)
       return rejectWithValue("No session or chatroom found");

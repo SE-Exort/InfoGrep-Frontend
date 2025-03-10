@@ -15,10 +15,10 @@ import {
   deleteChatroomThunk,
   setSelectedChatroom,
 } from "../redux/slices/chatroomSlice";
-import { fetchUUIDThunk } from "../redux/slices/authSlice";
+import { checkUserThunk } from "../redux/slices/authSlice";
 import {
   selectChatrooms,
-  selectSelectedChatroom,
+  selectCurrentChatroomID,
   selectChatroomLoading,
   selectChatroomError,
   selectSession,
@@ -32,7 +32,7 @@ const ChatroomManager: React.FC = () => {
 
   // Redux data
   const chatrooms = useSelector(selectChatrooms);
-  const selectedChatroom = useSelector(selectSelectedChatroom);
+  const selectedChatroom = useSelector(selectCurrentChatroomID);
   const loading = useSelector(selectChatroomLoading);
   const error = useSelector(selectChatroomError);
   const session = useSelector(selectSession);
@@ -44,7 +44,7 @@ const ChatroomManager: React.FC = () => {
   // Fetch UUID if its missing
   useEffect(() => {
     if (session && !uuid) {
-      dispatch(fetchUUIDThunk()); // Get UUID from Redux
+      dispatch(checkUserThunk()); // Get UUID from Redux
     }
   }, [session, uuid, dispatch]);
 

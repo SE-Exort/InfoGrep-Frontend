@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Cookies from "js-cookie";
@@ -7,13 +7,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
   authenticateUserThunk,
-  setUsername,
   clearAuthError,
+  checkUserThunk,
 } from "../redux/slices/authSlice";
 import {
   selectSession,
-  selectUsername,
   selectAuthError,
+  selectIsAdmin,
 } from "../redux/selectors";
 
 function Login() {
@@ -22,25 +22,36 @@ function Login() {
 
   // Redux state
   const session = useSelector(selectSession);
-  const username = useSelector(selectUsername);
+  const [username, setUsername] = useState('');
   const authError = useSelector(selectAuthError);
   const [password, setPassword] = React.useState("");
+  const isAdmin = useSelector(selectIsAdmin);
 
   // Redirect if session exists
   useEffect(() => {
     if (session) {
       Cookies.set("session", session, { expires: 7 });
-      navigate("/chat", { state: { sessionID: session } });
+      if (isAdmin) {
+        navigate('/admin', { state: { sessionID: session, renameFlag: username === 'admin' || password === 'admin' } }); // Use the path you defined in your Routes
+      } else {
+        navigate("/chat", { state: { sessionID: session } });
+      }
     }
-  }, [session, navigate]);
+  }, [session, isAdmin, navigate, username, password]);
 
   // Handle Login/Register
   const handleSignIn = async (
     type: "login" | "register",
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
-    e.preventDefault();
     dispatch(authenticateUserThunk({ type, username, password })); // Dispatch async thunk for authentication
+    dispatch(checkUserThunk());
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      handleSignIn("login", e as unknown as React.MouseEvent<HTMLButtonElement>);
+    }
   };
 
   return (
@@ -69,7 +80,8 @@ function Login() {
             variant="filled"
             placeholder="Enter username here.."
             value={username}
-            onChange={(e) => dispatch(setUsername(e.target.value))}
+            onChange={(e) => setUsername(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
           <TextField
             label="Password"
@@ -83,6 +95,7 @@ function Login() {
               setPassword(e.target.value);
               dispatch(clearAuthError()); // Clear error when typing
             }}
+            onKeyDown={handleKeyDown}
           />
           <Box
             display="flex"
@@ -97,13 +110,13 @@ function Login() {
             >
               Login
             </Button>
-            <Button
+            {/* <Button
               variant="contained"
               color="secondary"
               onClick={(e) => handleSignIn("register", e)}
             >
               Sign up
-            </Button>
+            </Button> */}
           </Box>
         </Paper>
       </Box>
