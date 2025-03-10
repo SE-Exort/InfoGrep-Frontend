@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
-import { authenticateUser, getUUID, changePassword,  checkUser } from "../../utils/api";
+import { authenticateUser, changePassword,  checkUser } from "../../utils/api";
 import { RootState } from "../store";
 
 // Define the shape of the auth stat
