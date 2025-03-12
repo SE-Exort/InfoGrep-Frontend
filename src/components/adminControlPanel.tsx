@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Divider, Paper, Autocomplete, InputLabel, FormControl, Select, MenuItem } from '@mui/material';
-import { Delete, Add, Menu, SyncLock, Save, Download } from '@mui/icons-material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, InputLabel, FormControl, Select, MenuItem } from '@mui/material';
+import { Delete, Add, SyncLock, Save, Download } from '@mui/icons-material';
 
 interface AdminControlPanelProps {
   session: string,
@@ -9,7 +8,7 @@ interface AdminControlPanelProps {
 }
 // enum for chat vs embeddings
 enum ModelType {
-  CHAT = 'chat', 
+  CHAT = 'chat',
   EMBEDDINGS = 'embeddings'
 }
 
@@ -19,35 +18,32 @@ interface ModelInfo {
 }
 
 interface ModelsResponse {
-  chat?: ModelInfo[];
-  embeddings?: ModelInfo[]; 
+  chat: ModelInfo[];
+  embedding: ModelInfo[];
 }
 
+interface User {
+  id: string;
+  username: string;
+  password: string;
+}
 
 const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) => {
-//   const [session, setSession] = useState<string>('');
-  const modelsDefault = ['Model A', 'Model B', 'Model C', 'Model D']; // get from backend in future
-  // const userDefault = ['User A', 'User B', 'User C', 'User D']; // get from backend in future
-
   const [usernameCreate, setUsernameCreate] = useState<string>('');
   const [passwordCreate, setPasswordCreate] = useState<string>('');
-  const [users, setUsers] = useState<{ id: string, username: string, password: string}[]>([]);
-  const [usernameUpdate, setUsernameUpdate] = useState<string>('');
-  const [passwordUpdate, setPasswordUpdate] = useState<string>('');
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [newUsername, setNewUsername] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
   const [usernameDelete, setUsernameDelete] = useState<string>('');
   const openAIKeyRef = useRef<HTMLInputElement>(null);
-  const huggingFaceLLMNameRef = useRef<HTMLInputElement>(null);
-  const huggingFaceLLMProviderRef = useRef<HTMLInputElement>(null);
-  const [selectedModels, setSelectedModels] = useState<string[]>(modelsDefault);
+  const ollamaLLMNameRef = useRef<HTMLInputElement>(null);
+  const ollamaLLMProviderRef = useRef<HTMLInputElement>(null);
   const [selectedModel, setSelectedModel] = useState<ModelInfo | null>(null);
   const [fileList, setFileList] = useState<{ File_UUID: string; File_Name: string, File_Size: number }[]>([]);
-  const [modelList, setModelList] = useState<ModelsResponse>({});
-  const [passwordError, setPasswordError] = useState(false);
-  const [passwordErrorDesc, setPasswordErrorDesc] = useState('');
+  const [modelList, setModelList] = useState<ModelsResponse>({ chat: [], embedding: [] });
 
-
-
-  const getUsers = async () => {
+  const getUsers = useCallback(async () => {
     try {
 
       const response = await fetch('http://localhost:4000/admin/users?' + new URLSearchParams({
@@ -62,13 +58,13 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
         throw new Error(data.status);
       }
       console.log('Users:', data);
-      setUsers(data.data); 
+      setUsers(data.data);
     } catch (error) {
       console.error('UUID error:', error);
     }
-  };
+  }, [session]);
 
-  const getFilesList = async () => {
+  const getFilesList = useCallback(async () => {
     try {
       const response = await fetch('http://127.0.0.1:8002/api/admin-all-files?' + new URLSearchParams({
         'cookie': session,
@@ -79,36 +75,35 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
     } catch (error) {
       console.error('Error fetching the file list:', error);
     }
-  };
+  }, [session]);
 
-  const getModels = async () => {
+  const getModels = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8004/models?' + new URLSearchParams({
+      const response = await fetch('http://127.0.0.1:8004/api/models?' + new URLSearchParams({
         'cookie': session,
       }).toString(), { method: 'GET' });
-      const models: ModelsResponse = await response.json();
+      const models: ModelsResponse = (await response.json()).data;
       console.log('Available models:', models);
-      setModelList(models);
+      setModelList({
+        chat: models?.chat?.map(m => ({ model: m.model, provider: m.provider })) ?? [],
+        embedding: models?.embedding?.map(m => ({ model: m.model, provider: m.provider })) ?? []
+      });
     } catch (error) {
       console.error('Error fetching the model list:', error);
     }
-  };
+  }, [session]);
 
   useEffect(() => {
     // need users?session
     getUsers();
     getModels();
     getFilesList();
-  }, []);
+  }, [getFilesList, getModels, getUsers]);
 
   const checkEmail = (email: string) => {
     // if we want to check emails later
     return false;
   }
-  
-  const handleLogin = async (uuid: string) => {
-    // changeSessionId?session,uuid
-  };
 
   const handleCreateUserUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUsernameCreate(event.target.value);
@@ -123,9 +118,9 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
     try {
       checkEmail(usernameCreate);
       // checkPassword();
-      if((usernameCreate == '' || passwordCreate == '')){
+      if ((usernameCreate === '' || passwordCreate === '')) {
         throw new Error('Please fill out all fields');
-      } 
+      }
       const username = usernameCreate;
       const password = passwordCreate;
       console.log(JSON.stringify({ usernameCreate, passwordCreate }));
@@ -140,7 +135,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
       if (!response.ok) {
         throw new Error('Request failed');
       }
-      
+
       const data = await response.json();
 
       if (data.error) {
@@ -150,73 +145,63 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
       // Handle success (e.g., store the token, redirect the user)
       console.log('Login successful:', data.data);
       setUsernameCreate('');
-      setPasswordCreate(''); 
+      setPasswordCreate('');
       getUsers();
       // also need to get admin or chat from this
     } catch (error) {
       if (error instanceof Error) {
-        setPasswordError(true);
-        setPasswordErrorDesc(error.message);
+        // TODO: toast
       }
       console.error('Login error:', error);
     }
   };
 
-  const handleChangePasswordUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUsernameUpdate(event.target.value);
+  const handleChangePasswordPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setNewPassword(event.target.value);
   };
 
-  const handleChangePasswordPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPasswordUpdate(event.target.value);
-  };
-  
   const handlePasswordChange = async () => {
     try {
-      // checkPassword();
-      if((usernameUpdate == '' || passwordUpdate == '')){
+      if (!selectedUser || !newUsername || !newPassword) {
         throw new Error('Please fill out all fields');
-      } 
-      const username = usernameUpdate;
-      const password = passwordUpdate;
-      console.log(JSON.stringify({ usernameUpdate, passwordUpdate }));
-      const response = await fetch(`http://localhost:4000/admin/user`, {
+      }
+      console.log(JSON.stringify({ usernameUpdate: newUsername, passwordUpdate: newPassword }));
+      const response = await fetch(`http://localhost:4000/admin/user?` + new URLSearchParams({
+        sessionToken: session
+      }), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ session, username, password }),
+        body: JSON.stringify({ id: selectedUser.id, username: newUsername, password: newPassword }),
       });
 
       if (!response.ok) {
         throw new Error('Request failed');
       }
-      
+
       const data = await response.json();
 
       if (data.error) {
         throw new Error(data.status);
       }
       console.log('Login successful:', data.data);
-      setUsernameUpdate('');
-      setPasswordUpdate(''); 
+      setNewUsername('');
+      setNewPassword('');
+      setSelectedUser(null);
     } catch (error) {
       if (error instanceof Error) {
-        setPasswordError(true);
-        setPasswordErrorDesc(error.message);
+        // TODO: toast
       }
       console.error('Login error:', error);
     }
   };
 
-  const handleDeleteUsernameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUsernameDelete(event.target.value);
-  };
-
   const handleDeleteUser = async () => {
     try {
-      if((usernameDelete == '')){
+      if ((usernameDelete === '')) {
         throw new Error('Please fill out all fields');
-      } 
+      }
       const userID = users.find(user => user.username === usernameDelete)?.id;
       console.log(JSON.stringify({ usernameDelete }));
       const response = await fetch(`http://localhost:4000/admin/user?sessionToken=${session}`, {
@@ -237,8 +222,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
       setUsernameDelete('');
     } catch (error) {
       if (error instanceof Error) {
-        setPasswordError(true);
-        setPasswordErrorDesc(error.message);
+        // TODO: toast
       }
       console.error('delete error:', error);
     }
@@ -250,13 +234,16 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
     // setOpenAIKey?uuid,session
   };
 
-  
+
   const updateModels = async (models: ModelsResponse) => {
     try {
       const postResult = await fetch('http://127.0.0.1:8004/api/models?' + new URLSearchParams({
-        'cookie': session,
-        'models': JSON.stringify(models),
-      }).toString(), {method: 'POST'}); // FIX
+        'sessionToken': session,
+      }).toString(), {
+        method: 'POST', body: JSON.stringify(models), headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       if (!postResult.ok) {
         throw new Error('Request failed');
       }
@@ -269,45 +256,42 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
   };
 
   const handleDeleteLLM = async (modelInfo: ModelInfo) => {
-    if (!modelInfo) return;
-      console.log('Deleting model:', modelInfo);
+    console.log('Deleting model:', modelInfo);
 
-      const newChatModels = modelList.chat ? 
-      modelList.chat.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) : [];
-      const newEmbeddingsModels = modelList.embeddings ? 
-      modelList.embeddings.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) : [];
+    const newChatModels = modelList?.chat?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
+    const newEmbeddingsModels = modelList?.embedding?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
 
-      const updatedModelList: ModelsResponse = {
+    const updatedModelList: ModelsResponse = {
       chat: newChatModels,
-      embeddings: newEmbeddingsModels
-      };
-      updateModels(updatedModelList);
+      embedding: newEmbeddingsModels
+    };
+    updateModels(updatedModelList);
   }
 
   const handleDownloadLLM = async (modelType: ModelType) => {
-    if (!modelType || huggingFaceLLMNameRef.current?.value == '' || huggingFaceLLMProviderRef.current?.value == '') return;
+    if (!modelType || ollamaLLMNameRef.current?.value === '' || ollamaLLMProviderRef.current?.value === '') return;
     else {
-      console.log('Adding model:', modelType, huggingFaceLLMNameRef.current?.value, huggingFaceLLMProviderRef.current?.value);
+      console.log('Adding model:', modelType, ollamaLLMNameRef.current?.value, ollamaLLMProviderRef.current?.value);
 
       const newModel = {
-        model: huggingFaceLLMNameRef.current?.value || '',
-        provider: huggingFaceLLMProviderRef.current?.value || ''
+        model: ollamaLLMNameRef.current?.value || '',
+        provider: ollamaLLMProviderRef.current?.value || ''
       };
       let updatedModelList: ModelsResponse;
-      if(modelType === ModelType.CHAT) {
-        const newChatModels = modelList.chat ? [...modelList.chat, newModel] : [newModel];
+      if (modelType === ModelType.CHAT) {
+        const newChatModels = [...modelList.chat, newModel];
         updatedModelList = {
           chat: newChatModels,
-          embeddings: modelList.embeddings
+          embedding: modelList.embedding
         };
-      } else if (modelType === ModelType.EMBEDDINGS) {
-        const newEmbeddingsModels = modelList.embeddings ? [...modelList.embeddings, newModel] : [newModel];
+      } else {
+        const newEmbeddingsModels = [...modelList.embedding, newModel];
         updatedModelList = {
           chat: modelList.chat,
-          embeddings: newEmbeddingsModels
+          embedding: newEmbeddingsModels
+        }
       }
       updateModels(updatedModelList);
-    }
     }
 
   };
@@ -323,20 +307,20 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
 
   return (
     <Box width="100%" bgcolor="#f2f2f2" display="flex" flexDirection="column" gap={1}>
-      <Paper elevation={3}  sx={{ p: 2, mb: 2 }}>    
+      <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
         <Typography variant="h5">Admin Control Panel</Typography>
       </Paper>
       <Box width="100%" bgcolor="#f2f2f2" display="flex" flexDirection="row" flexWrap="wrap" gap={1} overflow="auto">
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>    
+        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
             <Typography variant="h6">Create an User</Typography>
-            <TextField label="Username" variant="outlined" value={usernameCreate} onChange={handleCreateUserUsernameChange} 
+            <TextField label="Username" variant="outlined" value={usernameCreate} onChange={handleCreateUserUsernameChange}
               error={checkEmail(usernameCreate)} sx={{ maxWidth: '400px' }} />
             <TextField label="Password" variant="outlined" value={passwordCreate} onChange={handleCreateUserPasswordChange} sx={{ maxWidth: '400px' }} />
             <Button variant="contained" color="primary" onClick={handleCreateUser} startIcon={<Add />}>Create</Button>
           </Box>
         </Paper>
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>   
+        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
             <Typography variant="h6">Change an User's Password</Typography>
             <FormControl variant="outlined" sx={{ maxWidth: '800px' }}>
@@ -344,11 +328,15 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
               <Select
                 labelId="model-select-label"
                 label="Models"
-                value={usernameUpdate}
-                onChange={(event) => setUsernameUpdate(event.target.value as string)}
+                value={selectedUser ? JSON.stringify(selectedUser) : ''}
+                onChange={(event) => {
+                  const user: User = JSON.parse(event.target.value as string);
+                  setSelectedUser(user);
+                  setNewUsername(user.username); // TODO: support username changes
+                }}
               >
                 {users.map((user) => (
-                  <MenuItem key={user.id} value={user.username}>
+                  <MenuItem key={user.id} value={JSON.stringify(user)}>
                     <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
                       {user.username}
                     </Box>
@@ -356,13 +344,12 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
                 ))}
               </Select>
             </FormControl>
-            <TextField label="Password" variant="outlined" value={passwordUpdate} onChange={handleChangePasswordPasswordChange} sx={{ maxWidth: '400px' }} />
+            <TextField label="Password" variant="outlined" value={newPassword} onChange={handleChangePasswordPasswordChange} sx={{ maxWidth: '400px' }} />
             <Button variant="contained" color="primary" onClick={handlePasswordChange} startIcon={<SyncLock />}>Change Password</Button>
           </Box>
         </Paper>
 
-
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>   
+        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
             <Typography variant="h6">Remove an Account</Typography>
             <FormControl variant="outlined" sx={{ maxWidth: '800px' }}>
@@ -385,68 +372,38 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
             <Button variant="contained" color="primary" onClick={handleDeleteUser} startIcon={<Delete />}>Delete</Button>
           </Box>
         </Paper>
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>   
+        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
             <Typography variant="h6">Set Open AI API Key</Typography>
-            <TextField label="Key" variant="outlined" inputRef={openAIKeyRef} sx={{ maxWidth: '800px' }} /> 
+            <TextField label="Key" variant="outlined" inputRef={openAIKeyRef} sx={{ maxWidth: '800px' }} />
             <Button variant="contained" color="primary" onClick={handleOpenAIKey} startIcon={<Save />}>Save</Button>
           </Box>
         </Paper>
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>   
+        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Download new LLM Models</Typography>
-            <TextField label="Hugging Face LLM Name" variant="outlined" inputRef={huggingFaceLLMNameRef} sx={{ maxWidth: '800px' }} /> 
-            <TextField label="Hugging Face LLM Provider" variant="outlined" inputRef={huggingFaceLLMProviderRef} sx={{ maxWidth: '800px' }} />
-            <Box display="flex" gap={2} flexDirection="row"> 
+            <Typography variant="h6">Add New LLM Model</Typography>
+            <TextField label="Model Name" variant="outlined" inputRef={ollamaLLMNameRef} sx={{ maxWidth: '800px' }} />
+            <TextField label="LLM Provider" variant="outlined" inputRef={ollamaLLMProviderRef} sx={{ maxWidth: '800px' }} />
+            <Box display="flex" gap={2} flexDirection="row">
               <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.CHAT)} startIcon={<Download />}>Download as Chat</Button>
               <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.EMBEDDINGS)} startIcon={<Download />}>Download as Embedding</Button>
             </Box>
           </Box>
         </Paper>
-        
-        {/* <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>   
-          <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Select models to show to users</Typography>
-            <Autocomplete
-              multiple
-              options={selectedModels}
-              getOptionLabel={(option) => option}
-              value={selectedModels}
-              onChange={(event, newValue) => setSelectedModels(newValue)}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  variant="outlined"
-                  label="Models"
-                  placeholder="Select models"
-                />
-              )}
-              sx={{ maxWidth: '800px' }}
-            />
-            <Button variant="contained" color="primary" onClick={() => console.log("saving:", selectedModels)} startIcon={<Save />}>Save</Button>
-          </Box>
-        </Paper> */ }
 
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>   
+        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Remove Models</Typography>
+            <Typography variant="h6">Remove Model</Typography>
             <FormControl variant="outlined" sx={{ maxWidth: '800px' }}>
               <InputLabel id="model-select-label">Models</InputLabel>
               <Select
                 labelId="model-select-label"
                 label="Models"
-                value={selectedModel}
+                value={selectedModel ? JSON.stringify(selectedModel) : ''}
                 onChange={(event) => setSelectedModel(JSON.parse(event.target.value as string))}
               >
-                {modelList.chat && modelList.chat.map((model) => (
-                  <MenuItem key={model.model} value={model.provider}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-                      {`${model.model}\\${model.provider}`}
-                    </Box>
-                  </MenuItem>
-                ))}
-                {modelList.embeddings && modelList.embeddings.map((model) => (
-                  <MenuItem key={model.model} value={model.provider}>
+                {modelList?.chat?.concat(modelList?.embedding ?? []).map((model) => (
+                  <MenuItem key={model.model} value={JSON.stringify(model)}>
                     <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
                       {`${model.model}\\${model.provider}`}
                     </Box>
@@ -457,7 +414,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
             <Button variant="contained" color="primary" onClick={() => selectedModel && handleDeleteLLM(selectedModel)} startIcon={<Delete />}>Delete Model</Button>
           </Box>
         </Paper>
-              
+
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '1000px', minWidth: '800px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
             <Typography variant="h6">Files</Typography>
@@ -465,7 +422,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
               {fileList.map((file) => (
                 <ListItem key={file.File_UUID} divider>
                   <ListItemText primary={file.File_Name} />
-                  <ListItemText primary={`${(file.File_Size / 1000000).toFixed(1)}MB`} />             
+                  <ListItemText primary={`${(file.File_Size / 1000000).toFixed(1)}MB`} />
                   <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(file.File_UUID)}>
                     <Delete />
                   </IconButton>
@@ -474,26 +431,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
             </List>
           </Box>
         </Paper>
-
       </Box>
-      {/* <List>
-      {chatrooms.map((cr, index) => (
-        <Box key={cr.CHATROOM_UUID} sx={{ bgcolor: 'secondary.main', borderRadius: '4px', mb: 1 }}>
-          <ListItem secondaryAction={
-            <IconButton edge="end" aria-label="delete" onClick={() => deleteChatroom(cr.CHATROOM_UUID)}> 
-              <Delete />
-            </IconButton>
-          }
-          onClick={() => setChatroom(cr.CHATROOM_UUID)}>
-            <ListItemText primary={cr.CHATROOM_NAME} 
-              sx={{ color: 'primary.contrastText', 
-                  overflow: 'hidden', 
-                  textOverflow: 'ellipsis', 
-                  whiteSpace: 'nowrap' }} />
-          </ListItem>
-        </Box>
-      ))}
-          </List> */}
     </Box>
   );
 };
