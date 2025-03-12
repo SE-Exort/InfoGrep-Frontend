@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Box, Button, Typography, Divider, Tooltip } from "@mui/material";
 import { UploadFile, Inventory2 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -32,6 +32,7 @@ import {
   selectFileListShowing,
   selectCurrentChatroomName,
 } from "../redux/selectors";
+import { motion } from "framer-motion";
 
 const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -48,18 +49,35 @@ const Chat = () => {
   const darkMode = useSelector(selectDarkMode);
   const darkTheme = createTheme({
     palette: {
-      mode: 'dark',
+      mode: "dark",
       primary: {
-        main: '#518764',
+        main: "#518764",
       },
       secondary: {
-        main: '#424f47',
+        main: "#424f47",
       },
     },
     typography: {
       fontSize,
     },
   });
+
+  // Welcome page
+  const message = "Welcome to Infogrep!";
+  const [displayedText, setDisplayedText] = useState("");
+
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < message.length) {
+        setDisplayedText((prev) => message.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (session) {
@@ -91,7 +109,7 @@ const Chat = () => {
           display="flex"
           flexDirection="column"
           gap={2}
-          bgcolor={darkMode ? '#647569' : 'grey.200'}
+          bgcolor={darkMode ? "#647569" : "grey.200"}
           height="100vh"
         >
           <SettingsBar />
@@ -99,57 +117,79 @@ const Chat = () => {
         </Box>
 
         <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
-          <Box
-            bgcolor={darkMode ? '#696969' : "#e0e0e0"}
-            p={2}
-            display="flex"
-            flexDirection="row"
-            gap={2}
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <Typography variant="h6" style={{ flexGrow: 1 }}>
-              {currentChatroomName}
-            </Typography>
-            <Tooltip title={!currentChatroomID && "Please select a chatroom"}>
-              <span>
-                <Button
-                  variant="contained"
-                  startIcon={<Inventory2 />}
-                  onClick={handleFileListButton}
-                  disabled={!currentChatroomID}
+          {currentChatroomID ? (
+            <>
+              <Box
+                bgcolor={darkMode ? "#696969" : "#e0e0e0"}
+                p={2}
+                display="flex"
+                flexDirection="row"
+                gap={2}
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Typography variant="h6" style={{ flexGrow: 1 }}>
+                  {currentChatroomName}
+                </Typography>
+                <Tooltip
+                  title={!currentChatroomID && "Please select a chatroom"}
                 >
-                  File List
-                </Button>
-              </span>
-            </Tooltip>
-          </Box>
+                  <span>
+                    <Button
+                      variant="contained"
+                      startIcon={<Inventory2 />}
+                      onClick={handleFileListButton}
+                      disabled={!currentChatroomID}
+                    >
+                      File List
+                    </Button>
+                  </span>
+                </Tooltip>
+              </Box>
 
-          <div
-            style={{
-              position: "relative",
-              flexGrow: 1,
-              display: "flex",
-              flexDirection: "row",
-            }}
-          >
-            <MainContainer
-              style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto" }}
+              <div
+                style={{
+                  position: "relative",
+                  flexGrow: 1,
+                  display: "flex",
+                  flexDirection: "row",
+                }}
+              >
+                <MainContainer
+                  style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto" }}
+                >
+                  <ChatContainer>
+                    <MessageList>{msgComponents}</MessageList>
+                    <MessageInput
+                      placeholder="Type message here"
+                      onSend={(msg) => {
+                        dispatch(sendMessageThunk(msg));
+                      }}
+                    />
+                  </ChatContainer>
+                </MainContainer>
+                {fileListShowing && <FileManager />}
+              </div>
+            </>
+          ) : (
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              height="100vh"
+              bgcolor="#798f60"
             >
-              <ChatContainer>
-                <MessageList>{msgComponents}</MessageList>
-                <MessageInput
-                  placeholder="Type message here"
-                  onSend={(msg) => {
-                    dispatch(sendMessageThunk(msg));
-                  }}
-                />
-              </ChatContainer>
-            </MainContainer>
-            {fileListShowing && (
-              <FileManager />
-            )}
-          </div>
+              <motion.h1
+                className="text-4xl font-bold text-white mb-6"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 1 }}
+              >
+                {displayedText}
+              </motion.h1>
+            </Box>
+          )}
         </Box>
       </Box>
     </ThemeProvider>
