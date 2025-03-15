@@ -34,6 +34,7 @@ import {
 } from "../redux/selectors";
 import { motion } from "framer-motion";
 import { current } from "@reduxjs/toolkit";
+import Markdown from "react-markdown";
 
 const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -114,7 +115,9 @@ const Chat = () => {
   }
 
   const msgComponents = messages.map((msg, index) => (
-    <Message style={{ fontSize: fontSize }} model={{ ...msg, position: "single" }} key={index} />
+    <Message style={{ fontSize: fontSize }} model={{ direction: msg.direction, sender: msg.sender, position: "single", type: "custom", payload: <Markdown>{msg.message}</Markdown> }} key={index} >
+      
+    </Message>
   ));
 
   const WelcomePage = <Box

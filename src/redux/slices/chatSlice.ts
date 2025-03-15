@@ -36,14 +36,9 @@ export const fetchMessagesThunk = createAsyncThunk(
       const messageList = await fetchMessages(currentChatroom, session);
       const newMessagesArr = [];
 
-      for (const { Message_UUID, User_UUID } of messageList) {
-        const actualMsg = await fetchMessageDetails(
-          currentChatroom,
-          Message_UUID,
-          session
-        );
+      for (const { User_UUID, Message } of messageList) {
         newMessagesArr.push({
-          message: actualMsg,
+          message: Message,
           direction:
             User_UUID === "00000000-0000-0000-0000-000000000000"
               ? "incoming"
