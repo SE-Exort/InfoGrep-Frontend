@@ -22,7 +22,7 @@ function Login() {
 
   // Redux state
   const session = useSelector(selectSession);
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState("");
   const authError = useSelector(selectAuthError);
   const [password, setPassword] = React.useState("");
   const isAdmin = useSelector(selectIsAdmin);
@@ -32,7 +32,12 @@ function Login() {
     if (session) {
       Cookies.set("session", session, { expires: 7 });
       if (isAdmin) {
-        navigate('/admin', { state: { sessionID: session, renameFlag: username === 'admin' || password === 'admin' } }); // Use the path you defined in your Routes
+        navigate("/admin", {
+          state: {
+            sessionID: session,
+            renameFlag: username === "admin" || password === "admin",
+          },
+        }); // Use the path you defined in your Routes
       } else {
         navigate("/chat", { state: { sessionID: session } });
       }
@@ -49,8 +54,11 @@ function Login() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
-      handleSignIn("login", e as unknown as React.MouseEvent<HTMLButtonElement>);
+    if (e.key === "Enter") {
+      handleSignIn(
+        "login",
+        e as unknown as React.MouseEvent<HTMLButtonElement>
+      );
     }
   };
 

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Box, Button, Typography, Divider, Tooltip } from "@mui/material";
 import { UploadFile, Inventory2 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -32,6 +32,8 @@ import {
   selectFileListShowing,
   selectCurrentChatroomName,
 } from "../redux/selectors";
+import { motion } from "framer-motion";
+import { current } from "@reduxjs/toolkit";
 
 const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -48,12 +50,12 @@ const Chat = () => {
   const darkMode = useSelector(selectDarkMode);
   const darkTheme = createTheme({
     palette: {
-      mode: 'dark',
+      mode: "dark",
       primary: {
-        main: '#518764',
+        main: "#518764",
       },
       secondary: {
-        main: '#424f47',
+        main: "#424f47",
       },
     },
     typography: {
@@ -74,6 +76,24 @@ const Chat = () => {
       fontSize,
     },
   });
+
+  // Welcome page
+  const message = "Welcome to Infogrep!";
+  const [displayedText, setDisplayedText] = useState("");
+
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      if (index < message.length) {
+        setDisplayedText((prev) => message.slice(0, index + 1));
+        index++;
+      } else {
+        clearInterval(interval);
+      }
+    }, 100);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (session) {
       dispatch(checkUserThunk()); // Get user UUID
@@ -94,8 +114,27 @@ const Chat = () => {
   }
 
   const msgComponents = messages.map((msg, index) => (
-    <Message style = {{ fontSize: fontSize}}model={{ ...msg, position: "single" }} key={index} />
+    <Message style={{ fontSize: fontSize }} model={{ ...msg, position: "single" }} key={index} />
   ));
+
+  const WelcomePage = <Box
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    justifyContent="center"
+    height="100vh"
+    bgcolor="#798f60"
+    width="100%"
+  >
+    <motion.h1
+      className="text-4xl font-bold text-white mb-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+    >
+      {displayedText}
+    </motion.h1>
+  </Box>;
 
   return (
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
@@ -104,16 +143,16 @@ const Chat = () => {
           display="flex"
           flexDirection="column"
           gap={2}
-          bgcolor={darkMode ? '#647569' : 'grey.200'}
+          bgcolor={darkMode ? "#647569" : "grey.200"}
           height="100vh"
         >
           <SettingsBar />
           <ChatroomManager />
         </Box>
 
-        <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
+        {currentChatroomID ? <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
           <Box
-            bgcolor={darkMode ? '#696969' : "#e0e0e0"}
+            bgcolor={darkMode ? "#696969" : "#e0e0e0"}
             p={2}
             display="flex"
             flexDirection="row"
@@ -124,18 +163,14 @@ const Chat = () => {
             <Typography variant="h6" style={{ flexGrow: 1 }}>
               {currentChatroomName}
             </Typography>
-            <Tooltip title={!currentChatroomID && "Please select a chatroom"}>
-              <span>
-                <Button
-                  variant="contained"
-                  startIcon={<Inventory2 />}
-                  onClick={handleFileListButton}
-                  disabled={!currentChatroomID}
-                >
-                  File List
-                </Button>
-              </span>
-            </Tooltip>
+            <Button
+              variant="contained"
+              startIcon={<Inventory2 />}
+              onClick={handleFileListButton}
+              disabled={!currentChatroomID}
+            >
+              File List
+            </Button>
           </Box>
 
           <div
@@ -150,7 +185,7 @@ const Chat = () => {
               style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto" }}
             >
               <ChatContainer>
-                <MessageList style={{ backgroundColor: darkMode ? '#49613c' : "#f3ffed"}}>{msgComponents}</MessageList>
+                <MessageList>{msgComponents}</MessageList>
                 <MessageInput
                   placeholder="Type message here"
                   onSend={(msg) => {
@@ -159,11 +194,9 @@ const Chat = () => {
                 />
               </ChatContainer>
             </MainContainer>
-            {fileListShowing && (
-              <FileManager />
-            )}
+            {fileListShowing && <FileManager />}
           </div>
-        </Box>
+        </Box> : WelcomePage}
       </Box>
     </ThemeProvider>
   );

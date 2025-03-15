@@ -30,7 +30,7 @@ const router = createBrowserRouter([
 root.render(
   <Provider store={store}>
     <StyledEngineProvider injectFirst>
-        <RouterProvider router={router} />
+      <RouterProvider router={router} />
     </StyledEngineProvider>
   </Provider>
 );
