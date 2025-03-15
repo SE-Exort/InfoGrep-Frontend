@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
-import { authenticateUser, checkUser } from "../../utils/api";
+import { authenticateUser, changePassword,  checkUser } from "../../utils/api";
 import { RootState } from "../store";
 
 // Define the shape of the auth stat
@@ -54,6 +54,21 @@ export const checkUserThunk = createAsyncThunk(
     if (!session) throw new Error("No session found");
 
     return await checkUser(session);
+  }
+);
+// Async thuck to change password
+export const changePasswordThunk = createAsyncThunk(
+  "auth/changePassword",
+  async (
+    {
+      newPassword,
+    }: { newPassword: string },
+    { getState }
+  ) => {
+    const state = getState() as RootState; // Retrieve the current Reduc state
+    const session = state.auth.session; // Extract seesion tocken from the auth state
+    const response = await changePassword(session, newPassword);
+    return response;
   }
 );
 

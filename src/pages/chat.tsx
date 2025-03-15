@@ -33,6 +33,7 @@ import {
   selectCurrentChatroomName,
 } from "../redux/selectors";
 import { motion } from "framer-motion";
+import { current } from "@reduxjs/toolkit";
 
 const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -55,6 +56,20 @@ const Chat = () => {
       },
       secondary: {
         main: "#424f47",
+      },
+    },
+    typography: {
+      fontSize,
+    },
+  });
+  const lightTheme = createTheme({
+    palette: {
+      mode: 'light',
+      primary: {
+        main: '#6ff522',
+      },
+      secondary: {
+        main: '#5cbd24',
       },
     },
     typography: {
@@ -99,11 +114,30 @@ const Chat = () => {
   }
 
   const msgComponents = messages.map((msg, index) => (
-    <Message model={{ ...msg, position: "single" }} key={index} />
+    <Message style={{ fontSize: fontSize }} model={{ ...msg, position: "single" }} key={index} />
   ));
 
+  const WelcomePage = <Box
+    display="flex"
+    flexDirection="column"
+    alignItems="center"
+    justifyContent="center"
+    height="100vh"
+    bgcolor="#798f60"
+    width="100%"
+  >
+    <motion.h1
+      className="text-4xl font-bold text-white mb-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1 }}
+    >
+      {displayedText}
+    </motion.h1>
+  </Box>;
+
   return (
-    <ThemeProvider theme={darkMode ? darkTheme : theme}>
+    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
         <Box
           display="flex"
@@ -116,81 +150,53 @@ const Chat = () => {
           <ChatroomManager />
         </Box>
 
-        <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
-          {currentChatroomID ? (
-            <>
-              <Box
-                bgcolor={darkMode ? "#696969" : "#e0e0e0"}
-                p={2}
-                display="flex"
-                flexDirection="row"
-                gap={2}
-                alignItems="center"
-                justifyContent="space-between"
-              >
-                <Typography variant="h6" style={{ flexGrow: 1 }}>
-                  {currentChatroomName}
-                </Typography>
-                <Tooltip
-                  title={!currentChatroomID && "Please select a chatroom"}
-                >
-                  <span>
-                    <Button
-                      variant="contained"
-                      startIcon={<Inventory2 />}
-                      onClick={handleFileListButton}
-                      disabled={!currentChatroomID}
-                    >
-                      File List
-                    </Button>
-                  </span>
-                </Tooltip>
-              </Box>
-
-              <div
-                style={{
-                  position: "relative",
-                  flexGrow: 1,
-                  display: "flex",
-                  flexDirection: "row",
-                }}
-              >
-                <MainContainer
-                  style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto" }}
-                >
-                  <ChatContainer>
-                    <MessageList>{msgComponents}</MessageList>
-                    <MessageInput
-                      placeholder="Type message here"
-                      onSend={(msg) => {
-                        dispatch(sendMessageThunk(msg));
-                      }}
-                    />
-                  </ChatContainer>
-                </MainContainer>
-                {fileListShowing && <FileManager />}
-              </div>
-            </>
-          ) : (
-            <Box
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-              justifyContent="center"
-              height="100vh"
-              bgcolor="#798f60"
+        {currentChatroomID ? <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
+          <Box
+            bgcolor={darkMode ? "#696969" : "#e0e0e0"}
+            p={2}
+            display="flex"
+            flexDirection="row"
+            gap={2}
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Typography variant="h6" style={{ flexGrow: 1 }}>
+              {currentChatroomName}
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<Inventory2 />}
+              onClick={handleFileListButton}
+              disabled={!currentChatroomID}
             >
-              <motion.h1
-                className="text-4xl font-bold text-white mb-6"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 1 }}
-              >
-                {displayedText}
-              </motion.h1>
-            </Box>
-          )}
-        </Box>
+              File List
+            </Button>
+          </Box>
+
+          <div
+            style={{
+              position: "relative",
+              flexGrow: 1,
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            <MainContainer
+              style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto" }}
+            >
+              <ChatContainer>
+                <MessageList>{msgComponents}</MessageList>
+                <MessageInput
+                  placeholder="Type message here"
+                  onSend={(msg) => {
+                    dispatch(sendMessageThunk(msg));
+                  }}
+                />
+              </ChatContainer>
+            </MainContainer>
+            {fileListShowing && <FileManager />}
+          </div>
+        </Box> : WelcomePage}
       </Box>
     </ThemeProvider>
   );

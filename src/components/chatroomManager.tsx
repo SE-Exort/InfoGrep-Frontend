@@ -23,6 +23,7 @@ import {
   selectChatroomError,
   selectSession,
   selectUUID,
+  selectDarkMode,
 } from "../redux/selectors";
 import ModelSelectorDialog from "./modelDialog";
 
@@ -39,7 +40,7 @@ const ChatroomManager: React.FC = () => {
 
   const [minimized, setMinimized] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-
+  const darkMode = useSelector(selectDarkMode);
   // Fetch UUID if its missing
   useEffect(() => {
     if (session && !uuid) {
@@ -65,7 +66,7 @@ const ChatroomManager: React.FC = () => {
   return (
     <Box
       width={minimized ? `max(133px, 40%)` : "100%"}
-      bgcolor="#e0e0e0"
+      bgcolor = {darkMode ? '#647569' : '#efefef'}
       display="flex"
       flexDirection="column"
       gap={2}
