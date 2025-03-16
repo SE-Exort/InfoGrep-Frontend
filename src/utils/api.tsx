@@ -393,7 +393,7 @@ export const changePassword = async (
 
   try {
 
-    const response = await fetch("http://localhost:4000/user?sessionToken=" + sessionImport, {
+    const response = await fetch(`${AUTH_API_BASE_URL}/user?sessionToken=${sessionImport}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
