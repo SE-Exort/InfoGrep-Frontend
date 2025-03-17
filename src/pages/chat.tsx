@@ -33,11 +33,12 @@ import {
   selectCurrentChatroomName,
 } from "../redux/selectors";
 import { motion } from "framer-motion";
-import { current } from "@reduxjs/toolkit";
 import Markdown from "react-markdown";
+import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   // Redux
   const session = useSelector(selectSession);
@@ -77,6 +78,10 @@ const Chat = () => {
       fontSize,
     },
   });
+
+  useEffect(() => {
+    if (!session) navigate('/')
+  }, [navigate, session])
 
   // Welcome page
   const message = "Welcome to Infogrep!";
