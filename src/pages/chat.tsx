@@ -115,9 +115,7 @@ const Chat = () => {
   }
 
   const msgComponents = messages.map((msg, index) => (
-    <Message style={{ fontSize: fontSize }} model={{ direction: msg.direction, sender: msg.sender, position: "single", type: "custom", payload: <Markdown>{msg.message}</Markdown> }} key={index} >
-      
-    </Message>
+    <Message style={{ fontSize: fontSize }} model={{ direction: msg.direction, sender: msg.sender, position: "single", type: "custom", payload: <Markdown>{msg.message}</Markdown> }} key={index} />
   ));
 
   const WelcomePage = <Box
@@ -153,7 +151,7 @@ const Chat = () => {
           <ChatroomManager />
         </Box>
 
-        {currentChatroomID ? <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
+        {currentChatroomID && <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
           <Box
             bgcolor={darkMode ? "#696969" : "#e0e0e0"}
             p={2}
@@ -199,7 +197,8 @@ const Chat = () => {
             </MainContainer>
             {fileListShowing && <FileManager />}
           </div>
-        </Box> : WelcomePage}
+        </Box>}
+        {!currentChatroomID && WelcomePage}
       </Box>
     </ThemeProvider>
   );
