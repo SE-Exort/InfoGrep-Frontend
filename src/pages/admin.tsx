@@ -10,6 +10,7 @@ import SettingsBar from "../components/settingsBar";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import Cookies from 'js-cookie';
 import AdminControlPanel from "../components/adminControlPanel";
+import * as endpoints from '../utils/api';
 
 const theme = createTheme({
   palette: {
@@ -86,7 +87,7 @@ function Admin() {
   const getUUID = async () => {
     try {
       const sessionToken = session;
-      const response = await fetch(`http://localhost:4000/check`, {
+      const response = await fetch(`${endpoints.AUTH_API_BASE_URL}/check`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -1,18 +1,21 @@
-const PROTOCOL = "http://";
-const HOST = "localhost";
+import * as endpointsProd from "./endpointsProd"
+import * as endpointsDev from "./endpointsDev"
 
-// Base URLs for each service
-export const AUTH_API_BASE_URL =
-  process.env.REACT_APP_AUTH_API_BASE_URL || `${PROTOCOL}${HOST}:4000`;
+let endpoints = null
+if (process.env.REACT_APP_INFOGREP_ENV === "production"){
+  endpoints = endpointsProd
+}
+else {
+  endpoints = endpointsDev
+}
 
-export const FILE_API_BASE_URL =
-  process.env.REACT_APP_FILE_API_BASE_URL || `${PROTOCOL}${HOST}:8002/api`;
+export const AI_API_BASE_URL = endpoints.AI_API_BASE_URL
 
-export const CHAT_API_BASE_URL =
-  process.env.REACT_APP_CHAT_API_BASE_URL || `${PROTOCOL}${HOST}:8003/api`;
+export const AUTH_API_BASE_URL = endpoints.AUTH_API_BASE_URL
 
-export const PARSE_API_BASE_URL =
-  process.env.REACT_APP_FILE_API_BASE_URL || `${PROTOCOL}${HOST}:8004/api`;
+export const FILE_API_BASE_URL = endpoints.FILE_API_BASE_URL
+
+export const CHAT_API_BASE_URL = endpoints.CHAT_API_BASE_URL
 
 // Interfaces for API responses
 interface AuthResponse {
@@ -205,7 +208,7 @@ export const startParsing = async (
 ): Promise<void> => {
   try {
     await fetch(
-      `${PARSE_API_BASE_URL}/start_parsing?` +
+      `${AI_API_BASE_URL}/start_parsing?` +
       new URLSearchParams({
         chatroom_uuid: chatroomUUID,
         cookie: session,
