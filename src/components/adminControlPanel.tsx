@@ -238,7 +238,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
 
   const updateModels = async (models: ModelsResponse) => {
     try {
-      const postResult = await fetch(`${endpoints.AI_API_BASE_URL}/api/models?` + new URLSearchParams({
+      const postResult = await fetch(`${endpoints.AI_API_BASE_URL}/models?` + new URLSearchParams({
         'sessionToken': session,
       }).toString(), {
         method: 'POST', body: JSON.stringify(models), headers: {
