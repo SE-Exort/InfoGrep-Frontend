@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Box, Button, Typography, Divider, Tooltip } from "@mui/material";
-import { UploadFile, Inventory2 } from "@mui/icons-material";
+import { Box, Button, Typography } from "@mui/material";
+import { Inventory2 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
@@ -13,7 +13,6 @@ import {
   MessageInput,
 } from "@chatscope/chat-ui-kit-react";
 import FileManager from "../components/fileManager";
-import theme from "../style/theme";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
