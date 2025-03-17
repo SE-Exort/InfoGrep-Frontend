@@ -124,7 +124,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
       const username = usernameCreate;
       const password = passwordCreate;
       console.log(JSON.stringify({ usernameCreate, passwordCreate }));
-      const response = await fetch(`http://localhost:4000/register`, {
+      const response = await fetch(`http://localhost:4000/register?` + new URLSearchParams({sessionToken: session}), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
