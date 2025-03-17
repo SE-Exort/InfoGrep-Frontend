@@ -76,7 +76,6 @@ export const checkUser = async (sessionToken: string): Promise<Partial<{
     const response = await fetch(`${AUTH_API_BASE_URL}/check`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({
         sessionToken
       })
@@ -96,7 +95,6 @@ export const logoutUser = async (): Promise<void> => {
     const response = await fetch(`${AUTH_API_BASE_URL}/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
     });
     if (!response.ok) {
       throw new Error("Request failed");
