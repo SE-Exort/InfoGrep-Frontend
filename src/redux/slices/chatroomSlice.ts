@@ -39,14 +39,14 @@ export const fetchChatroomsThunk = createAsyncThunk(
 
 export const createChatroomThunk = createAsyncThunk(
   "chatrooms/createChatroom",
-  async ({ chatroomName, chatModel, embeddingModel }: { chatroomName: string, chatModel: string, embeddingModel: string }, { getState, dispatch, rejectWithValue }) => {
+  async ({ chatroomName, chatModel, chatProvider, embeddingModel, embeddingProvider }: { chatroomName: string, chatModel: string, chatProvider: string, embeddingModel: string, embeddingProvider: string }, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
 
     if (!session) return rejectWithValue("No session found");
 
     try {
-      const newChatroomUUID = await createChatroom(session, chatroomName, chatModel, embeddingModel);
+      const newChatroomUUID = await createChatroom(session, chatroomName, chatModel, chatProvider, embeddingModel, embeddingProvider);
       if (newChatroomUUID) {
         dispatch(fetchChatroomsThunk()); // Refresh chatrooms after creation
       }

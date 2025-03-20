@@ -30,22 +30,22 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
     onClose,
 }) => {
     const [loading, setLoading] = useState(false);
-    const [chatModel, setChatModel] = useState<Model[]>([]);
+    const [chatModels, setChatModels] = useState<Model[]>([]);
     const [chatroomName, setChatroomName] = useState('');
-    const [selectedChatModel, setSelectedChatModel] = useState('');
-    const [embeddingModel, setEmbeddingModel] = useState<Model[]>([]);
-    const [selectedEmbeddingModel, setSelectedEmbeddingModel] = useState('');
+    const [chatModel, setChatModel] = useState<Model | null>(null);
+    const [embeddingModels, setEmbeddingModels] = useState<Model[]>([]);
+    const [embeddingModel, setEmbeddingModel] = useState<Model | null>(null);
     const dispatch = useDispatch<AppDispatch>();
     
     const handleSubmit = async () => {
-        dispatch(createChatroomThunk({chatroomName, chatModel: selectedChatModel, embeddingModel: selectedEmbeddingModel}));
+        if (!chatModel || !embeddingModel) return;
+        dispatch(createChatroomThunk({chatroomName, chatModel: chatModel.model, embeddingModel: embeddingModel.model, embeddingProvider: embeddingModel.provider, chatProvider: chatModel.provider}));
         onClose();
     };
 
     useEffect(() => {
         const fetchModels = async () => {
             setLoading(true);
-            console.log('fetching model list..')
             const response = await fetch(`${endpoints.AI_API_BASE_URL}/models`, {
                 headers: {
                     "Content-Type": "application/json",
@@ -55,8 +55,8 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
             const data = await response.json();
             console.log(data)
             if (!data.error) {
-                setChatModel(data.data.chat);
-                setEmbeddingModel(data.data.embedding);
+                setChatModels(data.data.chat);
+                setEmbeddingModels(data.data.embedding);
             } else {
                 console.warn("Unexpected response:", data.status);
             }
@@ -77,19 +77,25 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
                     />
                     <TextField
                         label="Chat Model"
-                        value={selectedChatModel}
+                        value={chatModel ? JSON.stringify(chatModel) : ''}
                         select
-                        onChange={(e) => setSelectedChatModel(e.target.value)}
+                        onChange={(e) => {
+                            const model = JSON.parse(e.target.value) as Model;
+                            setChatModel(model)
+                        }}
                     >
-                        {chatModel.map(m => <MenuItem key={m.model} value={m.model}>{m.model}</MenuItem>)}
+                        {chatModels.map(m => <MenuItem key={m.provider+m.model} value={JSON.stringify(m)}>{m.provider}: {m.model}</MenuItem>)}
                     </TextField>
                     <TextField
-                        value={selectedEmbeddingModel}
+                        value={embeddingModel ? JSON.stringify(embeddingModel) : ''}
                         label="Embedding Model"
                         select
-                        onChange={(e) => setSelectedEmbeddingModel(e.target.value)}
+                        onChange={(e) => {
+                            const model = JSON.parse(e.target.value) as Model;
+                            setEmbeddingModel(model)
+                        }}
                     >
-                        {embeddingModel.map(m => <MenuItem key={m.model} value={m.model}>{m.model}</MenuItem>)}
+                        {embeddingModels.map(m => <MenuItem key={m.provider+m.model} value={JSON.stringify(m)}>{m.provider}: {m.model}</MenuItem>)}
                     </TextField>
                 </Box>
             </DialogContent>
