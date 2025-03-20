@@ -6,6 +6,7 @@ import {
   ListItem,
   ListItemText,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import { Delete, Add, Menu } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -66,7 +67,7 @@ const ChatroomManager: React.FC = () => {
   return (
     <Box
       width={minimized ? `max(133px, 40%)` : "100%"}
-      bgcolor = {darkMode ? '#647569' : '#efefef'}
+      bgcolor = "background.default"
       display="flex"
       flexDirection="column"
       gap={2}
@@ -84,7 +85,9 @@ const ChatroomManager: React.FC = () => {
         </Button>
       </Box>
       {loading ? (
-        <p>Loading chatrooms...</p>
+        <Box display="flex" justifyContent="center" alignItems="center">
+          <CircularProgress />
+        </Box>
       ) : error ? (
         <p style={{ color: "red" }}>{error}</p>
       ) : (
@@ -96,12 +99,12 @@ const ChatroomManager: React.FC = () => {
                 bgcolor:
                   cr.CHATROOM_UUID !== selectedChatroom
                     ? "secondary.main"
-                    : "rgb(0 0 0 / 23%)",
+                    : "rgb(0 0 0 / 23%)", // TODO: colour
                 borderRadius: "4px",
                 mb: 1,
                 border:
                   cr.CHATROOM_UUID === selectedChatroom
-                    ? "2px solid #096908;"
+                    ? "2px solid #096908;" // TODO: colour
                     : "1px solid transparent",
               }}
             >
