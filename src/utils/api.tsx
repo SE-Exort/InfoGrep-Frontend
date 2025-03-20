@@ -80,22 +80,26 @@ export const checkUser = async (session: string) => {
     });
 
     if (!response.ok) {
-      throw new Error('Failed to check user status');
+      return {
+        error: true
+      }
     }
     
     const data = await response.json();
-    console.log("Check user API response:", data, Boolean(data.isAdmin)); // Log raw response
+    console.log("Check user API response:", data, Boolean(data.is_admin)); // Log raw response
     
     return {
-      id: data.id || "",
+      id: data.id ?? "",
       // Force boolean conversion to handle any non-boolean values
       is_admin: Boolean(data.is_admin),
+      error: false,
       changePasswordWarning: Boolean(data.changePasswordWarning)
     };
   } catch (error) {
     console.error("Check user error:", error);
     return {
       id: "",
+      error: false,
       is_admin: false,
       changePasswordWarning: false
     };
