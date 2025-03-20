@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, Autocomplete, Snackbar, Alert } from '@mui/material';
+import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, Autocomplete, Snackbar, Alert, Grid } from '@mui/material';
 import { Delete, Add, SyncLock, Save, Download } from '@mui/icons-material';
 import * as endpoints from '../utils/api';
 
@@ -376,174 +376,190 @@ const AdminControlPanel: React.FC = () => {
   };
 
   return (
-    <Box width="100%" bgcolor="background.default" display="flex" flexDirection="column" gap={1}>
+    <Box width="100%" bgcolor="background.default" display="flex" flexDirection="column" gap={1} p={3}>
       <Paper elevation={3} sx={{ p: 2, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant="h5">Admin Control Panel</Typography>
+        <Typography variant="h5" fontWeight='bold'>Admin Control Panel</Typography>
         <Button variant="contained" color="primary" onClick={() => navigate('/chat')} >Chat</Button>
       </Paper>
-      <Box width="100%" display="flex" flexDirection="row" flexWrap="wrap" gap={1} overflow="auto">
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
-          <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Create an User</Typography>
-            <TextField label="Username" variant="outlined" value={usernameCreate} onChange={handleCreateUserUsernameChange}
-              error={checkEmail(usernameCreate)} sx={{ maxWidth: '400px' }} />
-            <TextField label="Password" variant="outlined" value={passwordCreate} onChange={handleCreateUserPasswordChange} sx={{ maxWidth: '400px' }} />
-            <Button variant="contained" color="primary" onClick={handleCreateUser} startIcon={<Add />} disabled={!usernameCreate || !passwordCreate}>Create</Button>
-          </Box>
-        </Paper>
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
-          <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Change an User's Password</Typography>
-            <Autocomplete
-              options={users}
-              getOptionLabel={(option) => option.username}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Users"
-                  variant="outlined"
-                  sx={{ maxWidth: '800px' }}
-                />
-              )}
-              value={selectedUser}
-              onChange={(event, newValue) => {
-                setSelectedUser(newValue);
-                if (newValue) {
-                  setNewUsername(newValue.username);
-                }
-              }}
-              isOptionEqualToValue={(option, value) => option.id === value?.id}
-            />
-            <TextField
-              label="Password"
-              variant="outlined"
-              value={newPassword}
-              onChange={handleChangePasswordPasswordChange}
-              sx={{ maxWidth: '400px' }}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handlePasswordChange}
-              startIcon={<SyncLock />}
-              disabled={!selectedUser || !newPassword}
-            >
-              Change Password
-            </Button>
-          </Box>
-        </Paper>
-
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
-          <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Remove an Account</Typography>
-            <Autocomplete
-              options={users}
-              getOptionLabel={(option) => option.username}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Users"
-                  variant="outlined"
-                  sx={{ maxWidth: '800px' }}
-                />
-              )}
-              value={users.find(user => user.username === usernameDelete) || null}
-              onChange={(event, newValue) => {
-                setUsernameDelete(newValue ? newValue.username : '');
-              }}
-              isOptionEqualToValue={(option, value) => option.id === value?.id}
-            />
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleDeleteUser}
-              startIcon={<Delete />}
-              disabled={!usernameDelete}
-            >
-              Delete User
-            </Button>
-          </Box>
-        </Paper>
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
-          <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Set Open AI API Key</Typography>
-            <TextField label="Key" variant="outlined" value={openAIKey} onChange={(e) => setOpenAIKey(e.target.value)} sx={{ maxWidth: '800px' }} />
-            <Button variant="contained" color="primary" onClick={handleOpenAIKey} startIcon={<Save />} disabled={!openAIKey.trim()}>Save</Button>
-          </Box>
-        </Paper>
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
-          <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Add New LLM Model</Typography>
-            <TextField label="Model Name" variant="outlined" inputRef={ollamaLLMNameRef} sx={{ maxWidth: '800px' }} />
-            <TextField label="LLM Provider" variant="outlined" inputRef={ollamaLLMProviderRef} sx={{ maxWidth: '800px' }} />
-            <Box display="flex" gap={2} flexDirection="row">
-              <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.CHAT)} startIcon={<Download />} >Download as Chat</Button>
-              <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.EMBEDDINGS)} startIcon={<Download />} >Download as Embedding</Button>
+      <Grid container spacing={1}>
+        <Grid item xs={3}>
+          <Paper elevation={3} >
+            <Box display="flex" flexDirection="column" gap={2} p={2}>
+              <Typography variant="h6">Create an User</Typography>
+              <TextField label="Username" variant="outlined" value={usernameCreate} onChange={handleCreateUserUsernameChange}
+                error={checkEmail(usernameCreate)} sx={{ maxWidth: '400px' }} />
+              <TextField label="Password" variant="outlined" value={passwordCreate} onChange={handleCreateUserPasswordChange} sx={{ maxWidth: '400px' }} />
+              <Button variant="contained" color="primary" onClick={handleCreateUser} startIcon={<Add />} disabled={!usernameCreate || !passwordCreate}>Create</Button>
             </Box>
-          </Box>
-        </Paper>
+          </Paper>
+        </Grid>
 
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
-          <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Remove Models</Typography>
-            <Autocomplete
-              options={[
-                ...(modelList.chat || []).map(model => ({
-                  ...model,
-                  type: 'chat' as const
-                })),
-                ...(modelList.embedding || []).map(model => ({
-                  ...model,
-                  type: 'embeddings' as const
-                }))
-              ]}
-              getOptionLabel={(option) => `${option.model} (- ${option.provider})`}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Search Models"
-                  variant="outlined"
-                  sx={{ maxWidth: '800px' }}
-                />
-              )}
-              value={selectedModel}
-              onChange={(event, newValue) => {
-                setSelectedModel(newValue);
-              }}
-              isOptionEqualToValue={(option, value) =>
-                option.model === value?.model &&
-                option.provider === value?.provider
-              }
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={() => selectedModel && handleDeleteLLM(selectedModel)}
-              startIcon={<Delete />}
-              disabled={!selectedModel}
-            >
-              Delete Model
-            </Button>
-          </Box>
-        </Paper>
+        <Grid item xs={3}>
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <Box display="flex" flexDirection="column" gap={2} p={2}>
+              <Typography variant="h6">Change an User's Password</Typography>
+              <Autocomplete
+                options={users}
+                getOptionLabel={(option) => option.username}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Users"
+                    variant="outlined"
+                  />
+                )}
+                value={selectedUser}
+                onChange={(event, newValue) => {
+                  setSelectedUser(newValue);
+                  if (newValue) {
+                    setNewUsername(newValue.username);
+                  }
+                }}
+                isOptionEqualToValue={(option, value) => option.id === value?.id}
+              />
+              <TextField
+                label="Password"
+                variant="outlined"
+                value={newPassword}
+                onChange={handleChangePasswordPasswordChange}
 
-        <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '1000px', minWidth: '800px', flexGrow: 1 }}>
-          <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Files</Typography>
-            <List>
-              {fileList.map((file) => (
-                <ListItem key={file.File_UUID} divider>
-                  <ListItemText primary={file.File_Name} />
-                  <ListItemText primary={`${(file.File_Size / 1000000).toFixed(1)}MB`} />
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(file.File_UUID)}>
-                    <Delete />
-                  </IconButton>
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Paper>
-      </Box>
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handlePasswordChange}
+                startIcon={<SyncLock />}
+                disabled={!selectedUser || !newPassword}
+              >
+                Change Password
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={3}>
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <Box display="flex" flexDirection="column" gap={2} p={2}>
+              <Typography variant="h6">Remove an Account</Typography>
+              <Autocomplete
+                options={users}
+                getOptionLabel={(option) => option.username}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Users"
+                    variant="outlined"
+                    sx={{ maxWidth: '800px' }}
+                  />
+                )}
+                value={users.find(user => user.username === usernameDelete) || null}
+                onChange={(event, newValue) => {
+                  setUsernameDelete(newValue ? newValue.username : '');
+                }}
+                isOptionEqualToValue={(option, value) => option.id === value?.id}
+              />
+              <Button
+                variant="contained"
+                color="error"
+                onClick={handleDeleteUser}
+                startIcon={<Delete />}
+                disabled={!usernameDelete}
+              >
+                Delete User
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={3}>
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <Box display="flex" flexDirection="column" gap={2} p={2}>
+              <Typography variant="h6">Set Open AI API Key</Typography>
+              <TextField label="Key" variant="outlined" value={openAIKey} onChange={(e) => setOpenAIKey(e.target.value)} sx={{ maxWidth: '800px' }} />
+              <Button variant="contained" color="primary" onClick={handleOpenAIKey} startIcon={<Save />} disabled={!openAIKey.trim()}>Save</Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={3}>
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <Box display="flex" flexDirection="column" gap={2} p={2}>
+              <Typography variant="h6">Add New LLM Model</Typography>
+              <TextField label="Model Name" variant="outlined" inputRef={ollamaLLMNameRef} sx={{ maxWidth: '800px' }} />
+              <TextField label="LLM Provider" variant="outlined" inputRef={ollamaLLMProviderRef} sx={{ maxWidth: '800px' }} />
+              <Box display="flex" gap={2} flexDirection="row">
+                <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.CHAT)} startIcon={<Download />} >Download as Chat</Button>
+                <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.EMBEDDINGS)} startIcon={<Download />} >Download as Embedding</Button>
+              </Box>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={3}>
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <Box display="flex" flexDirection="column" gap={2} p={2}>
+              <Typography variant="h6">Remove Models</Typography>
+              <Autocomplete
+                options={[
+                  ...(modelList.chat || []).map(model => ({
+                    ...model,
+                    type: 'chat' as const
+                  })),
+                  ...(modelList.embedding || []).map(model => ({
+                    ...model,
+                    type: 'embeddings' as const
+                  }))
+                ]}
+                getOptionLabel={(option) => `${option.model} (- ${option.provider})`}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Search Models"
+                    variant="outlined"
+                    sx={{ maxWidth: '800px' }}
+                  />
+                )}
+                value={selectedModel}
+                onChange={(event, newValue) => {
+                  setSelectedModel(newValue);
+                }}
+                isOptionEqualToValue={(option, value) =>
+                  option.model === value?.model &&
+                  option.provider === value?.provider
+                }
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => selectedModel && handleDeleteLLM(selectedModel)}
+                startIcon={<Delete />}
+                disabled={!selectedModel}
+              >
+                Delete Model
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={6}>
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <Box display="flex" flexDirection="column" gap={2} p={2}>
+              <Typography variant="h6">Files</Typography>
+              <List>
+                {fileList.map((file) => (
+                  <ListItem key={file.File_UUID} divider>
+                    <ListItemText primary={file.File_Name} />
+                    <ListItemText primary={`${(file.File_Size / 1000000).toFixed(1)}MB`} />
+                    <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(file.File_UUID)}>
+                      <Delete />
+                    </IconButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
       <Snackbar
         open={openToast}
         autoHideDuration={6000}
