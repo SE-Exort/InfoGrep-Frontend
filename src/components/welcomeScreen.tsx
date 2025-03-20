@@ -37,7 +37,7 @@ const WelcomeScreen = () => {
                 </Typography>
                 <Typography
                     variant="body1"
-                    color="text.primary"
+                    color="primary.contrastText"
                     paragraph
                     sx={{ mb: 2 }}
                 >

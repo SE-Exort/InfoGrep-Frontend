@@ -35,8 +35,8 @@ export const createLightTheme = (fontSize: number) => createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: "#9feeba",
-      contrastText: "#000000",
+      main: "#156434",
+      contrastText: 'black',
     },
     secondary: {
       main: "#cfedd9",
