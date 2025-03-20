@@ -63,28 +63,39 @@ export const authenticateUser = async (
   }
 };
 
-export const checkUser = async (sessionToken: string): Promise<Partial<{
-  is_admin: boolean;
-  id: string;
-  status: string;
-  error: boolean;
-}>> => {
+export const checkUser = async (session: string) => {
+  console.log("Check user API called with session:", session);
   try {
     const response = await fetch(`${AUTH_API_BASE_URL}/check`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({
-        sessionToken
+        sessionToken: session
       })
     });
-    if (!response.ok) throw new Error("Request failed");
+
+    if (!response.ok) {
+      throw new Error('Failed to check user status');
+    }
+    
     const data = await response.json();
-    if (data.error) throw new Error(data.status);
-    return data;
+    console.log("Check user API response:", data, Boolean(data.isAdmin)); // Log raw response
+    
+    return {
+      id: data.id || "",
+      // Force boolean conversion to handle any non-boolean values
+      is_admin: Boolean(data.is_admin),
+      changePasswordWarning: Boolean(data.changePasswordWarning)
+    };
   } catch (error) {
-    console.error("UUID error:", error);
-    return {error: true};
+    console.error("Check user error:", error);
+    return {
+      id: "",
+      is_admin: false,
+      changePasswordWarning: false
+    };
   }
 };
 

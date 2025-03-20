@@ -48,34 +48,6 @@ const Chat = () => {
   const fileListShowing = useSelector(selectFileListShowing);
   const fontSize = useSelector(selectFontSize);
   const darkMode = useSelector(selectDarkMode);
-  const darkTheme = createTheme({
-    palette: {
-      mode: "dark",
-      primary: {
-        main: "#518764",
-      },
-      secondary: {
-        main: "#424f47",
-      },
-    },
-    typography: {
-      fontSize,
-    },
-  });
-  const lightTheme = createTheme({
-    palette: {
-      mode: 'light',
-      primary: {
-        main: '#6ff522',
-      },
-      secondary: {
-        main: '#5cbd24',
-      },
-    },
-    typography: {
-      fontSize,
-    },
-  });
 
   // Welcome page
   const message = "Welcome to Infogrep!";
@@ -137,7 +109,6 @@ const Chat = () => {
   </Box>;
 
   return (
-    <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <Box display="flex" justifyContent="flex-start" alignItems="center">
         <Box
           display="flex"
@@ -198,7 +169,6 @@ const Chat = () => {
           </div>
         </Box> : WelcomePage}
       </Box>
-    </ThemeProvider>
   );
 };
 

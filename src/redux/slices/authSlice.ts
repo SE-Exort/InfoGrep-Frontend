@@ -114,9 +114,8 @@ const authSlice = createSlice({
       })
       // When UUID fetching is successful, update the state with the UUID
       .addCase(checkUserThunk.fulfilled, (state, action) => {
-        state.uuid = action.payload.id || "";
-        state.isAdmin = action.payload.is_admin ?? false;
         state.uuid = action.payload.id ?? '';
+        state.isAdmin = action.payload.is_admin ?? false;
       });
   },
 });

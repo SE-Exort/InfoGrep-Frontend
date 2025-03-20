@@ -8,20 +8,13 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import Cookies from 'js-cookie';
 import AdminControlPanel from "../components/adminControlPanel";
 
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: "#9feeba",
-    },
-    secondary: {
-      main: "#cfedd9",
-    },
-    // Add more colors as needed
-  },
-});
+import { selectIsAdmin, selectSession } from "../redux/selectors";
+import { useSelector, useDispatch } from "react-redux";
+import { checkUserThunk, setSession } from "../redux/slices/authSlice";
+import { AsyncThunkAction, ThunkDispatch, UnknownAction } from "@reduxjs/toolkit";
+import { AppDispatch } from "../redux/store";
 
 interface BackendFile {
   File_UUID: string;
@@ -31,13 +24,12 @@ interface BackendFile {
 function Admin() {
   const navigate = useNavigate();
   let location = useLocation();
-  const [session, setSession] = useState<string>(Cookies.get('session') || '');
-  const [uuid, setUUID] = useState<string>("");
+  const dispatch = useDispatch<AppDispatch>();
+  const session = useSelector(selectSession);
+  const isAdmin = useSelector(selectIsAdmin);
   const [loading, setLoading] = useState(true);
-  const [admin, setAdmin] = useState<boolean>(false);
   const [showToast, setShowToast] = useState<boolean>(false);
 
-  
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false); // This will switch to the main content after 2 seconds
@@ -46,90 +38,44 @@ function Admin() {
   }, []); // Empty dependency array means this effect runs once on mount
 
   useEffect(() => {
-    if(location.state){
-      if (location.state.renameFlag) {
-        console.log("Show toast");
-        setShowToast(true); // Show toast if flag is true
-      }
-      if(session === '') {
-        if(location.state.sessionID){
-          setSession(location.state.sessionID);
-        } else {
-          navigate('/')
-        };
-      }
+    // Check for renameFlag in location state
+    if(location.state?.renameFlag) {
+      console.log("Show toast for admin credentials");
+      setShowToast(true);
     }
-    if(session === '') {
-      if(location.state && location.state.sessionID){
-        setSession(location.state.sessionID);
-        if (location.state.renameFlag) {
-          console.log("Show toast");
-          setShowToast(true); // Show toast if flag is true
-        }
-      } else {
-        navigate('/')
-      };
-    }
-  }, [location]);
-
-  useEffect(() => {
-    // Set the session cookie whenever the session state changes
+    // Verify admin status
     if (session) {
+      // is this is an admin 
+      dispatch(checkUserThunk());
+    } else {
+      // No session redirect to login
+      navigate('/');
     }
-    if (session) {
-      Cookies.set('session', session, { expires: 7 }); // Cookie expires in 7 days
-      console.log("ChatSession:", session);
-      getUUID();
-    }
-  }, [session]);
+  }, [location, session]);
 
-  const getUUID = async () => {
-    try {
-      const sessionToken = session;
-      const response = await fetch(`http://localhost:4000/check`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ sessionToken }),
-      });
-      if (!response.ok) {
-        throw new Error("Request failed");
-      }
-      const data = await response.json();
-      if (data.error) {
-        throw new Error(data.status);
-      }
-      setUUID(data);
-      setAdmin(data.is_admin);
-      console.log("UUID:", data);
-    } catch (error) {
-      console.error("UUID error:", error);
-    }
-  };
 
-  if (loading) {
+  if (loading || isAdmin === undefined) {
     return <div>Loading...</div>; // Display loading screen
   }
 
-  if (!admin) {
+  if (!isAdmin) {
     // 503 forribben
     return <div>503 Forbidden halt!</div>;
   }
 
   return (
-    <ThemeProvider theme={theme}>
+    <>
       <Box display="flex" justifyContent="flex-start" alignItems="top" height="100vh">
         <Box
           display="flex"
           flexDirection="column"
           gap={2}
-          bgcolor={"grey.200"}
+          bgcolor="background.default"
           height="100vh"
         >
           <SettingsBar />
         </Box>
-        <AdminControlPanel session={session} uuid={uuid}/>
+        <AdminControlPanel />
 
         
       </Box>
@@ -141,7 +87,7 @@ function Admin() {
           Please change admin username and password to something secure!
         </Alert>
       </Snackbar>
-    </ThemeProvider>
+    </>
   );
 }
 

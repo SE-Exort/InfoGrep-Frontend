@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, InputLabel, FormControl, Select, MenuItem } from '@mui/material';
+import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, InputLabel, FormControl, Select, MenuItem, Autocomplete, Snackbar, Alert, createTheme, ThemeProvider } from '@mui/material';
 import { Delete, Add, SyncLock, Save, Download } from '@mui/icons-material';
 
-interface AdminControlPanelProps {
-  session: string,
-  uuid: string
-}
+import { selectSession, selectIsAdmin, selectUUID } from "../redux/selectors";
+import { useSelector } from 'react-redux';
+import { useTheme } from '@mui/material/styles';
+
+
 // enum for chat vs embeddings
 enum ModelType {
   CHAT = 'chat',
@@ -28,7 +29,7 @@ interface User {
   password: string;
 }
 
-const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) => {
+const AdminControlPanel: React.FC = () => {
   const [usernameCreate, setUsernameCreate] = useState<string>('');
   const [passwordCreate, setPasswordCreate] = useState<string>('');
   const [users, setUsers] = useState<User[]>([]);
@@ -36,12 +37,18 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
   const [newUsername, setNewUsername] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [usernameDelete, setUsernameDelete] = useState<string>('');
-  const openAIKeyRef = useRef<HTMLInputElement>(null);
   const ollamaLLMNameRef = useRef<HTMLInputElement>(null);
   const ollamaLLMProviderRef = useRef<HTMLInputElement>(null);
   const [selectedModel, setSelectedModel] = useState<ModelInfo | null>(null);
   const [fileList, setFileList] = useState<{ File_UUID: string; File_Name: string, File_Size: number }[]>([]);
   const [modelList, setModelList] = useState<ModelsResponse>({ chat: [], embedding: [] });
+  const [openAIKey, setOpenAIKey] = useState('');
+
+  const [openToast, setOpenToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info');
+
+  const session = useSelector(selectSession);
 
   const getUsers = useCallback(async () => {
     try {
@@ -100,6 +107,19 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
     getFilesList();
   }, [getFilesList, getModels, getUsers]);
 
+  const showToast = (message: string, severity: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    setToastMessage(message);
+    setToastSeverity(severity);
+    setOpenToast(true);
+  };
+  
+  const handleCloseToast = (event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenToast(false);
+  };
+
   const checkEmail = (email: string) => {
     // if we want to check emails later
     return false;
@@ -143,7 +163,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
       }
       // setSession(data.data); // dont take session
       // Handle success (e.g., store the token, redirect the user)
-      console.log('Login successful:', data.data);
+      showToast(`User ${username} created successfully`, 'success');
       setUsernameCreate('');
       setPasswordCreate('');
       getUsers();
@@ -153,6 +173,7 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
         // TODO: toast
       }
       console.error('Login error:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to create user', 'error');
     }
   };
 
@@ -185,15 +206,13 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
       if (data.error) {
         throw new Error(data.status);
       }
-      console.log('Login successful:', data.data);
+      showToast(`Password changed for ${newUsername}`, 'success');
       setNewUsername('');
       setNewPassword('');
       setSelectedUser(null);
     } catch (error) {
-      if (error instanceof Error) {
-        // TODO: toast
-      }
       console.error('Login error:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to change password', 'error');
     }
   };
 
@@ -219,19 +238,59 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
         throw new Error(data.status);
       }
       console.log('Delete successful:', data);
+      showToast(`User ${usernameDelete} deleted successfully`, 'success');
       setUsernameDelete('');
     } catch (error) {
-      if (error instanceof Error) {
-        // TODO: toast
-      }
       console.error('delete error:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to delete user', 'error');
     }
     getUsers();
   };
 
   const handleOpenAIKey = async () => {
-    console.log('Setting OpenAI Key:', openAIKeyRef.current?.value);
-    // setOpenAIKey?uuid,session
+    try {
+      console.log('Setting OpenAI Key:', openAIKey);
+      
+      // Prepare the data structure according to the API requirements
+      const providersData = {
+        providers: [
+          {
+            provider: "openai",
+            settings: {
+              api_key: openAIKey
+            }
+          }
+        ]
+      };
+      
+      const response = await fetch('http://127.0.0.1:8004/providers?' + new URLSearchParams({
+        'sessionToken': session,
+      }).toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(providersData),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Request failed with status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.status || 'Failed to update API key');
+      }
+      
+      console.log('OpenAI key updated successfully:', data);
+      showToast('OpenAI API key updated successfully', 'success');
+      setOpenAIKey('');
+      
+    } catch (error) {
+      console.error('Error updating OpenAI key:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to update API key', 'error');
+    }
   };
 
 
@@ -256,16 +315,24 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
   };
 
   const handleDeleteLLM = async (modelInfo: ModelInfo) => {
-    console.log('Deleting model:', modelInfo);
-
-    const newChatModels = modelList?.chat?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
-    const newEmbeddingsModels = modelList?.embedding?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
-
-    const updatedModelList: ModelsResponse = {
-      chat: newChatModels,
-      embedding: newEmbeddingsModels
-    };
-    updateModels(updatedModelList);
+    try {
+      console.log('Deleting model:', modelInfo);
+  
+      const newChatModels = modelList?.chat?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
+      const newEmbeddingsModels = modelList?.embedding?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
+  
+      const updatedModelList: ModelsResponse = {
+        chat: newChatModels,
+        embedding: newEmbeddingsModels
+      };
+      await updateModels(updatedModelList);
+      
+      showToast(`Model ${modelInfo.model} deleted successfully`, 'success');
+      
+    } catch (error) {
+      console.error('Error deleting model:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to delete model', 'error');
+    }
   }
 
   const handleDownloadLLM = async (modelType: ModelType) => {
@@ -301,82 +368,103 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
       'cookie': session,
       'file_uuid': fileUUID,
     }).toString(), { method: 'DELETE' });
-
-    setFileList(fileList.filter(file => file.File_UUID !== fileUUID));
+    showToast('File deleted successfully', 'success');
+    getFilesList();
   };
 
   return (
-    <Box width="100%" bgcolor="#f2f2f2" display="flex" flexDirection="column" gap={1}>
+    <Box width="100%" bgcolor="background.default" display="flex" flexDirection="column" gap={1}>
       <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
         <Typography variant="h5">Admin Control Panel</Typography>
       </Paper>
-      <Box width="100%" bgcolor="#f2f2f2" display="flex" flexDirection="row" flexWrap="wrap" gap={1} overflow="auto">
+      <Box width="100%" display="flex" flexDirection="row" flexWrap="wrap" gap={1} overflow="auto">
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
             <Typography variant="h6">Create an User</Typography>
             <TextField label="Username" variant="outlined" value={usernameCreate} onChange={handleCreateUserUsernameChange}
               error={checkEmail(usernameCreate)} sx={{ maxWidth: '400px' }} />
             <TextField label="Password" variant="outlined" value={passwordCreate} onChange={handleCreateUserPasswordChange} sx={{ maxWidth: '400px' }} />
-            <Button variant="contained" color="primary" onClick={handleCreateUser} startIcon={<Add />}>Create</Button>
+            <Button variant="contained" color="primary" onClick={handleCreateUser} startIcon={<Add />} disabled={!usernameCreate || !passwordCreate}>Create</Button>
           </Box>
         </Paper>
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Change an User's Password</Typography>
-            <FormControl variant="outlined" sx={{ maxWidth: '800px' }}>
-              <InputLabel id="model-select-label">Users</InputLabel>
-              <Select
-                labelId="model-select-label"
-                label="Models"
-                value={selectedUser ? JSON.stringify(selectedUser) : ''}
-                onChange={(event) => {
-                  const user: User = JSON.parse(event.target.value as string);
-                  setSelectedUser(user);
-                  setNewUsername(user.username); // TODO: support username changes
-                }}
-              >
-                {users.map((user) => (
-                  <MenuItem key={user.id} value={JSON.stringify(user)}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-                      {user.username}
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField label="Password" variant="outlined" value={newPassword} onChange={handleChangePasswordPasswordChange} sx={{ maxWidth: '400px' }} />
-            <Button variant="contained" color="primary" onClick={handlePasswordChange} startIcon={<SyncLock />}>Change Password</Button>
+          <Typography variant="h6">Change an User's Password</Typography>
+          <Autocomplete
+            options={users}
+            getOptionLabel={(option) => option.username}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Users" 
+                variant="outlined" 
+                sx={{ maxWidth: '800px' }}
+              />
+            )}
+            value={selectedUser}
+            onChange={(event, newValue) => {
+              setSelectedUser(newValue);
+              if (newValue) {
+                setNewUsername(newValue.username);
+              }
+            }}
+            isOptionEqualToValue={(option, value) => option.id === value?.id}
+          />
+          <TextField 
+            label="Password" 
+            variant="outlined" 
+            value={newPassword} 
+            onChange={handleChangePasswordPasswordChange} 
+            sx={{ maxWidth: '400px' }} 
+          />
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handlePasswordChange} 
+            startIcon={<SyncLock />}
+            disabled={!selectedUser || !newPassword}
+          >
+            Change Password
+          </Button>
           </Box>
         </Paper>
 
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Remove an Account</Typography>
-            <FormControl variant="outlined" sx={{ maxWidth: '800px' }}>
-              <InputLabel id="model-select-label">Users</InputLabel>
-              <Select
-                labelId="model-select-label"
-                label="Models"
-                value={usernameDelete}
-                onChange={(event) => setUsernameDelete(event.target.value as string)}
-              >
-                {users.map((user) => (
-                  <MenuItem key={user.id} value={user.username}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-                      {user.username}
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Button variant="contained" color="primary" onClick={handleDeleteUser} startIcon={<Delete />}>Delete</Button>
+          <Typography variant="h6">Remove an Account</Typography>
+          <Autocomplete
+            options={users}
+            getOptionLabel={(option) => option.username}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Users" 
+                variant="outlined" 
+                sx={{ maxWidth: '800px' }}
+              />
+            )}
+            value={users.find(user => user.username === usernameDelete) || null}
+            onChange={(event, newValue) => {
+              setUsernameDelete(newValue ? newValue.username : '');
+            }}
+            isOptionEqualToValue={(option, value) => option.id === value?.id}
+          />
+          <Button 
+            variant="contained" 
+            color="error" 
+            onClick={handleDeleteUser} 
+            startIcon={<Delete />}
+            disabled={!usernameDelete}
+          >
+            Delete User
+          </Button>
           </Box>
         </Paper>
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
             <Typography variant="h6">Set Open AI API Key</Typography>
-            <TextField label="Key" variant="outlined" inputRef={openAIKeyRef} sx={{ maxWidth: '800px' }} />
-            <Button variant="contained" color="primary" onClick={handleOpenAIKey} startIcon={<Save />}>Save</Button>
+            <TextField label="Key" variant="outlined" value={openAIKey} onChange={(e) => setOpenAIKey(e.target.value)} sx={{ maxWidth: '800px' }} />
+            <Button variant="contained" color="primary" onClick={handleOpenAIKey} startIcon={<Save />} disabled={!openAIKey.trim()}>Save</Button>
           </Box>
         </Paper>
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
@@ -385,33 +473,53 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
             <TextField label="Model Name" variant="outlined" inputRef={ollamaLLMNameRef} sx={{ maxWidth: '800px' }} />
             <TextField label="LLM Provider" variant="outlined" inputRef={ollamaLLMProviderRef} sx={{ maxWidth: '800px' }} />
             <Box display="flex" gap={2} flexDirection="row">
-              <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.CHAT)} startIcon={<Download />}>Download as Chat</Button>
-              <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.EMBEDDINGS)} startIcon={<Download />}>Download as Embedding</Button>
+              <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.CHAT)} startIcon={<Download />} >Download as Chat</Button>
+              <Button variant="contained" color="primary" onClick={() => handleDownloadLLM(ModelType.EMBEDDINGS)} startIcon={<Download />} >Download as Embedding</Button>
             </Box>
           </Box>
         </Paper>
 
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
-            <Typography variant="h6">Remove Model</Typography>
-            <FormControl variant="outlined" sx={{ maxWidth: '800px' }}>
-              <InputLabel id="model-select-label">Models</InputLabel>
-              <Select
-                labelId="model-select-label"
-                label="Models"
-                value={selectedModel ? JSON.stringify(selectedModel) : ''}
-                onChange={(event) => setSelectedModel(JSON.parse(event.target.value as string))}
-              >
-                {modelList?.chat?.concat(modelList?.embedding ?? []).map((model) => (
-                  <MenuItem key={model.model} value={JSON.stringify(model)}>
-                    <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
-                      {`${model.model}\\${model.provider}`}
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Button variant="contained" color="primary" onClick={() => selectedModel && handleDeleteLLM(selectedModel)} startIcon={<Delete />}>Delete Model</Button>
+          <Typography variant="h6">Remove Models</Typography>
+          <Autocomplete
+            options={[
+              ...(modelList.chat || []).map(model => ({
+                ...model,
+                type: 'chat' as const
+              })),
+              ...(modelList.embedding || []).map(model => ({
+                ...model,
+                type: 'embeddings' as const
+              }))
+            ]}
+            getOptionLabel={(option) => `${option.model} (- ${option.provider})`}
+            renderInput={(params) => (
+              <TextField 
+                {...params} 
+                label="Search Models" 
+                variant="outlined" 
+                sx={{ maxWidth: '800px' }}
+              />
+            )}
+            value={selectedModel}
+            onChange={(event, newValue) => {
+              setSelectedModel(newValue);
+            }}
+            isOptionEqualToValue={(option, value) => 
+              option.model === value?.model && 
+              option.provider === value?.provider
+            }
+          />
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={() => selectedModel && handleDeleteLLM(selectedModel)} 
+            startIcon={<Delete />}
+            disabled={!selectedModel}
+          >
+            Delete Model
+          </Button>
           </Box>
         </Paper>
 
@@ -432,6 +540,21 @@ const AdminControlPanel: React.FC<AdminControlPanelProps> = ({ session, uuid }) 
           </Box>
         </Paper>
       </Box>
+      <Snackbar
+        open={openToast}
+        autoHideDuration={6000}
+        onClose={handleCloseToast}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseToast} 
+          severity={toastSeverity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {toastMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
