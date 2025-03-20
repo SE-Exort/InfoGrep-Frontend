@@ -9,6 +9,7 @@ import Chat from "./pages/chat";
 import Admin from "./pages/admin";
 import { StyledEngineProvider } from "@mui/material/styles";
 import "./style/index.css";
+import { AppThemeProvider } from "./components/themeProvider";
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 
@@ -30,7 +31,9 @@ const router = createBrowserRouter([
 root.render(
   <Provider store={store}>
     <StyledEngineProvider injectFirst>
-      <RouterProvider router={router} />
+      <AppThemeProvider>
+        <RouterProvider router={router} />
+      </AppThemeProvider>
     </StyledEngineProvider>
   </Provider>
 );

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import Cookies from "js-cookie";
 
 interface AppState {
     fontSize: number;
@@ -6,8 +7,8 @@ interface AppState {
 }
 
 const initialState: AppState = {
-    fontSize: 16,
-    darkMode: false
+    fontSize: Cookies.get("fontSize") ? parseInt(Cookies.get("fontSize") as string) : 16,
+    darkMode: Cookies.get("darkMode") === "true",
 };
 
 // Create Redux Slice
@@ -17,9 +18,11 @@ const appSlice = createSlice({
     reducers: {
         setFontSize: (state, action: PayloadAction<number>) => {
             state.fontSize = action.payload;
+            Cookies.set("fontSize", action.payload.toString());
         },
         setDarkMode: (state, action: PayloadAction<boolean>) => {
             state.darkMode = action.payload;
+            Cookies.set("darkMode", action.payload.toString());
         },
     },
 });

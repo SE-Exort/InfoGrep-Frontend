@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import Cookies from "js-cookie";
 import ParticlesBackground from "../style/loginBackground";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
@@ -9,6 +8,7 @@ import {
   authenticateUserThunk,
   clearAuthError,
   checkUserThunk,
+  setSession,
 } from "../redux/slices/authSlice";
 import {
   selectSession,
@@ -27,30 +27,38 @@ function Login() {
   const [password, setPassword] = React.useState("");
   const isAdmin = useSelector(selectIsAdmin);
 
-  // Redirect if session exists
   useEffect(() => {
     if (session) {
-      Cookies.set("session", session, { expires: 7 });
-      if (isAdmin) {
-        navigate("/admin", {
-          state: {
-            sessionID: session,
-            renameFlag: username === "admin" || password === "admin",
-          },
-        }); // Use the path you defined in your Routes
-      } else {
-        navigate("/chat", { state: { sessionID: session } });
-      }
+      dispatch(checkUserThunk());
     }
-  }, [session, isAdmin, navigate, username, password]);
+  }, []);
 
   // Handle Login/Register
   const handleSignIn = async (
     type: "login" | "register",
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
-    dispatch(authenticateUserThunk({ type, username, password })); // Dispatch async thunk for authentication
-    dispatch(checkUserThunk());
+    try {
+      await dispatch(authenticateUserThunk({ type, username, password })).unwrap();
+      
+      // Then check if the user is admin
+      const result = await dispatch(checkUserThunk()).unwrap();
+      const isAdmin = result.is_admin;
+      const renameFlag = result.changePasswordWarning;
+      
+      if (isAdmin) {
+        navigate("/admin", {
+          state: {
+            sessionID: session,
+            renameFlag: renameFlag, 
+          },
+        });
+      } else {
+        navigate("/chat", { state: { sessionID: session } });
+      }
+    } catch (error) {
+      console.error("Authentication error:", error);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
