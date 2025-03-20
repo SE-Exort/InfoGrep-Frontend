@@ -1,26 +1,18 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Snackbar,
   Alert,
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import AdminControlPanel from "../components/adminControlPanel";
-import * as endpoints from '../utils/api';
 
 import { selectIsAdmin, selectSession } from "../redux/selectors";
 import { useSelector, useDispatch } from "react-redux";
-import { checkUserThunk, setSession } from "../redux/slices/authSlice";
-import { AsyncThunkAction, ThunkDispatch, UnknownAction } from "@reduxjs/toolkit";
+import { checkUserThunk } from "../redux/slices/authSlice";
 import { AppDispatch } from "../redux/store";
-
-interface BackendFile {
-  File_UUID: string;
-  File_Name: string;
-}
 
 function Admin() {
   const navigate = useNavigate();
@@ -52,7 +44,7 @@ function Admin() {
       // No session redirect to login
       navigate('/');
     }
-  }, [location, session]);
+  }, [dispatch, location, navigate, session]);
 
   if (loading || isAdmin === undefined) {
     return <div>Loading...</div>; // Display loading screen

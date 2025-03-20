@@ -1,4 +1,4 @@
-import { createTheme, ThemeOptions } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles';
 import { useSelector } from 'react-redux';
 import { selectDarkMode, selectFontSize } from './redux/selectors';
 

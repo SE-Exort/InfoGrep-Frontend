@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import { Inventory2 } from "@mui/icons-material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
