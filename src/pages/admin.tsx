@@ -9,6 +9,7 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import AdminControlPanel from "../components/adminControlPanel";
+import * as endpoints from '../utils/api';
 
 import { selectIsAdmin, selectSession } from "../redux/selectors";
 import { useSelector, useDispatch } from "react-redux";
@@ -52,7 +53,6 @@ function Admin() {
       navigate('/');
     }
   }, [location, session]);
-
 
   if (loading || isAdmin === undefined) {
     return <div>Loading...</div>; // Display loading screen

@@ -10,7 +10,7 @@ import {
   Dialog,
   DialogTitle,
 } from "@mui/material";
-import { Delete, Download, UploadFile } from "@mui/icons-material";
+import { Delete, Download, PlayArrow, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
@@ -18,6 +18,7 @@ import {
   uploadFileThunk,
   deleteFileThunk,
   fetchFileDownloadThunk,
+  startParsingThunk,
 } from "../redux/slices/fileSlice";
 import {
   selectFiles,
@@ -73,13 +74,12 @@ const FileManager = () => {
               >
                 <Download />
               </IconButton>
-              {/* Let's do this automatically for the user... */}
 
-              {/* <IconButton
+              <IconButton
                 onClick={() => dispatch(startParsingThunk(file.File_UUID))}
               >
                 <PlayArrow />
-              </IconButton> */}
+              </IconButton> */
               <IconButton
                 onClick={() => setCurrentFile(file)}
               >

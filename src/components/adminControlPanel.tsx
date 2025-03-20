@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, InputLabel, FormControl, Select, MenuItem, Autocomplete, Snackbar, Alert, createTheme, ThemeProvider } from '@mui/material';
 import { Delete, Add, SyncLock, Save, Download } from '@mui/icons-material';
+import * as endpoints from '../utils/api';
 
 import { selectSession, selectIsAdmin, selectUUID } from "../redux/selectors";
 import { useSelector } from 'react-redux';
@@ -53,7 +54,7 @@ const AdminControlPanel: React.FC = () => {
   const getUsers = useCallback(async () => {
     try {
 
-      const response = await fetch('http://localhost:4000/admin/users?' + new URLSearchParams({
+      const response = await fetch(`${endpoints.AUTH_API_BASE_URL}/admin/users?` + new URLSearchParams({
         'sessionToken': session,
       }).toString(), { method: 'GET' });
 
@@ -73,7 +74,7 @@ const AdminControlPanel: React.FC = () => {
 
   const getFilesList = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8002/api/admin-all-files?' + new URLSearchParams({
+      const response = await fetch(`${endpoints.FILE_API_BASE_URL}/admin-all-files?` + new URLSearchParams({
         'cookie': session,
       }).toString(), { method: 'GET' });
       const files = await response.json();
@@ -86,7 +87,7 @@ const AdminControlPanel: React.FC = () => {
 
   const getModels = useCallback(async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8004/api/models?' + new URLSearchParams({
+      const response = await fetch(`${endpoints.AI_API_BASE_URL}/models?` + new URLSearchParams({
         'cookie': session,
       }).toString(), { method: 'GET' });
       const models: ModelsResponse = (await response.json()).data;
@@ -144,7 +145,7 @@ const AdminControlPanel: React.FC = () => {
       const username = usernameCreate;
       const password = passwordCreate;
       console.log(JSON.stringify({ usernameCreate, passwordCreate }));
-      const response = await fetch(`http://localhost:4000/register`, {
+      const response = await fetch(`${endpoints.AUTH_API_BASE_URL}/register?` + new URLSearchParams({sessionToken: session}), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -187,7 +188,7 @@ const AdminControlPanel: React.FC = () => {
         throw new Error('Please fill out all fields');
       }
       console.log(JSON.stringify({ usernameUpdate: newUsername, passwordUpdate: newPassword }));
-      const response = await fetch(`http://localhost:4000/admin/user?` + new URLSearchParams({
+      const response = await fetch(`${endpoints.AUTH_API_BASE_URL}/admin/user?` + new URLSearchParams({
         sessionToken: session
       }), {
         method: 'PATCH',
@@ -223,7 +224,7 @@ const AdminControlPanel: React.FC = () => {
       }
       const userID = users.find(user => user.username === usernameDelete)?.id;
       console.log(JSON.stringify({ usernameDelete }));
-      const response = await fetch(`http://localhost:4000/admin/user?sessionToken=${session}`, {
+      const response = await fetch(`${endpoints.AUTH_API_BASE_URL}/admin/user?sessionToken=${session}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -296,7 +297,7 @@ const AdminControlPanel: React.FC = () => {
 
   const updateModels = async (models: ModelsResponse) => {
     try {
-      const postResult = await fetch('http://127.0.0.1:8004/api/models?' + new URLSearchParams({
+      const postResult = await fetch(`${endpoints.AI_API_BASE_URL}/models?` + new URLSearchParams({
         'sessionToken': session,
       }).toString(), {
         method: 'POST', body: JSON.stringify(models), headers: {
@@ -364,7 +365,7 @@ const AdminControlPanel: React.FC = () => {
   };
 
   const handleDeleteFile = async (fileUUID: string) => {
-    await fetch('http://127.0.0.1:8002/api/admin-delete-file?' + new URLSearchParams({
+    await fetch(`${endpoints.FILE_API_BASE_URL}/admin-delete-file?` + new URLSearchParams({
       'cookie': session,
       'file_uuid': fileUUID,
     }).toString(), { method: 'DELETE' });

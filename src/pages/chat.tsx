@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { Box, Button, Typography, Divider, Tooltip } from "@mui/material";
-import { UploadFile, Inventory2 } from "@mui/icons-material";
+import { Box, Button, Typography } from "@mui/material";
+import { Inventory2 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
@@ -13,7 +13,6 @@ import {
   MessageInput,
 } from "@chatscope/chat-ui-kit-react";
 import FileManager from "../components/fileManager";
-import theme from "../style/theme";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
@@ -33,10 +32,12 @@ import {
   selectCurrentChatroomName,
 } from "../redux/selectors";
 import { motion } from "framer-motion";
-import { current } from "@reduxjs/toolkit";
+import Markdown from "react-markdown";
+import { useNavigate } from "react-router-dom";
 
 const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
 
   // Redux
   const session = useSelector(selectSession);
@@ -48,6 +49,10 @@ const Chat = () => {
   const fileListShowing = useSelector(selectFileListShowing);
   const fontSize = useSelector(selectFontSize);
   const darkMode = useSelector(selectDarkMode);
+
+  useEffect(() => {
+    if (!session) navigate('/')
+  }, [navigate, session])
 
   // Welcome page
   const message = "Welcome to Infogrep!";
@@ -86,7 +91,7 @@ const Chat = () => {
   }
 
   const msgComponents = messages.map((msg, index) => (
-    <Message style={{ fontSize: fontSize }} model={{ ...msg, position: "single" }} key={index} />
+    <Message style={{ fontSize: fontSize }} model={{ direction: msg.direction, sender: msg.sender, position: "single", type: "custom", payload: <Markdown>{msg.message}</Markdown> }} key={index} />
   ));
 
   const WelcomePage = <Box
@@ -121,7 +126,7 @@ const Chat = () => {
           <ChatroomManager />
         </Box>
 
-        {currentChatroomID ? <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
+        {currentChatroomID && <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
           <Box
             bgcolor={darkMode ? "#696969" : "#e0e0e0"}
             p={2}
@@ -167,7 +172,8 @@ const Chat = () => {
             </MainContainer>
             {fileListShowing && <FileManager />}
           </div>
-        </Box> : WelcomePage}
+        </Box>}
+        {!currentChatroomID && WelcomePage}
       </Box>
   );
 };

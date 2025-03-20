@@ -13,6 +13,7 @@ import {
 import { useDispatch } from "react-redux";
 import { createChatroomThunk } from "../redux/slices/chatroomSlice";
 import { AppDispatch } from "../redux/store";
+import * as endpoints from '../utils/api';
 
 interface ModelSelectorDialogProps {
     open: boolean;
@@ -45,7 +46,7 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
         const fetchModels = async () => {
             setLoading(true);
             console.log('fetching model list..')
-            const response = await fetch("http://localhost:8004/api/models", {
+            const response = await fetch(`${endpoints.AI_API_BASE_URL}/models`, {
                 headers: {
                     "Content-Type": "application/json",
                 },

@@ -112,10 +112,21 @@ const authSlice = createSlice({
       .addCase(authenticateUserThunk.rejected, (state, action) => {
         state.authError = action.payload as string;
       })
-      // When UUID fetching is successful, update the state with the UUID
+      // When User check is successful, update the state with the UUID
       .addCase(checkUserThunk.fulfilled, (state, action) => {
-        state.uuid = action.payload.id ?? '';
-        state.isAdmin = action.payload.is_admin ?? false;
+        const {id, is_admin} = action.payload;
+      if (action.payload.error || !id || (is_admin !== true && is_admin !== false)) {
+          Cookies.remove('session');
+          state = initialState;
+          return;
+        }
+        state.uuid = id;
+        state.isAdmin = is_admin;
+      })
+      // When User check is successful, update the state with the UUID
+      .addCase(checkUserThunk.rejected, (state, action) => {
+        state.session = '';
+        Cookies.remove("session");
       });
   },
 });
