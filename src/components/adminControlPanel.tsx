@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, InputLabel, FormControl, Select, MenuItem, Autocomplete, Snackbar, Alert, createTheme, ThemeProvider } from '@mui/material';
+import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, Autocomplete, Snackbar, Alert } from '@mui/material';
 import { Delete, Add, SyncLock, Save, Download } from '@mui/icons-material';
 import * as endpoints from '../utils/api';
 
-import { selectSession, selectIsAdmin, selectUUID } from "../redux/selectors";
+import { selectSession } from "../redux/selectors";
 import { useSelector } from 'react-redux';
-import { useTheme } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 
 // enum for chat vs embeddings
@@ -48,6 +48,8 @@ const AdminControlPanel: React.FC = () => {
   const [openToast, setOpenToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('info');
+
+  const navigate = useNavigate();
 
   const session = useSelector(selectSession);
 
@@ -113,7 +115,7 @@ const AdminControlPanel: React.FC = () => {
     setToastSeverity(severity);
     setOpenToast(true);
   };
-  
+
   const handleCloseToast = (event?: React.SyntheticEvent | Event, reason?: string) => {
     if (reason === 'clickaway') {
       return;
@@ -145,7 +147,7 @@ const AdminControlPanel: React.FC = () => {
       const username = usernameCreate;
       const password = passwordCreate;
       console.log(JSON.stringify({ usernameCreate, passwordCreate }));
-      const response = await fetch(`${endpoints.AUTH_API_BASE_URL}/register?` + new URLSearchParams({sessionToken: session}), {
+      const response = await fetch(`${endpoints.AUTH_API_BASE_URL}/register?` + new URLSearchParams({ sessionToken: session }), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -251,7 +253,7 @@ const AdminControlPanel: React.FC = () => {
   const handleOpenAIKey = async () => {
     try {
       console.log('Setting OpenAI Key:', openAIKey);
-      
+
       // Prepare the data structure according to the API requirements
       const providersData = {
         providers: [
@@ -263,7 +265,7 @@ const AdminControlPanel: React.FC = () => {
           }
         ]
       };
-      
+
       const response = await fetch('http://127.0.0.1:8004/providers?' + new URLSearchParams({
         'sessionToken': session,
       }).toString(), {
@@ -273,21 +275,21 @@ const AdminControlPanel: React.FC = () => {
         },
         body: JSON.stringify(providersData),
       });
-      
+
       if (!response.ok) {
         throw new Error(`Request failed with status: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.error) {
         throw new Error(data.status || 'Failed to update API key');
       }
-      
+
       console.log('OpenAI key updated successfully:', data);
       showToast('OpenAI API key updated successfully', 'success');
       setOpenAIKey('');
-      
+
     } catch (error) {
       console.error('Error updating OpenAI key:', error);
       showToast(error instanceof Error ? error.message : 'Failed to update API key', 'error');
@@ -318,18 +320,18 @@ const AdminControlPanel: React.FC = () => {
   const handleDeleteLLM = async (modelInfo: ModelInfo) => {
     try {
       console.log('Deleting model:', modelInfo);
-  
+
       const newChatModels = modelList?.chat?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
       const newEmbeddingsModels = modelList?.embedding?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
-  
+
       const updatedModelList: ModelsResponse = {
         chat: newChatModels,
         embedding: newEmbeddingsModels
       };
       await updateModels(updatedModelList);
-      
+
       showToast(`Model ${modelInfo.model} deleted successfully`, 'success');
-      
+
     } catch (error) {
       console.error('Error deleting model:', error);
       showToast(error instanceof Error ? error.message : 'Failed to delete model', 'error');
@@ -375,8 +377,9 @@ const AdminControlPanel: React.FC = () => {
 
   return (
     <Box width="100%" bgcolor="background.default" display="flex" flexDirection="column" gap={1}>
-      <Paper elevation={3} sx={{ p: 2, mb: 2 }}>
+      <Paper elevation={3} sx={{ p: 2, mb: 2, display: 'flex', justifyContent: 'space-between' }}>
         <Typography variant="h5">Admin Control Panel</Typography>
+        <Button variant="contained" color="primary" onClick={() => navigate('/chat')} >Chat</Button>
       </Paper>
       <Box width="100%" display="flex" flexDirection="row" flexWrap="wrap" gap={1} overflow="auto">
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
@@ -390,75 +393,75 @@ const AdminControlPanel: React.FC = () => {
         </Paper>
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
-          <Typography variant="h6">Change an User's Password</Typography>
-          <Autocomplete
-            options={users}
-            getOptionLabel={(option) => option.username}
-            renderInput={(params) => (
-              <TextField 
-                {...params} 
-                label="Users" 
-                variant="outlined" 
-                sx={{ maxWidth: '800px' }}
-              />
-            )}
-            value={selectedUser}
-            onChange={(event, newValue) => {
-              setSelectedUser(newValue);
-              if (newValue) {
-                setNewUsername(newValue.username);
-              }
-            }}
-            isOptionEqualToValue={(option, value) => option.id === value?.id}
-          />
-          <TextField 
-            label="Password" 
-            variant="outlined" 
-            value={newPassword} 
-            onChange={handleChangePasswordPasswordChange} 
-            sx={{ maxWidth: '400px' }} 
-          />
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={handlePasswordChange} 
-            startIcon={<SyncLock />}
-            disabled={!selectedUser || !newPassword}
-          >
-            Change Password
-          </Button>
+            <Typography variant="h6">Change an User's Password</Typography>
+            <Autocomplete
+              options={users}
+              getOptionLabel={(option) => option.username}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Users"
+                  variant="outlined"
+                  sx={{ maxWidth: '800px' }}
+                />
+              )}
+              value={selectedUser}
+              onChange={(event, newValue) => {
+                setSelectedUser(newValue);
+                if (newValue) {
+                  setNewUsername(newValue.username);
+                }
+              }}
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
+            />
+            <TextField
+              label="Password"
+              variant="outlined"
+              value={newPassword}
+              onChange={handleChangePasswordPasswordChange}
+              sx={{ maxWidth: '400px' }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handlePasswordChange}
+              startIcon={<SyncLock />}
+              disabled={!selectedUser || !newPassword}
+            >
+              Change Password
+            </Button>
           </Box>
         </Paper>
 
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
-          <Typography variant="h6">Remove an Account</Typography>
-          <Autocomplete
-            options={users}
-            getOptionLabel={(option) => option.username}
-            renderInput={(params) => (
-              <TextField 
-                {...params} 
-                label="Users" 
-                variant="outlined" 
-                sx={{ maxWidth: '800px' }}
-              />
-            )}
-            value={users.find(user => user.username === usernameDelete) || null}
-            onChange={(event, newValue) => {
-              setUsernameDelete(newValue ? newValue.username : '');
-            }}
-            isOptionEqualToValue={(option, value) => option.id === value?.id}
-          />
-          <Button 
-            variant="contained" 
-            color="error" 
-            onClick={handleDeleteUser} 
-            startIcon={<Delete />}
-            disabled={!usernameDelete}
-          >
-            Delete User
-          </Button>
+            <Typography variant="h6">Remove an Account</Typography>
+            <Autocomplete
+              options={users}
+              getOptionLabel={(option) => option.username}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Users"
+                  variant="outlined"
+                  sx={{ maxWidth: '800px' }}
+                />
+              )}
+              value={users.find(user => user.username === usernameDelete) || null}
+              onChange={(event, newValue) => {
+                setUsernameDelete(newValue ? newValue.username : '');
+              }}
+              isOptionEqualToValue={(option, value) => option.id === value?.id}
+            />
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleDeleteUser}
+              startIcon={<Delete />}
+              disabled={!usernameDelete}
+            >
+              Delete User
+            </Button>
           </Box>
         </Paper>
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
@@ -482,45 +485,45 @@ const AdminControlPanel: React.FC = () => {
 
         <Paper elevation={3} sx={{ p: 2, mb: 2, maxWidth: '400px', minWidth: '250px', flexGrow: 1 }}>
           <Box display="flex" flexDirection="column" gap={2} p={2}>
-          <Typography variant="h6">Remove Models</Typography>
-          <Autocomplete
-            options={[
-              ...(modelList.chat || []).map(model => ({
-                ...model,
-                type: 'chat' as const
-              })),
-              ...(modelList.embedding || []).map(model => ({
-                ...model,
-                type: 'embeddings' as const
-              }))
-            ]}
-            getOptionLabel={(option) => `${option.model} (- ${option.provider})`}
-            renderInput={(params) => (
-              <TextField 
-                {...params} 
-                label="Search Models" 
-                variant="outlined" 
-                sx={{ maxWidth: '800px' }}
-              />
-            )}
-            value={selectedModel}
-            onChange={(event, newValue) => {
-              setSelectedModel(newValue);
-            }}
-            isOptionEqualToValue={(option, value) => 
-              option.model === value?.model && 
-              option.provider === value?.provider
-            }
-          />
-          <Button 
-            variant="contained" 
-            color="primary" 
-            onClick={() => selectedModel && handleDeleteLLM(selectedModel)} 
-            startIcon={<Delete />}
-            disabled={!selectedModel}
-          >
-            Delete Model
-          </Button>
+            <Typography variant="h6">Remove Models</Typography>
+            <Autocomplete
+              options={[
+                ...(modelList.chat || []).map(model => ({
+                  ...model,
+                  type: 'chat' as const
+                })),
+                ...(modelList.embedding || []).map(model => ({
+                  ...model,
+                  type: 'embeddings' as const
+                }))
+              ]}
+              getOptionLabel={(option) => `${option.model} (- ${option.provider})`}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Search Models"
+                  variant="outlined"
+                  sx={{ maxWidth: '800px' }}
+                />
+              )}
+              value={selectedModel}
+              onChange={(event, newValue) => {
+                setSelectedModel(newValue);
+              }}
+              isOptionEqualToValue={(option, value) =>
+                option.model === value?.model &&
+                option.provider === value?.provider
+              }
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => selectedModel && handleDeleteLLM(selectedModel)}
+              startIcon={<Delete />}
+              disabled={!selectedModel}
+            >
+              Delete Model
+            </Button>
           </Box>
         </Paper>
 
@@ -547,8 +550,8 @@ const AdminControlPanel: React.FC = () => {
         onClose={handleCloseToast}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={handleCloseToast} 
+        <Alert
+          onClose={handleCloseToast}
           severity={toastSeverity}
           variant="filled"
           sx={{ width: '100%' }}
