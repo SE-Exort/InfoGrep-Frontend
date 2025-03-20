@@ -115,7 +115,7 @@ const authSlice = createSlice({
       // When User check is successful, update the state with the UUID
       .addCase(checkUserThunk.fulfilled, (state, action) => {
         const {id, is_admin} = action.payload;
-      if (action.payload.error || !id || (is_admin !== true && is_admin !== false)) {
+      if (!action.payload || !id || (is_admin !== true && is_admin !== false)) {
           Cookies.remove('session');
           state = initialState;
           return;
