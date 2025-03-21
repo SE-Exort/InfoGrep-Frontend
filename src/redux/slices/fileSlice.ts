@@ -6,6 +6,7 @@ import {
   fetchFileDownload,
   startParsing,
   BackendFile,
+  removeEmbedding,
 } from "../../utils/api";
 import { RootState } from "../store";
 
@@ -80,6 +81,25 @@ export const deleteFileThunk = createAsyncThunk(
   }
 );
 
+export const removeEmbeddingThunk = createAsyncThunk(
+  "files/deleteFile",
+  async (fileUUID: string, { getState, dispatch, rejectWithValue }) => {
+    const state = getState() as RootState;
+    const session = state.auth.session;
+    const currentChatroom = state.chatroom.currentChatroomID;
+
+    if (!session || !currentChatroom)
+      return rejectWithValue("No session or chatroom found");
+
+    try {
+      await removeEmbedding(currentChatroom, session, fileUUID);
+
+    } catch (error) {
+      return rejectWithValue("Failed to remove embedding");
+    }
+  }
+);
+
 export const fetchFileDownloadThunk = createAsyncThunk(
   "files/downloadFile",
   async (file: BackendFile, { getState, rejectWithValue }) => {
@@ -122,7 +142,7 @@ const fileSlice = createSlice({
   reducers: {
     setFileListShowing: (state, action: PayloadAction<boolean>) => {
       state.fileListShowing = action.payload;
-  },
+    },
   },
   extraReducers: (builder) => {
     builder

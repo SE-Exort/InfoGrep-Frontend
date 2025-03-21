@@ -2,7 +2,7 @@ import * as endpointsProd from "./endpointsProd"
 import * as endpointsDev from "./endpointsDev"
 
 let endpoints = null
-if (process.env.REACT_APP_INFOGREP_ENV === "production"){
+if (process.env.REACT_APP_INFOGREP_ENV === "production") {
   endpoints = endpointsProd
 }
 else {
@@ -84,10 +84,10 @@ export const checkUser = async (session: string) => {
         error: true
       }
     }
-    
+
     const data = await response.json();
     console.log("Check user API response:", data, Boolean(data.is_admin)); // Log raw response
-    
+
     return {
       id: data.id ?? "",
       // Force boolean conversion to handle any non-boolean values
@@ -273,6 +273,31 @@ export const deleteFile = async (
     );
   } catch (error) {
     console.error("Error deleting file:", error);
+  }
+};
+
+export const removeEmbedding = async (
+  chatroomUUID: string,
+  session: string,
+  fileUUID: string
+): Promise<void> => {
+  try {
+    await fetch(
+      `${AI_API_BASE_URL}/remove_embedding`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          chatroom_uuid: chatroomUUID,
+          sessionToken: session,
+          file_uuid: fileUUID,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Error removing embedding", error);
   }
 };
 

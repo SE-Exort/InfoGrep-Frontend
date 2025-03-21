@@ -18,6 +18,7 @@ import {
   uploadFileThunk,
   deleteFileThunk,
   fetchFileDownloadThunk,
+  removeEmbeddingThunk,
 } from "../redux/slices/fileSlice";
 import {
   selectFiles,
@@ -60,7 +61,7 @@ const FileManager = () => {
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mx={2} flexGrow={1}>
-      <List sx={{display: 'flex', justifyContent: 'center'}}>
+      <List sx={{display: 'flex', justifyContent: 'center', flexDirection: 'column'}}>
         {loading ? (
           <CircularProgress />
         ) : error ? (
@@ -70,7 +71,7 @@ const FileManager = () => {
             <>
               {i !== 0 && <Divider />}
               <ListItem key={file.File_UUID} sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between' }}>
-                <Typography noWrap>{file.File_Name}</Typography>
+                <Typography noWrap color="primary.main">{file.File_Name}</Typography>
                 <Box display='flex' >
                   <IconButton
                     onClick={() => dispatch(fetchFileDownloadThunk(file))}
@@ -83,7 +84,10 @@ const FileManager = () => {
                     <VisibilityIcon />
                   </IconButton>
                   <IconButton
-                    onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
+                    onClick={() => {
+                      dispatch(deleteFileThunk(file.File_UUID))
+                      dispatch(removeEmbeddingThunk(file.File_UUID))
+                    }}
                   >
                     <Delete />
                   </IconButton>
