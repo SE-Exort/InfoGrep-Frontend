@@ -68,7 +68,7 @@ const FileManager = () => {
           <p style={{ color: "red" }}>{error}</p>
         ) : (
           (files?.length ? files?.map((file) => (
-            <ListItem key={file.File_UUID} sx={{ flexGrow: 1, maxWidth: '25vw', display: 'flex', justifyContent: 'space-between' }}>
+            <ListItem key={file.File_UUID} sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between' }}>
               <Typography noWrap>{file.File_Name}</Typography>
               <Box display='flex' >
                 <IconButton
