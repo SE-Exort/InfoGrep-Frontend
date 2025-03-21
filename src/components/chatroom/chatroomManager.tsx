@@ -34,10 +34,11 @@ import { pdfjs } from "react-pdf";
 import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
+import ChatroomDetails from "./chatroomDetails";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.worker.min.mjs`;
 
-const FileManager = () => {
+const ChatroomManager = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const files = useSelector(selectFiles);
@@ -53,49 +54,48 @@ const FileManager = () => {
     }
   }, [selectedChatroomID, dispatch]);
 
-  if (!selectedChatroomID) {
-    return <Box display="flex" flexDirection="column" justifyContent='center' alignItems='center' flexGrow={1}>
-      <Typography>Please select a chatroom first</Typography>
-    </Box>
+  if (loading) {
+    return <CircularProgress />
+  }
+
+  if (error) {
+    return <p style={{ color: "red" }}>{error}</p>
   }
 
   return (
-    <Box display="flex" flexDirection="column" gap={2} mx={2} flexGrow={1}>
-      <List sx={{display: 'flex', justifyContent: 'center', flexDirection: 'column'}}>
-        {loading ? (
-          <CircularProgress />
-        ) : error ? (
-          <p style={{ color: "red" }}>{error}</p>
-        ) : (
-          (files.length ? files.map((file, i) => (
-            <>
-              {i !== 0 && <Divider />}
-              <ListItem key={file.File_UUID} sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between' }}>
-                <Typography noWrap color="primary.main">{file.File_Name}</Typography>
-                <Box display='flex' >
-                  <IconButton
-                    onClick={() => dispatch(fetchFileDownloadThunk(file))}
-                  >
-                    <Download />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => setCurrentFile(file)}
-                  >
-                    <VisibilityIcon />
-                  </IconButton>
-                  <IconButton
-                    onClick={() => {
-                      dispatch(deleteFileThunk(file.File_UUID))
-                      dispatch(removeEmbeddingThunk(file.File_UUID))
-                    }}
-                  >
-                    <Delete />
-                  </IconButton>
-                </Box>
-              </ListItem>
-            </>
-          )) : <Typography color="primary.main" >No files available</Typography>)
-        )}
+    <Box display="flex" flexDirection="column" gap={2} m={2} flexGrow={1}>
+      <ChatroomDetails />
+      <Divider />
+      <List sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
+        {!files.length && <Typography color="primary.main" >No files available</Typography>}
+        {files.length > 0 && files.map((file, i) => (
+          <>
+            {i !== 0 && <Divider />}
+            <ListItem key={file.File_UUID} sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between' }}>
+              <Typography noWrap color="primary.main">{file.File_Name}</Typography>
+              <Box display='flex' >
+                <IconButton
+                  onClick={() => dispatch(fetchFileDownloadThunk(file))}
+                >
+                  <Download />
+                </IconButton>
+                <IconButton
+                  onClick={() => setCurrentFile(file)}
+                >
+                  <VisibilityIcon />
+                </IconButton>
+                <IconButton
+                  onClick={() => {
+                    dispatch(deleteFileThunk(file.File_UUID))
+                    dispatch(removeEmbeddingThunk(file.File_UUID))
+                  }}
+                >
+                  <Delete />
+                </IconButton>
+              </Box>
+            </ListItem>
+          </>
+        ))}
       </List>
       {currentFile ?
         <Dialog open={true} onClose={() => setCurrentFile(null)} fullWidth>
@@ -110,7 +110,7 @@ const FileManager = () => {
                 file_uuid: currentFile.File_UUID,
               })
           }]} pluginRenderers={DocViewerRenderers} config={{ header: { disableHeader: true } }} />
-        </Dialog> : <></>
+        </Dialog> : null
       }
 
       <Button variant="contained" component="label" startIcon={<UploadFile />} fullWidth>
@@ -119,7 +119,7 @@ const FileManager = () => {
           type="file"
           hidden
           onChange={(e) => {
-            if (e.target.files && e.target.files[0]) {
+            if (e.target.files?.[0]) {
               dispatch(uploadFileThunk(e.target.files[0]));
             }
           }}
@@ -129,4 +129,4 @@ const FileManager = () => {
   );
 };
 
-export default FileManager;
+export default ChatroomManager;

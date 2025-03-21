@@ -28,7 +28,7 @@ export interface BackendFile {
   File_Name: string;
 }
 
-export interface Chatroom {
+export interface ChatroomListItem {
   CHATROOM_UUID: string;
   CHATROOM_NAME: string;
 }
@@ -124,10 +124,16 @@ export const logoutUser = async (): Promise<void> => {
 // ================================
 // Chat API functions
 // ================================
-export const fetchMessages = async (
+export const fetchChatroom = async (
   chatroomUUID: string,
   session: string
-): Promise<any[]> => {
+): Promise<{
+  list: { User_UUID: string, Message: string }[];
+  embedding_model: string;
+  embedding_provider: string;
+  chat_model: string;
+  chat_provider: string;
+}> => {
   try {
     const response = await fetch(
       `${CHAT_API_BASE_URL}/room?` +
@@ -137,11 +143,10 @@ export const fetchMessages = async (
       }).toString(),
       { method: "GET" }
     );
-    const data = await response.json();
-    return data.list || [];
+    return await response.json();
   } catch (error) {
-    console.error("Error fetching messages:", error);
-    return [];
+    console.error("Error fetching chatroom:", error);
+    return { list: [], embedding_model: '', embedding_provider: '', chat_model: '', chat_provider: '' };
   }
 };
 
@@ -338,7 +343,7 @@ export const fetchFileDownload = async (
 // ================================
 // Chatroom API Functions
 // ================================
-export const fetchChatrooms = async (session: string): Promise<Chatroom[]> => {
+export const fetchChatrooms = async (session: string): Promise<ChatroomListItem[]> => {
   try {
     console.log("Fetching chatrooms...");
     const response = await fetch(

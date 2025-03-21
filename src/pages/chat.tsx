@@ -9,11 +9,11 @@ import {
   Message,
   MessageInput,
 } from "@chatscope/chat-ui-kit-react";
-import FileManager from "../components/chatroom/fileManager";
+import ChatroomManager from "../components/chatroom/chatroomManager";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
-  fetchMessagesThunk,
+  fetchChatroomThunk,
   sendMessageThunk,
 } from "../redux/slices/chatSlice";
 import { fetchFilesThunk } from "../redux/slices/fileSlice";
@@ -58,7 +58,7 @@ const Chat = () => {
       dispatch(checkUserThunk()); // Get user UUID
     }
     if (currentChatroomID) {
-      dispatch(fetchMessagesThunk()); // Load chat messages
+      dispatch(fetchChatroomThunk()); // Load chat messages
       dispatch(fetchFilesThunk()); // Load files for the chatroom
     }
   }, [session, currentChatroomID, dispatch]);
@@ -111,7 +111,7 @@ const Chat = () => {
               />
             </ChatContainer>
           </MainContainer>
-          {fileListShowing && <FileManager />}
+          {fileListShowing && <ChatroomManager />}
         </Box>
       </Box>}
       {!currentChatroomID && <WelcomeScreen />}

@@ -20,6 +20,14 @@ export const selectChatroomError = (state: RootState) => state.chatroom.error;
 // Chat Selectors
 export const selectMessages = (state: RootState) => state.chat.messages;
 export const selectChatLoading = (state: RootState) => state.chat.loading;
+export const selectChatroomEmbeddingModel = (state: RootState) =>
+  state.chat.embedding_model;
+export const selectChatroomChatModel = (state: RootState) =>
+  state.chat.chat_model;
+export const selectChatroomEmbeddingProvider = (state: RootState) =>
+  state.chat.embedding_provider;
+export const selectChatroomChatProvider = (state: RootState) =>
+  state.chat.chat_provider;
 
 // File Selectors
 export const selectFiles = (state: RootState) => state.file.files;

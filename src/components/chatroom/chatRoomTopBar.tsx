@@ -28,7 +28,7 @@ const ChatroomTopBar = () => {
             onClick={() => dispatch(setFileListShowing(!fileListShowing))}
             disabled={!currentChatroomID}
         >
-            File List
+            Room
         </Button>
     </Box>
 }

@@ -3,19 +3,19 @@ import {
   fetchChatrooms,
   createChatroom,
   deleteChatroom,
-  Chatroom,
+  ChatroomListItem,
 } from "../../utils/api";
 import { RootState } from "../store";
 
 interface ChatroomState {
-  chatroomMap: Map<string, Chatroom>;
+  chatroomMap: Map<string, ChatroomListItem>;
   currentChatroomID: string;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: ChatroomState = {
-  chatroomMap: new Map<string, Chatroom>(),
+  chatroomMap: new Map<string, ChatroomListItem>(),
   currentChatroomID: "",
   loading: false,
   error: null,
@@ -91,7 +91,7 @@ const chatroomSlice = createSlice({
       })
       .addCase(fetchChatroomsThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.chatroomMap = new Map<string, Chatroom>();
+        state.chatroomMap = new Map<string, ChatroomListItem>();
         action.payload.map(chatroom => state.chatroomMap.set(chatroom.CHATROOM_UUID, chatroom));
       })
       .addCase(fetchChatroomsThunk.rejected, (state, action) => {
