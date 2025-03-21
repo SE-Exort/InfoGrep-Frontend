@@ -4,9 +4,9 @@ import {
   Button,
   List,
   ListItem,
-  ListItemText,
   IconButton,
   CircularProgress,
+  Typography,
 } from "@mui/material";
 import { Delete, Add } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -109,15 +109,15 @@ const ChatroomManager: React.FC = () => {
               }
               onClick={() => handleSelectChatroom(cr.CHATROOM_UUID)}
             >
-              <ListItemText
-                primary={cr.CHATROOM_NAME}
+              <Typography
                 sx={{
                   color: "secondary.contrastText",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
+                  fontWeight: cr.CHATROOM_UUID === selectedChatroom ? 'bold' : undefined
                 }}
-              />
+              >{cr.CHATROOM_NAME}</Typography>
             </ListItem>
           </Box>
         ))}

@@ -67,7 +67,7 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth>
-            <DialogTitle>New Chatroom</DialogTitle>
+            <DialogTitle sx={{fontWeight: 'bold'}}>New Chatroom</DialogTitle>
             <DialogContent>
                 <Box display='flex' p={1} flexDirection='column' gap={2}>
                     <TextField
