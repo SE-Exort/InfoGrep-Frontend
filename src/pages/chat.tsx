@@ -76,7 +76,7 @@ const Chat = () => {
   ));
 
   return (
-    <Box display="flex" justifyContent="flex-start" alignItems="center" height="100vh" >
+    <Box display="flex" justifyContent="flex-start" alignItems="center" height="100vh">
       <Box
         display="flex"
         flexDirection="column"
@@ -101,7 +101,7 @@ const Chat = () => {
           alignItems="center"
           justifyContent="space-between"
         >
-          <Typography variant="h5" style={{ flexGrow: 1 }} color='secondary.contrastText' fontWeight='bold'>
+          <Typography variant="h5" style={{ flexGrow: 1, verticalAlign: 'center' }} color='secondary.contrastText' fontWeight='bold'>
             {currentChatroomName}
           </Typography>
           <Button

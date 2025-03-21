@@ -58,8 +58,9 @@ const FileManager = () => {
       <Typography>Please select a chatroom first</Typography>
     </Box>
   }
+
   return (
-    <Box display="flex" flexDirection="column" gap={2} flexGrow={1} m={2} alignItems='center'>
+    <Box display="flex" flexDirection="column" gap={2} mx={2} flexGrow={1}>
       <List>
         {loading ? (
           <CircularProgress />
@@ -67,29 +68,26 @@ const FileManager = () => {
           <p style={{ color: "red" }}>{error}</p>
         ) : (
           (files?.length ? files?.map((file) => (
-            <ListItem key={file.File_UUID}>
-              <ListItemText primary={file.File_Name} />
-              <IconButton
-                onClick={() => dispatch(fetchFileDownloadThunk(file))}
-              >
-                <Download />
-              </IconButton>
+            <ListItem key={file.File_UUID} sx={{ flexGrow: 1, maxWidth: '25vw', display: 'flex', justifyContent: 'space-between' }}>
+              <Typography noWrap>{file.File_Name}</Typography>
+              <Box display='flex' >
+                <IconButton
+                  onClick={() => dispatch(fetchFileDownloadThunk(file))}
+                >
+                  <Download />
+                </IconButton>
+                <IconButton
+                  onClick={() => setCurrentFile(file)}
+                >
+                  <VisibilityIcon />
+                </IconButton>
+                <IconButton
+                  onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
+                >
+                  <Delete />
+                </IconButton>
+              </Box>
 
-              <IconButton
-                onClick={() => dispatch(startParsingThunk(file.File_UUID))}
-              >
-                <PlayArrow />
-              </IconButton> */
-              <IconButton
-                onClick={() => setCurrentFile(file)}
-              >
-                <VisibilityIcon />
-              </IconButton>
-              <IconButton
-                onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
-              >
-                <Delete />
-              </IconButton>
             </ListItem>
           )) : <Typography color="primary.main">No files available</Typography>)
         )}

@@ -52,7 +52,8 @@ export const uploadFileThunk = createAsyncThunk(
       return rejectWithValue("No session or chatroom found");
 
     try {
-      await uploadFile(currentChatroom, session, file);
+      const uuid = await uploadFile(currentChatroom, session, file);
+      dispatch(startParsingThunk(uuid))
       dispatch(fetchFilesThunk()); // Refresh file list after upload
     } catch (error) {
       return rejectWithValue("Failed to upload file");
