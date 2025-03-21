@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -14,7 +14,6 @@ import { Delete, Download, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../redux/store";
 import {
-  fetchFilesThunk,
   uploadFileThunk,
   deleteFileThunk,
   fetchFileDownloadThunk,
@@ -47,12 +46,6 @@ const ChatroomManager = () => {
   const selectedChatroomID = useSelector(selectCurrentChatroomID);
   const session = useSelector(selectSession);
   const [currentFile, setCurrentFile] = useState<BackendFile | null>(null);
-
-  useEffect(() => {
-    if (selectedChatroomID) {
-      dispatch(fetchFilesThunk());
-    }
-  }, [selectedChatroomID, dispatch]);
 
   if (loading) {
     return <CircularProgress />
