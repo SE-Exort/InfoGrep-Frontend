@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Box, Button, Divider, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Divider, Typography } from "@mui/material";
 import { Inventory2 } from "@mui/icons-material";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
@@ -70,10 +70,6 @@ const Chat = () => {
     // Toggle file list visibility
     dispatch(setFileListShowing(!fileListShowing));
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
 
   const msgComponents = messages.map((msg, index) => (
     <Message style={{ fontSize: fontSize }} model={{ direction: msg.direction, sender: msg.sender, position: "single", type: "custom", payload: <Markdown>{msg.message}</Markdown> }} key={index} />
