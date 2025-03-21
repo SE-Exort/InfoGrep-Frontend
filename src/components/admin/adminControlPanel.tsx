@@ -30,6 +30,34 @@ interface User {
   password: string;
 }
 
+interface ProviderConfig {
+  provider: string;
+  displayName: string;
+  fields: {
+    key: string;
+    label: string;
+    type?: string;
+  }[];
+}
+
+const PROVIDER_CONFIGS: ProviderConfig[] = [
+  {
+    provider: "openai",
+    displayName: "OpenAI",
+    fields: [
+      { key: "api_key", label: "API Key" }
+    ]
+  },
+  {
+    provider: "cloudflare",
+    displayName: "Cloudflare",
+    fields: [
+      { key: "api_token", label: "API Token" },
+      { key: "account_id", label: "Account ID" }
+    ]
+  },
+];
+
 const AdminControlPanel: React.FC = () => {
   const [usernameCreate, setUsernameCreate] = useState<string>('');
   const [passwordCreate, setPasswordCreate] = useState<string>('');
@@ -43,7 +71,8 @@ const AdminControlPanel: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<ModelInfo | null>(null);
   const [fileList, setFileList] = useState<{ File_UUID: string; File_Name: string, File_Size: number }[]>([]);
   const [modelList, setModelList] = useState<ModelsResponse>({ chat: [], embedding: [] });
-  const [openAIKey, setOpenAIKey] = useState('');
+  const [selectedProvider, setSelectedProvider] = useState<string>('');
+  const [providerSettings, setProviderSettings] = useState<Record<string, string>>({});
 
   const [openToast, setOpenToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -250,18 +279,26 @@ const AdminControlPanel: React.FC = () => {
     getUsers();
   };
 
-  const handleOpenAIKey = async () => {
+  const handleProviderSettings = async () => {
     try {
-      console.log('Setting OpenAI Key:', openAIKey);
+      console.log('Setting provider settings for:', selectedProvider, providerSettings);
+      
+      const config = PROVIDER_CONFIGS.find(p => p.provider === selectedProvider);
+      if (!config) {
+        throw new Error('Invalid provider selected');
+      }
+      
+      // Check if all required fields are filled
+      const missingFields = config.fields.filter(field => !providerSettings[field.key]);
+      if (missingFields.length > 0) {
+        throw new Error(`Please fill all required fields for ${config.displayName}`);
+      }
 
-      // Prepare the data structure according to the API requirements
       const providersData = {
         providers: [
           {
-            provider: "openai",
-            settings: {
-              api_key: openAIKey
-            }
+            provider: selectedProvider,
+            settings: { ...providerSettings }
           }
         ]
       };
@@ -288,7 +325,7 @@ const AdminControlPanel: React.FC = () => {
 
       console.log('OpenAI key updated successfully:', data);
       showToast('OpenAI API key updated successfully', 'success');
-      setOpenAIKey('');
+      setProviderSettings({});
 
     } catch (error) {
       console.error('Error updating OpenAI key:', error);
@@ -296,6 +333,12 @@ const AdminControlPanel: React.FC = () => {
     }
   };
 
+  const handleProviderFieldChange = (key: string, value: string) => {
+    setProviderSettings(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
   const updateModels = async (models: ModelsResponse) => {
     try {
@@ -474,9 +517,46 @@ const AdminControlPanel: React.FC = () => {
         <Grid item xs={3}>
           <Paper elevation={3} sx={{ height: '100%' }}>
             <Box display="flex" flexDirection="column" gap={2} p={2}>
-              <Typography variant="h6">Set Open AI API Key</Typography>
-              <TextField label="Key" variant="outlined" value={openAIKey} onChange={(e) => setOpenAIKey(e.target.value)} sx={{ maxWidth: '800px' }} />
-              <Button variant="contained" color="primary" onClick={handleOpenAIKey} startIcon={<Save />} disabled={!openAIKey.trim()}>Save</Button>
+              <Typography variant="h6">Provider Settings</Typography>
+              <Autocomplete
+                options={PROVIDER_CONFIGS}
+                getOptionLabel={(option) => option.displayName}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Select Provider"
+                    variant="outlined"
+                    sx={{ maxWidth: '800px' }}
+                  />
+                )}
+                value={PROVIDER_CONFIGS.find(p => p.provider === selectedProvider) || null}
+                onChange={(event, newValue) => {
+                  setSelectedProvider(newValue?.provider || '');
+                  setProviderSettings({});
+                }}
+                isOptionEqualToValue={(option, value) => option.provider === value?.provider}
+              />
+              {selectedProvider && PROVIDER_CONFIGS.find(p => p.provider === selectedProvider)?.fields.map(field => (
+                <TextField
+                  key={field.key}
+                  label={field.label}
+                  type={field.type || "text"}
+                  variant="outlined"
+                  value={providerSettings[field.key] || ''}
+                  onChange={(e) => handleProviderFieldChange(field.key, e.target.value)}
+                  sx={{ maxWidth: '800px' }}
+                />
+              ))}
+              
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleProviderSettings}
+                startIcon={<Save />}
+                disabled={!selectedProvider}
+              >
+                Save Settings
+              </Button>
             </Box>
           </Paper>
         </Grid>
