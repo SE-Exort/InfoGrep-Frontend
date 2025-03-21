@@ -4,6 +4,7 @@ import {
   createChatroom,
   deleteChatroom,
   ChatroomListItem,
+  renameChatroom,
 } from "../../utils/api";
 import { RootState } from "../store";
 
@@ -33,6 +34,24 @@ export const fetchChatroomsThunk = createAsyncThunk(
       return await fetchChatrooms(session);
     } catch (error) {
       return rejectWithValue("Failed to fetch chatrooms");
+    }
+  }
+);
+
+// Thunk to rename chatroom and persist to backend
+export const renameChatroomThunk = createAsyncThunk(
+  "chatrooms/renameChatroom",
+  async ({ chatroomID, newName }: { chatroomID: string; newName: string }, { getState, rejectWithValue, dispatch }) => {
+    const state = getState() as RootState;
+    const session = state.auth.session;
+
+    if (!session) return rejectWithValue("No session found");
+
+    try {
+      await renameChatroom(session, chatroomID, newName); // Call API
+      await dispatch(fetchChatroomsThunk()); // Refresh chatrooms after rename
+    } catch (error) {
+      return rejectWithValue("Failed to rename chatroom");
     }
   }
 );
@@ -81,18 +100,6 @@ const chatroomSlice = createSlice({
   reducers: {
     setSelectedChatroom: (state, action: PayloadAction<string>) => {
       state.currentChatroomID = action.payload;
-    },
-    updateChatroomName: (
-      state,
-      action: PayloadAction<{ chatroomID: string; newName: string }>
-    ) => {
-      const { chatroomID, newName } = action.payload;
-      const chatroom = state.chatroomMap.get(chatroomID);
-
-      if (chatroom) {
-        console.log("Updating chatroom name in reducer:", chatroomID, newName);
-        state.chatroomMap.set(chatroomID, { ...chatroom, CHATROOM_NAME: newName });
-      }
     }
   },
   extraReducers: (builder) => {
@@ -122,5 +129,5 @@ const chatroomSlice = createSlice({
   },
 });
 
-export const { setSelectedChatroom, updateChatroomName } = chatroomSlice.actions;
+export const { setSelectedChatroom } = chatroomSlice.actions;
 export default chatroomSlice.reducer;

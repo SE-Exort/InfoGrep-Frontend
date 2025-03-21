@@ -435,6 +435,35 @@ export const deleteChatroom = async (
   }
 };
 
+export const renameChatroom = async (session: string, chatroomID: string, newName: string) => {
+  try {
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/roomname?` +
+      new URLSearchParams({
+        chatroom_uuid: chatroomID,
+        new_name: newName,
+        cookie: session,
+      }),
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to rename chatroom");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error renaming chatroom:", error);
+    throw error;
+  }
+};
+
 export const changePassword = async (
   sessionImport: string,
   newPassword: string

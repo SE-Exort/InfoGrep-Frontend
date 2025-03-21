@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../redux/store";
 import { selectCurrentChatroomID, selectCurrentChatroomName, selectFileListShowing } from "../../redux/selectors";
 import { setFileListShowing } from "../../redux/slices/fileSlice";
-import { updateChatroomName } from "../../redux/slices/chatroomSlice";
+import { renameChatroomThunk } from "../../redux/slices/chatroomSlice";
 import { useState, useEffect } from "react";
 
 const ChatroomTopBar = () => {
@@ -15,6 +15,7 @@ const ChatroomTopBar = () => {
 
     const [editing, setEditing] = useState(false);
     const [editedName, setEditedName] = useState(currentChatroomName);
+    const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
         if (!editing) {
@@ -29,22 +30,25 @@ const ChatroomTopBar = () => {
         }
     };
 
-    const handleBlur = () => {
-        if (editedName.trim() && editedName !== currentChatroomName) {
-            console.log("Dispatching name change:", currentChatroomID, editedName.trim());
-            dispatch(updateChatroomName({ chatroomID: currentChatroomID, newName: editedName.trim() }));
-        }
-        setEditing(false);
-    };
-
-    const handleSave = () => {
+    const handleSave = async () => {
         const trimmed = editedName.trim();
-        if (trimmed && trimmed !== currentChatroomName) {
-        console.log("Dispatching name change:", currentChatroomID, trimmed);
-        dispatch(updateChatroomName({ chatroomID: currentChatroomID, newName: trimmed }));
+        
+        // Prevent empty or duplicate names
+        if (!trimmed || trimmed === currentChatroomName) {
+          setEditing(false);
+          return;
         }
+    
+        setIsSaving(true);
+        try {
+          console.log("Dispatching rename:", currentChatroomID, trimmed);
+          await dispatch(renameChatroomThunk({ chatroomID: currentChatroomID, newName: trimmed })).unwrap();
+        } catch (error) {
+          console.error("Failed to rename chatroom:", error);
+        }
+        setIsSaving(false);
         setEditing(false);
-    };
+      };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter") handleSave();
@@ -64,11 +68,11 @@ const ChatroomTopBar = () => {
             <TextField 
                 value={editedName}
                 onChange={(e) => setEditedName(e.target.value)}
-                onBlur={handleBlur}
                 onKeyDown={handleKeyDown}
                 variant="standard"
                 fullWidth
                 autoFocus
+                disabled={isSaving}
                 inputProps={{ style: { fontSize: '1.5rem', fontWeight: 'bold' } }}
             />
             <IconButton onClick={handleSave} title="Save name">
