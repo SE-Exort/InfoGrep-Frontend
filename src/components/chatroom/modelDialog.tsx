@@ -11,9 +11,9 @@ import {
     TextField,
 } from "@mui/material";
 import { useDispatch } from "react-redux";
-import { createChatroomThunk } from "../redux/slices/chatroomSlice";
-import { AppDispatch } from "../redux/store";
-import * as endpoints from '../utils/api';
+import { createChatroomThunk } from "../../redux/slices/chatroomSlice";
+import { AppDispatch } from "../../redux/store";
+import * as endpoints from '../../utils/api';
 
 interface ModelSelectorDialogProps {
     open: boolean;

@@ -1,8 +1,6 @@
 import { useEffect } from "react";
-import { Box, Button, Divider, Typography } from "@mui/material";
-import { Inventory2 } from "@mui/icons-material";
-import SettingsBar from "../components/settingsBar";
-import ChatroomManager from "../components/chatroomManager";
+import { Box, Divider } from "@mui/material";
+import ChatroomsList from "../components/chatroom/chatroomsList";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
 import {
   MainContainer,
@@ -11,14 +9,14 @@ import {
   Message,
   MessageInput,
 } from "@chatscope/chat-ui-kit-react";
-import FileManager from "../components/fileManager";
+import FileManager from "../components/chatroom/fileManager";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
   fetchMessagesThunk,
   sendMessageThunk,
 } from "../redux/slices/chatSlice";
-import { fetchFilesThunk, setFileListShowing } from "../redux/slices/fileSlice";
+import { fetchFilesThunk } from "../redux/slices/fileSlice";
 import { checkUserThunk } from "../redux/slices/authSlice";
 import {
   selectSession,
@@ -27,14 +25,15 @@ import {
   selectFontSize,
   selectDarkMode,
   selectFileListShowing,
-  selectCurrentChatroomName,
 } from "../redux/selectors";
 
 import Markdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
-import WelcomeScreen from "../components/welcomeScreen";
+import WelcomeScreen from "../components/chatroom/welcomeScreen";
 
 import "./chat.css"
+import ChatroomTopBar from "../components/chatroom/chatRoomTopBar";
+import SettingsBar from "../components/user/settingsBar";
 
 const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -45,7 +44,7 @@ const Chat = () => {
   // const uuid = useSelector((state: RootState) => state.auth.uuid);
   const messages = useSelector(selectMessages);
   const currentChatroomID = useSelector(selectCurrentChatroomID);
-  const currentChatroomName = useSelector(selectCurrentChatroomName);
+
   const fileListShowing = useSelector(selectFileListShowing);
   const fontSize = useSelector(selectFontSize);
   const darkMode = useSelector(selectDarkMode);
@@ -64,11 +63,6 @@ const Chat = () => {
     }
   }, [session, currentChatroomID, dispatch]);
 
-  const handleFileListButton = () => {
-    // Toggle file list visibility
-    dispatch(setFileListShowing(!fileListShowing));
-  };
-
   const msgComponents = messages.map((msg, index) => (
     <Message style={{ fontSize: fontSize }} model={{ direction: msg.direction, sender: msg.sender, position: "single", type: "custom", payload: <Markdown>{msg.message}</Markdown> }} key={index} />
   ));
@@ -85,33 +79,13 @@ const Chat = () => {
         maxWidth="10vw"
       >
         <SettingsBar />
-        <ChatroomManager />
+        <ChatroomsList />
       </Box>
 
       <Divider orientation='vertical' />
 
       {currentChatroomID && <Box display="flex" height="100vh" flexDirection="column" flexGrow={1} bgcolor="background.default" >
-        <Box
-          p={2}
-          display="flex"
-          flexDirection="row"
-          gap={2}
-          alignItems="center"
-          justifyContent="space-between"
-        >
-          <Typography variant="h5" style={{ flexGrow: 1, verticalAlign: 'center' }} color='secondary.contrastText' fontWeight='bold'>
-            {currentChatroomName}
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<Inventory2 />}
-            onClick={handleFileListButton}
-            disabled={!currentChatroomID}
-          >
-            File List
-          </Button>
-        </Box>
-
+        <ChatroomTopBar />
         <Divider />
 
         <Box
@@ -123,7 +97,7 @@ const Chat = () => {
           }}
         >
           <MainContainer
-            style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto", border: 0  }}
+            style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto", border: 0 }}
           >
             <ChatContainer>
               <MessageList style={{ backgroundColor: darkMode ? "#5F5F5FFF" : 'white', border: 0 }}>{msgComponents}</MessageList>

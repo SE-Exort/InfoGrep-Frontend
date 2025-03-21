@@ -10,23 +10,23 @@ import {
 } from "@mui/material";
 import { Delete, Add } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "../redux/store";
+import { AppDispatch } from "../../redux/store";
 import {
   fetchChatroomsThunk,
   deleteChatroomThunk,
   setSelectedChatroom,
-} from "../redux/slices/chatroomSlice";
-import { checkUserThunk } from "../redux/slices/authSlice";
+} from "../../redux/slices/chatroomSlice";
+import { checkUserThunk } from "../../redux/slices/authSlice";
 import {
   selectChatrooms,
   selectCurrentChatroomID,
   selectChatroomLoading,
   selectSession,
   selectUUID,
-} from "../redux/selectors";
+} from "../../redux/selectors";
 import ModelSelectorDialog from "./modelDialog";
 
-const ChatroomManager: React.FC = () => {
+const ChatroomsList: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   // Redux data
@@ -127,4 +127,4 @@ const ChatroomManager: React.FC = () => {
   );
 };
 
-export default ChatroomManager;
+export default ChatroomsList;

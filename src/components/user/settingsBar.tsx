@@ -4,10 +4,10 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "../redux/store";
-import { logout } from "../redux/slices/authSlice";
 import { useState } from "react";
 import SettingsDialog from "./settingsDialog";
+import { logout } from "../../redux/slices/authSlice";
+import { AppDispatch } from "../../redux/store";
 
 const SettingsBar = () => {
   const navigate = useNavigate();

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, Autocomplete, Snackbar, Alert, Grid } from '@mui/material';
 import { Delete, Add, SyncLock, Save, Download } from '@mui/icons-material';
-import * as endpoints from '../utils/api';
+import * as endpoints from '../../utils/api';
 
-import { selectSession } from "../redux/selectors";
+import { selectSession } from "../../redux/selectors";
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 

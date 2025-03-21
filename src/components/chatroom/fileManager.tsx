@@ -12,24 +12,24 @@ import {
 } from "@mui/material";
 import { Delete, Download, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "../redux/store";
+import { AppDispatch } from "../../redux/store";
 import {
   fetchFilesThunk,
   uploadFileThunk,
   deleteFileThunk,
   fetchFileDownloadThunk,
   removeEmbeddingThunk,
-} from "../redux/slices/fileSlice";
+} from "../../redux/slices/fileSlice";
 import {
   selectFiles,
   selectFileLoading,
   selectFileError,
   selectCurrentChatroomID,
   selectSession,
-} from "../redux/selectors";
+} from "../../redux/selectors";
 import CircularProgress from '@mui/material/CircularProgress';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import { BackendFile, FILE_API_BASE_URL } from "../utils/api";
+import { BackendFile, FILE_API_BASE_URL } from "../../utils/api";
 import { pdfjs } from "react-pdf";
 import DocViewer, { DocViewerRenderers } from "react-doc-viewer";
 import 'react-pdf/dist/Page/AnnotationLayer.css';

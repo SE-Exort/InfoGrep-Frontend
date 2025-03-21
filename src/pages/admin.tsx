@@ -8,14 +8,14 @@ import {
   Button,
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
-import SettingsBar from "../components/settingsBar";
 import "@chatscope/chat-ui-kit-styles/dist/default/styles.min.css";
-import AdminControlPanel from "../components/adminControlPanel";
+import AdminControlPanel from "../components/admin/adminControlPanel";
 
 import { selectIsAdmin, selectSession } from "../redux/selectors";
 import { useSelector, useDispatch } from "react-redux";
 import { checkUserThunk } from "../redux/slices/authSlice";
 import { AppDispatch } from "../redux/store";
+import SettingsBar from "../components/user/settingsBar";
 
 function Admin() {
   const navigate = useNavigate();

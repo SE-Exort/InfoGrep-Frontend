@@ -12,20 +12,19 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { changePasswordThunk } from "../redux/slices/authSlice";
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "../redux/store";
+import { changePasswordThunk } from "../../redux/slices/authSlice";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../../redux/store";
+
 interface ChangePasswordDialogProps {
   open: boolean;
   onClose: () => void;
-  sessionImport: string;
 }
 
-const ChangePasswordDialog: React.FC<ChangePasswordDialogProps> = ({
+const ChangePasswordDialog = ({
   open,
   onClose,
-  sessionImport,
-}) => {
+}: ChangePasswordDialogProps) => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);

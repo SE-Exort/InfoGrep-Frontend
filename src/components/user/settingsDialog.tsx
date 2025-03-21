@@ -9,16 +9,13 @@ import {
   Switch,
   Button,
 } from "@mui/material";
-import { useLocation } from "react-router-dom";
 import ChangePasswordDialog from "./changePassword";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "../redux/store";
-import { selectDarkMode, selectFontSize } from "../redux/selectors";
-import { setDarkMode, setFontSize } from "../redux/slices/appSlice";
+import { AppDispatch } from "../../redux/store";
+import { selectDarkMode, selectFontSize } from "../../redux/selectors";
+import { setDarkMode, setFontSize } from "../../redux/slices/appSlice";
 
 const SettingsDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
-  const location = useLocation();
-  const session = location.state?.sessionToken;
   const [openChangePassword, setOpenChangePassword] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const darkMode = useSelector(selectDarkMode);
@@ -96,7 +93,6 @@ const SettingsDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
       <ChangePasswordDialog
         open={openChangePassword}
         onClose={() => setOpenChangePassword(false)}
-        sessionImport={session}
       />
     </>
   );
