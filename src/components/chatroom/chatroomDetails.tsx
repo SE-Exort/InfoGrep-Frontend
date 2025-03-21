@@ -1,21 +1,12 @@
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch } from "../../redux/store";
-import { selectChatroomChatModel, selectChatroomChatProvider, selectChatroomEmbeddingModel, selectChatroomEmbeddingProvider, selectCurrentChatroomID } from "../../redux/selectors";
+import { useSelector } from "react-redux";
+import { selectChatroomChatModel, selectChatroomChatProvider, selectChatroomEmbeddingModel, selectChatroomEmbeddingProvider } from "../../redux/selectors";
 import { Box, Divider, Typography } from "@mui/material";
-import { useEffect } from "react";
-import { fetchChatroomThunk } from "../../redux/slices/chatSlice";
 
 const ChatroomDetails = () => {
-    const dispatch = useDispatch<AppDispatch>();
-    const selectedChatroomID = useSelector(selectCurrentChatroomID);
     const selectedEmbeddingModel = useSelector(selectChatroomEmbeddingModel);
     const selectedChatModel = useSelector(selectChatroomChatModel);
     const selectedEmbeddingProvider = useSelector(selectChatroomEmbeddingProvider);
     const selectedChatProvider = useSelector(selectChatroomChatProvider);
-
-    useEffect(() => {
-        if (selectedChatroomID) dispatch(fetchChatroomThunk());
-    }, [dispatch, selectedChatroomID]);
 
     return <Box display='flex' gap={1} flexDirection='column'>
         <Typography>Room details</Typography>

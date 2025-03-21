@@ -52,10 +52,6 @@ const ChatroomsList: React.FC = () => {
     }
   }, [session, dispatch]);
 
-  const handleSelectChatroom = (id: string) => {
-    dispatch(setSelectedChatroom(id));
-  };
-
   if (loading) {
     return <Box display="flex" justifyContent="center" alignItems="center">
       <CircularProgress />
@@ -75,39 +71,40 @@ const ChatroomsList: React.FC = () => {
         color="primary"
         onClick={() => setShowCreateDialog(true)}
       >
-        <Add sx={{color: 'primary.contrastText'}}/>
+        <Add sx={{ color: 'primary.contrastText' }} />
       </Button>
       <List>
-        {Array.from(chatrooms.entries()).map(([, cr]) => (
+        {Array.from(chatrooms.entries()).map(([, { CHATROOM_UUID, CHATROOM_NAME }]) => (
           <Box
-            key={cr.CHATROOM_UUID}
+            key={CHATROOM_UUID}
             sx={{
               bgcolor:
-                cr.CHATROOM_UUID !== selectedChatroom
+                CHATROOM_UUID !== selectedChatroom
                   ? "secondary.main"
                   : "rgb(0 0 0 / 23%)", // TODO: colour
               borderRadius: "4px",
               mb: 1,
               border:
-                cr.CHATROOM_UUID === selectedChatroom
+                CHATROOM_UUID === selectedChatroom
                   ? "2px solid black;" // TODO: colour
                   : "1px solid transparent",
             }}
           >
             <ListItem
-              selected={cr.CHATROOM_UUID === selectedChatroom}
+              selected={CHATROOM_UUID === selectedChatroom}
               secondaryAction={
                 <IconButton
                   edge="end"
                   aria-label="delete"
-                  onClick={() =>
-                    dispatch(deleteChatroomThunk(cr.CHATROOM_UUID))
-                  }
+                  onClick={(e) => {
+                    dispatch(deleteChatroomThunk(CHATROOM_UUID))
+                    e.stopPropagation();
+                  }}
                 >
                   <Delete />
                 </IconButton>
               }
-              onClick={() => handleSelectChatroom(cr.CHATROOM_UUID)}
+              onClick={(e) => dispatch(setSelectedChatroom(CHATROOM_UUID))}
             >
               <Typography
                 sx={{
@@ -115,9 +112,9 @@ const ChatroomsList: React.FC = () => {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  fontWeight: cr.CHATROOM_UUID === selectedChatroom ? 'bold' : undefined
+                  fontWeight: CHATROOM_UUID === selectedChatroom ? 'bold' : undefined
                 }}
-              >{cr.CHATROOM_NAME}</Typography>
+              >{CHATROOM_NAME}</Typography>
             </ListItem>
           </Box>
         ))}
