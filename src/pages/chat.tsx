@@ -57,11 +57,14 @@ const Chat = () => {
     if (session) {
       dispatch(checkUserThunk()); // Get user UUID
     }
+  }, [session, dispatch]);
+
+  useEffect(() => {
     if (currentChatroomID) {
       dispatch(fetchChatroomThunk()); // Load chat messages
       dispatch(fetchFilesThunk()); // Load files for the chatroom
     }
-  }, [session, currentChatroomID, dispatch]);
+  }, [currentChatroomID, dispatch]);
 
   const msgComponents = messages.map((msg, index) => (
     <Message style={{ fontSize: fontSize }} model={{ direction: msg.direction, sender: msg.sender, position: "single", type: "custom", payload: <Markdown>{msg.message}</Markdown> }} key={index} />
