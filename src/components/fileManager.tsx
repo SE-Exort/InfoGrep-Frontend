@@ -60,7 +60,7 @@ const FileManager = () => {
 
   return (
     <Box display="flex" flexDirection="column" gap={2} mx={2} flexGrow={1}>
-      <List>
+      <List sx={{display: 'flex', justifyContent: 'center'}}>
         {loading ? (
           <CircularProgress />
         ) : error ? (
@@ -90,7 +90,7 @@ const FileManager = () => {
                 </Box>
               </ListItem>
             </>
-          )) : <Typography color="primary.main">No files available</Typography>)
+          )) : <Typography color="primary.main" >No files available</Typography>)
         )}
       </List>
       {currentFile ?
