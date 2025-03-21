@@ -29,8 +29,12 @@ export interface BackendFile {
 }
 
 export interface ChatroomListItem {
-  CHATROOM_UUID: string;
-  CHATROOM_NAME: string;
+  id: string;
+  name: string;
+  embedding_model: string;
+  embedding_provider: string;
+  chat_model: string;
+  chat_provider: string;
 }
 
 // ================================
@@ -128,7 +132,7 @@ export const fetchChatroom = async (
   chatroomUUID: string,
   session: string
 ): Promise<{
-  list: { User_UUID: string, Message: string }[];
+  list: { user_uuid: string, message: string, timestamp: string }[];
   embedding_model: string;
   embedding_provider: string;
   chat_model: string;
@@ -361,12 +365,7 @@ export const fetchChatrooms = async (session: string): Promise<ChatroomListItem[
     }
     console.log("Chatroom fetch successful:", data.list);
 
-    return data.list.map(
-      (room: { CHATROOM_UUID: string; CHATROOM_NAME: string }) => ({
-        CHATROOM_UUID: room.CHATROOM_UUID,
-        CHATROOM_NAME: room.CHATROOM_NAME,
-      })
-    );
+    return data;
   } catch (error) {
     console.error("Chatroom fetch error:", error);
     return [];

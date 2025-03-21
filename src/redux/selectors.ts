@@ -12,7 +12,7 @@ export const selectChatrooms = (state: RootState) => state.chatroom.chatroomMap;
 export const selectCurrentChatroomID = (state: RootState) =>
   state.chatroom.currentChatroomID;
 export const selectCurrentChatroomName = (state: RootState) =>
-  state.chatroom.chatroomMap.get(state.chatroom.currentChatroomID)?.CHATROOM_NAME ?? '';
+  state.chatroom.chatroomMap.get(state.chatroom.currentChatroomID)?.name ?? '';
 export const selectChatroomLoading = (state: RootState) =>
   state.chatroom.loading;
 export const selectChatroomError = (state: RootState) => state.chatroom.error;

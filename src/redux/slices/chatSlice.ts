@@ -43,15 +43,15 @@ export const fetchChatroomThunk = createAsyncThunk(
       const { list: messageList, embedding_model, chat_model, chat_provider, embedding_provider } = await fetchChatroom(currentChatroom, session);
       const newMessagesArr = [];
 
-      for (const { User_UUID, Message } of messageList) {
+      for (const { user_uuid, message } of messageList) {
         newMessagesArr.push({
-          message: Message,
+          message: message,
           direction:
-            User_UUID === "00000000-0000-0000-0000-000000000000"
+            user_uuid === "00000000-0000-0000-0000-000000000000"
               ? "incoming"
               : "outgoing",
           sender:
-            User_UUID === "00000000-0000-0000-0000-000000000000"
+            user_uuid === "00000000-0000-0000-0000-000000000000"
               ? "InfoGrep"
               : "You",
         });

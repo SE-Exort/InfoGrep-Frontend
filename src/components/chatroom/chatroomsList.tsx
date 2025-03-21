@@ -74,37 +74,37 @@ const ChatroomsList: React.FC = () => {
         <Add sx={{ color: 'primary.contrastText' }} />
       </Button>
       <List>
-        {Array.from(chatrooms.entries()).map(([, { CHATROOM_UUID, CHATROOM_NAME }]) => (
+        {Array.from(chatrooms.entries()).map(([, { id, name }]) => (
           <Box
-            key={CHATROOM_UUID}
+            key={id}
             sx={{
               bgcolor:
-                CHATROOM_UUID !== selectedChatroom
+                id !== selectedChatroom
                   ? "secondary.main"
                   : "rgb(0 0 0 / 23%)", // TODO: colour
               borderRadius: "4px",
               mb: 1,
               border:
-                CHATROOM_UUID === selectedChatroom
+                id === selectedChatroom
                   ? "2px solid black;" // TODO: colour
                   : "1px solid transparent",
             }}
           >
             <ListItem
-              selected={CHATROOM_UUID === selectedChatroom}
+              selected={id === selectedChatroom}
               secondaryAction={
                 <IconButton
                   edge="end"
                   aria-label="delete"
                   onClick={(e) => {
-                    dispatch(deleteChatroomThunk(CHATROOM_UUID))
+                    dispatch(deleteChatroomThunk(id))
                     e.stopPropagation();
                   }}
                 >
                   <Delete />
                 </IconButton>
               }
-              onClick={(e) => dispatch(setSelectedChatroom(CHATROOM_UUID))}
+              onClick={(e) => dispatch(setSelectedChatroom(id))}
             >
               <Typography
                 sx={{
@@ -112,9 +112,9 @@ const ChatroomsList: React.FC = () => {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
-                  fontWeight: CHATROOM_UUID === selectedChatroom ? 'bold' : undefined
+                  fontWeight: id === selectedChatroom ? 'bold' : undefined
                 }}
-              >{CHATROOM_NAME}</Typography>
+              >{name}</Typography>
             </ListItem>
           </Box>
         ))}

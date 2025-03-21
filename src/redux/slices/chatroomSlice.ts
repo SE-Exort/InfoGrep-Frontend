@@ -65,11 +65,8 @@ export const createChatroomThunk = createAsyncThunk(
     if (!session) return rejectWithValue("No session found");
 
     try {
-      const newChatroomUUID = await createChatroom(session, chatroomName, chatModel, chatProvider, embeddingModel, embeddingProvider);
-      if (newChatroomUUID) {
-        dispatch(fetchChatroomsThunk()); // Refresh chatrooms after creation
-      }
-      return newChatroomUUID;
+      await createChatroom(session, chatroomName, chatModel, chatProvider, embeddingModel, embeddingProvider);
+      dispatch(fetchChatroomsThunk()); // Refresh chatrooms after creation
     } catch (error) {
       return rejectWithValue("Failed to create chatroom");
     }
@@ -111,7 +108,7 @@ const chatroomSlice = createSlice({
       .addCase(fetchChatroomsThunk.fulfilled, (state, action) => {
         state.loading = false;
         state.chatroomMap = new Map<string, ChatroomListItem>();
-        action.payload.map(chatroom => state.chatroomMap.set(chatroom.CHATROOM_UUID, chatroom));
+        action.payload.map(chatroom => state.chatroomMap.set(chatroom.id, chatroom));
       })
       .addCase(fetchChatroomsThunk.rejected, (state, action) => {
         state.loading = false;
