@@ -3,6 +3,9 @@ import {
   Box,
   Snackbar,
   Alert,
+  CircularProgress,
+  Typography,
+  Button,
 } from "@mui/material";
 import { useNavigate, useLocation } from "react-router-dom";
 import SettingsBar from "../components/settingsBar";
@@ -32,7 +35,7 @@ function Admin() {
 
   useEffect(() => {
     // Check for renameFlag in location state
-    if(location.state?.renameFlag) {
+    if (location.state?.renameFlag) {
       console.log("Show toast for admin credentials");
       setShowToast(true);
     }
@@ -47,12 +50,16 @@ function Admin() {
   }, [dispatch, location, navigate, session]);
 
   if (loading || isAdmin === undefined) {
-    return <div>Loading...</div>; // Display loading screen
+    return <Box display='flex' alignItems='center' justifyContent='center' height="100vh">
+      <CircularProgress />
+    </Box>;
   }
 
   if (!isAdmin) {
-    // 503 forribben
-    return <div>503 Forbidden halt!</div>;
+    return <Box display='flex' flexDirection='column' alignItems='center' justifyContent='center' height="100vh" gap={1}>
+      <Typography>503: You're not authorized to view this page!</Typography>
+      <Button variant='contained' onClick={() => navigate('/chat')}>Go back to chat</Button>
+    </Box>;
   }
 
   return (
@@ -69,7 +76,7 @@ function Admin() {
         </Box>
         <AdminControlPanel />
 
-        
+
       </Box>
       <Snackbar
         open={showToast}
