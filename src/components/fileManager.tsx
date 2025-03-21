@@ -94,7 +94,7 @@ const FileManager = () => {
       </List>
       {currentFile ?
         <Dialog open={true} onClose={() => setCurrentFile(null)} fullWidth>
-          <DialogTitle id="alert-dialog-title">
+          <DialogTitle id="alert-dialog-title" noWrap>
             {currentFile.File_Name}
           </DialogTitle>
           <DocViewer documents={[{
