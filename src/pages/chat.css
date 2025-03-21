@@ -1,0 +1,18 @@
+.cs-message--outgoing .cs-message__content {
+    background-color: rgb(230, 230, 230) !important;
+}
+
+.cs-message--incoming .cs-message__content {
+    background-color: rgb(54, 54, 54) !important;
+    color: white;
+}
+
+.cs-message-input__content-editor-wrapper {
+    background-color: #e4e4e4 !important;
+}
+.cs-message-input__content-editor {
+    background-color: #e4e4e4 !important;
+}
+.cs-button--send {
+    color: black !important;
+}

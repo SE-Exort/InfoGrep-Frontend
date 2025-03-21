@@ -35,6 +35,8 @@ import Markdown from "react-markdown";
 import { useNavigate } from "react-router-dom";
 import WelcomeScreen from "../components/welcomeScreen";
 
+import "./chat.css"
+
 const Chat = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -137,6 +139,7 @@ const Chat = () => {
                 onSend={(msg) => {
                   dispatch(sendMessageThunk(msg));
                 }}
+                attachButton={false}
               />
             </ChatContainer>
           </MainContainer>
