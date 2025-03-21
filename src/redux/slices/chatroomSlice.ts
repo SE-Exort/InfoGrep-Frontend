@@ -58,7 +58,7 @@ export const renameChatroomThunk = createAsyncThunk(
 
 export const createChatroomThunk = createAsyncThunk(
   "chatrooms/createChatroom",
-  async ({ chatroomName, chatModel, chatProvider, embeddingModel, embeddingProvider }: { chatroomName: string, chatModel: string, chatProvider: string, embeddingModel: string, embeddingProvider: string }, { getState, dispatch, rejectWithValue }) => {
+  async ({ chatroomName, chatModel, chatProvider, embeddingModel, embeddingProvider }: { chatroomName?: string, chatModel: string, chatProvider: string, embeddingModel: string, embeddingProvider: string }, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
 

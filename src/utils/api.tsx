@@ -374,15 +374,19 @@ export const fetchChatrooms = async (session: string): Promise<ChatroomListItem[
 
 export const createChatroom = async (
   session: string,
-  chatroomName: string,
+  chatroomName: string | undefined,
   chat_model: string,
   chat_provider: string,
   embedding_model: string,
   embedding_provider: string
 ): Promise<string | null> => {
   try {
+    const args = { cookie: session, embedding_model, chat_model, chat_provider, embedding_provider} as any;
+    if (chatroomName) {
+      args.chatroom_name = chatroomName;
+    }
     const response = await fetch(
-      `${CHAT_API_BASE_URL}/room?` + new URLSearchParams({ cookie: session, embedding_model, chat_model, chat_provider, embedding_provider, chatroom_name: chatroomName }).toString(),
+      `${CHAT_API_BASE_URL}/room?` + new URLSearchParams(args).toString(),
       {
         method: "POST",
       }
