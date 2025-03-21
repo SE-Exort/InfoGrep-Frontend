@@ -4,13 +4,13 @@ import {
   Button,
   List,
   ListItem,
-  ListItemText,
   IconButton,
   Typography,
   Dialog,
   DialogTitle,
+  Divider,
 } from "@mui/material";
-import { Delete, Download, PlayArrow, UploadFile } from "@mui/icons-material";
+import { Delete, Download, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
@@ -18,7 +18,6 @@ import {
   uploadFileThunk,
   deleteFileThunk,
   fetchFileDownloadThunk,
-  startParsingThunk,
 } from "../redux/slices/fileSlice";
 import {
   selectFiles,
@@ -67,28 +66,30 @@ const FileManager = () => {
         ) : error ? (
           <p style={{ color: "red" }}>{error}</p>
         ) : (
-          (files?.length ? files?.map((file) => (
-            <ListItem key={file.File_UUID} sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between' }}>
-              <Typography noWrap>{file.File_Name}</Typography>
-              <Box display='flex' >
-                <IconButton
-                  onClick={() => dispatch(fetchFileDownloadThunk(file))}
-                >
-                  <Download />
-                </IconButton>
-                <IconButton
-                  onClick={() => setCurrentFile(file)}
-                >
-                  <VisibilityIcon />
-                </IconButton>
-                <IconButton
-                  onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
-                >
-                  <Delete />
-                </IconButton>
-              </Box>
-
-            </ListItem>
+          (files.length ? files.map((file, i) => (
+            <>
+              {i !== 0 && <Divider />}
+              <ListItem key={file.File_UUID} sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between' }}>
+                <Typography noWrap>{file.File_Name}</Typography>
+                <Box display='flex' >
+                  <IconButton
+                    onClick={() => dispatch(fetchFileDownloadThunk(file))}
+                  >
+                    <Download />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => setCurrentFile(file)}
+                  >
+                    <VisibilityIcon />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => dispatch(deleteFileThunk(file.File_UUID))}
+                  >
+                    <Delete />
+                  </IconButton>
+                </Box>
+              </ListItem>
+            </>
           )) : <Typography color="primary.main">No files available</Typography>)
         )}
       </List>

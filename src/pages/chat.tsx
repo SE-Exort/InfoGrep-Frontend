@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Box, Button, CircularProgress, Divider, Typography } from "@mui/material";
+import { Box, Button, Divider, Typography } from "@mui/material";
 import { Inventory2 } from "@mui/icons-material";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
@@ -23,7 +23,6 @@ import { checkUserThunk } from "../redux/slices/authSlice";
 import {
   selectSession,
   selectMessages,
-  selectChatLoading,
   selectCurrentChatroomID,
   selectFontSize,
   selectDarkMode,
@@ -45,7 +44,6 @@ const Chat = () => {
   const session = useSelector(selectSession);
   // const uuid = useSelector((state: RootState) => state.auth.uuid);
   const messages = useSelector(selectMessages);
-  const loading = useSelector(selectChatLoading);
   const currentChatroomID = useSelector(selectCurrentChatroomID);
   const currentChatroomName = useSelector(selectCurrentChatroomName);
   const fileListShowing = useSelector(selectFileListShowing);
