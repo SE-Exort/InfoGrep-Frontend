@@ -4,6 +4,9 @@ import chatroomReducer from "./slices/chatroomSlice";
 import chatReducer from "./slices/chatSlice";
 import fileReducer from "./slices/fileSlice";
 import appReducer from "./slices/appSlice";
+import { enableMapSet } from "immer";
+
+enableMapSet();
 
 export const store = configureStore({
   reducer: {

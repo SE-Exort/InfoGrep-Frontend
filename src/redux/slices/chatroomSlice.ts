@@ -82,6 +82,18 @@ const chatroomSlice = createSlice({
     setSelectedChatroom: (state, action: PayloadAction<string>) => {
       state.currentChatroomID = action.payload;
     },
+    updateChatroomName: (
+      state,
+      action: PayloadAction<{ chatroomID: string; newName: string }>
+    ) => {
+      const { chatroomID, newName } = action.payload;
+      const chatroom = state.chatroomMap.get(chatroomID);
+
+      if (chatroom) {
+        console.log("Updating chatroom name in reducer:", chatroomID, newName);
+        state.chatroomMap.set(chatroomID, { ...chatroom, CHATROOM_NAME: newName });
+      }
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -110,5 +122,5 @@ const chatroomSlice = createSlice({
   },
 });
 
-export const { setSelectedChatroom } = chatroomSlice.actions;
+export const { setSelectedChatroom, updateChatroomName } = chatroomSlice.actions;
 export default chatroomSlice.reducer;
