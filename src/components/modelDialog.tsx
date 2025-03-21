@@ -67,11 +67,11 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
 
     return (
         <Dialog open={open} onClose={onClose} fullWidth>
-            <DialogTitle>New FlowZone</DialogTitle>
+            <DialogTitle>New Chatroom</DialogTitle>
             <DialogContent>
                 <Box display='flex' p={1} flexDirection='column' gap={2}>
                     <TextField
-                        label="Zone Name"
+                        label="Room Name"
                         value={chatroomName}
                         onChange={(e) => setChatroomName(e.target.value)}
                     />
