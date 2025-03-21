@@ -8,7 +8,7 @@ import {
   IconButton,
   CircularProgress,
 } from "@mui/material";
-import { Delete, Add, Menu } from "@mui/icons-material";
+import { Delete, Add } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
 import {
@@ -21,7 +21,6 @@ import {
   selectChatrooms,
   selectCurrentChatroomID,
   selectChatroomLoading,
-  selectChatroomError,
   selectSession,
   selectUUID,
 } from "../redux/selectors";
@@ -34,11 +33,9 @@ const ChatroomManager: React.FC = () => {
   const chatrooms = useSelector(selectChatrooms);
   const selectedChatroom = useSelector(selectCurrentChatroomID);
   const loading = useSelector(selectChatroomLoading);
-  const error = useSelector(selectChatroomError);
   const session = useSelector(selectSession);
   const uuid = useSelector(selectUUID); // Get UUID from Redux
 
-  const [minimized, setMinimized] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   // Fetch UUID if its missing
@@ -59,84 +56,73 @@ const ChatroomManager: React.FC = () => {
     dispatch(setSelectedChatroom(id));
   };
 
-  const minimizePanel = () => {
-    setMinimized(!minimized);
-  };
+  if (loading) {
+    return <Box display="flex" justifyContent="center" alignItems="center">
+      <CircularProgress />
+    </Box>
+  }
 
   return (
     <Box
-      width={minimized ? `max(133px, 40%)` : "100%"}
-      bgcolor = "background.default"
       display="flex"
       flexDirection="column"
       gap={2}
+      bgcolor="background.default"
+      px={0.5}
     >
-      <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Button variant="contained" color="primary" onClick={minimizePanel}>
-          <Menu />
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setShowCreateDialog(true)}
-        >
-          <Add />
-        </Button>
-      </Box>
-      {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center">
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <p style={{ color: "red" }}>{error}</p>
-      ) : (
-        <List>
-          {Array.from(chatrooms.entries()).map(([, cr]) => (
-            <Box
-              key={cr.CHATROOM_UUID}
-              sx={{
-                bgcolor:
-                  cr.CHATROOM_UUID !== selectedChatroom
-                    ? "secondary.main"
-                    : "rgb(0 0 0 / 23%)", // TODO: colour
-                borderRadius: "4px",
-                mb: 1,
-                border:
-                  cr.CHATROOM_UUID === selectedChatroom
-                    ? "2px solid #096908;" // TODO: colour
-                    : "1px solid transparent",
-              }}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setShowCreateDialog(true)}
+      >
+        <Add sx={{color: 'primary.contrastText'}}/>
+      </Button>
+      <List>
+        {Array.from(chatrooms.entries()).map(([, cr]) => (
+          <Box
+            key={cr.CHATROOM_UUID}
+            sx={{
+              bgcolor:
+                cr.CHATROOM_UUID !== selectedChatroom
+                  ? "secondary.main"
+                  : "rgb(0 0 0 / 23%)", // TODO: colour
+              borderRadius: "4px",
+              mb: 1,
+              border:
+                cr.CHATROOM_UUID === selectedChatroom
+                  ? "2px solid black;" // TODO: colour
+                  : "1px solid transparent",
+            }}
+          >
+            <ListItem
+              selected={cr.CHATROOM_UUID === selectedChatroom}
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() =>
+                    dispatch(deleteChatroomThunk(cr.CHATROOM_UUID))
+                  }
+                >
+                  <Delete />
+                </IconButton>
+              }
+              onClick={() => handleSelectChatroom(cr.CHATROOM_UUID)}
             >
-              <ListItem
-                selected={cr.CHATROOM_UUID === selectedChatroom}
-                secondaryAction={
-                  <IconButton
-                    edge="end"
-                    aria-label="delete"
-                    onClick={() =>
-                      dispatch(deleteChatroomThunk(cr.CHATROOM_UUID))
-                    }
-                  >
-                    <Delete />
-                  </IconButton>
-                }
-                onClick={() => handleSelectChatroom(cr.CHATROOM_UUID)}
-              >
-                <ListItemText
-                  primary={cr.CHATROOM_NAME}
-                  sx={{
-                    color: "primary.contrastText",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                />
-              </ListItem>
-            </Box>
-          ))}
-        </List>
-      )}
-      <ModelSelectorDialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)}/>
+              <ListItemText
+                primary={cr.CHATROOM_NAME}
+                sx={{
+                  color: "secondary.contrastText",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              />
+            </ListItem>
+          </Box>
+        ))}
+      </List>
+      <ModelSelectorDialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)} />
     </Box>
   );
 };

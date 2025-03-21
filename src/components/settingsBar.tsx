@@ -21,23 +21,22 @@ const SettingsBar = () => {
   const [showSettings, setShowSettings] = useState(false);
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          mt: 2,
-        }}
-      >
-        <IconButton onClick={() => setShowSettings(true)}>
-          <SettingsIcon />
-        </IconButton>
-        <IconButton onClick={handleLogout}>
-          <LogoutIcon />
-        </IconButton>
-        <SettingsDialog open={showSettings} onClose={() => setShowSettings(false)}/>
-      </Box>
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        mt: 2,
+        px: 1
+      }}
+    >
+      <IconButton onClick={() => setShowSettings(true)}>
+        <SettingsIcon sx={{ color: 'primary.main' }} />
+      </IconButton>
+      <IconButton onClick={handleLogout}>
+        <LogoutIcon sx={{ color: 'primary.main' }} />
+      </IconButton>
+      <SettingsDialog open={showSettings} onClose={() => setShowSettings(false)} />
     </Box>
   );
 };

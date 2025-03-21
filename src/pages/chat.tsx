@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Divider, Typography } from "@mui/material";
 import { Inventory2 } from "@mui/icons-material";
 import SettingsBar from "../components/settingsBar";
 import ChatroomManager from "../components/chatroomManager";
@@ -85,14 +85,17 @@ const Chat = () => {
         gap={2}
         bgcolor="background.default"
         height="100vh"
+        width="10vw"
+        maxWidth="10vw"
       >
         <SettingsBar />
         <ChatroomManager />
       </Box>
 
-      {currentChatroomID && <Box display="flex" height="100vh" flexDirection="column" flexGrow={1}>
+      <Divider orientation='vertical' />
+
+      {currentChatroomID && <Box display="flex" height="100vh" flexDirection="column" flexGrow={1} bgcolor="background.default" >
         <Box
-          bgcolor={darkMode ? "#696969" : "#e0e0e0"}
           p={2}
           display="flex"
           flexDirection="row"
@@ -100,7 +103,7 @@ const Chat = () => {
           alignItems="center"
           justifyContent="space-between"
         >
-          <Typography variant="h6" style={{ flexGrow: 1 }}>
+          <Typography variant="h6" style={{ flexGrow: 1 }} color='secondary.contrastText'>
             {currentChatroomName}
           </Typography>
           <Button
@@ -113,8 +116,10 @@ const Chat = () => {
           </Button>
         </Box>
 
-        <div
-          style={{
+        <Divider />
+
+        <Box
+          sx={{
             position: "relative",
             flexGrow: 1,
             display: "flex",
@@ -122,12 +127,13 @@ const Chat = () => {
           }}
         >
           <MainContainer
-            style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto" }}
+            style={{ flex: fileListShowing ? "0 0 70%" : "1 1 auto", border: 0  }}
           >
             <ChatContainer>
-              <MessageList>{msgComponents}</MessageList>
+              <MessageList style={{ backgroundColor: darkMode ? "#5F5F5FFF" : 'white', border: 0 }}>{msgComponents}</MessageList>
               <MessageInput
                 placeholder="Type message here"
+                style={{ backgroundColor: darkMode ? "#464646FF" : 'white', border: 0 }}
                 onSend={(msg) => {
                   dispatch(sendMessageThunk(msg));
                 }}
@@ -135,7 +141,7 @@ const Chat = () => {
             </ChatContainer>
           </MainContainer>
           {fileListShowing && <FileManager />}
-        </div>
+        </Box>
       </Box>}
       {!currentChatroomID && <WelcomeScreen />}
     </Box>

@@ -34,7 +34,7 @@ export function TextPullUp({
           animate={isInView ? 'animate' : ''}
           custom={i}
         >
-          <Typography variant='h4' fontWeight='bold' color="text.primary" >{current === '' ? <span>&nbsp;</span> : current}</Typography>
+          <Typography variant='h4' fontWeight={900} color="primary.main" >{current === '' ? <span>&nbsp;</span> : current}</Typography>
         </motion.div>
       ))}
     </Box>

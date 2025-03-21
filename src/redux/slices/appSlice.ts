@@ -8,7 +8,7 @@ interface AppState {
 
 const initialState: AppState = {
     fontSize: Cookies.get("fontSize") ? parseInt(Cookies.get("fontSize") as string) : 16,
-    darkMode: Cookies.get("darkMode") === "true",
+    darkMode: Cookies.get("darkMode") ? Cookies.get("darkMode") === "true" : true,
 };
 
 // Create Redux Slice

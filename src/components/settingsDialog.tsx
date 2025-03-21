@@ -86,12 +86,7 @@ const SettingsDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
             </Box>
           </Box>
           <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-            <Button sx={{
-              backgroundColor: "#d32f2f",
-              '&:hover': {
-                backgroundColor: "#b71c1c",
-              },
-            }}
+            <Button color="error"
               variant="contained" onClick={() => setOpenChangePassword(true)}>
               Change My Password
             </Button>

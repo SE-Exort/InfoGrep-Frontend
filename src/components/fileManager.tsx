@@ -91,7 +91,7 @@ const FileManager = () => {
                 <Delete />
               </IconButton>
             </ListItem>
-          )) : <Typography>No files available</Typography>)
+          )) : <Typography color="primary.main">No files available</Typography>)
         )}
       </List>
       {currentFile ?
