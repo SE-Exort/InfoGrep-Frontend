@@ -215,14 +215,14 @@ export const uploadFile = async (
   }
 };
 
-export const startParsing = async (
+export const parseFile = async (
   chatroomUUID: string,
   session: string,
   fileUUID: string
 ): Promise<void> => {
   try {
     await fetch(
-      `${AI_API_BASE_URL}/start_parsing?` +
+      `${AI_API_BASE_URL}/parse_file?` +
       new URLSearchParams({
         chatroom_uuid: chatroomUUID,
         cookie: session,

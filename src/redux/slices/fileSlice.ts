@@ -4,7 +4,7 @@ import {
   fetchFiles,
   deleteFile,
   fetchFileDownload,
-  startParsing,
+  parseFile,
   BackendFile,
   removeEmbedding,
 } from "../../utils/api";
@@ -54,7 +54,7 @@ export const uploadFileThunk = createAsyncThunk(
 
     try {
       const uuid = await uploadFile(currentChatroom, session, file);
-      dispatch(startParsingThunk(uuid))
+      dispatch(parseFileThunk(uuid))
       dispatch(fetchFilesThunk()); // Refresh file list after upload
     } catch (error) {
       return rejectWithValue("Failed to upload file");
@@ -118,7 +118,7 @@ export const fetchFileDownloadThunk = createAsyncThunk(
   }
 );
 
-export const startParsingThunk = createAsyncThunk(
+export const parseFileThunk = createAsyncThunk(
   "files/startParsing",
   async (fileUUID: string, { getState, rejectWithValue }) => {
     const state = getState() as RootState;
@@ -129,7 +129,7 @@ export const startParsingThunk = createAsyncThunk(
       return rejectWithValue("No session or chatroom found");
 
     try {
-      await startParsing(currentChatroom, session, fileUUID);
+      await parseFile(currentChatroom, session, fileUUID);
     } catch (error) {
       return rejectWithValue("Failed to start file parsing");
     }
@@ -164,7 +164,7 @@ const fileSlice = createSlice({
       .addCase(deleteFileThunk.rejected, (state, action) => {
         state.error = action.payload as string;
       })
-      .addCase(startParsingThunk.rejected, (state, action) => {
+      .addCase(parseFileThunk.rejected, (state, action) => {
         state.error = action.payload as string;
       });
   },
