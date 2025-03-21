@@ -101,7 +101,7 @@ const Chat = () => {
           alignItems="center"
           justifyContent="space-between"
         >
-          <Typography variant="h6" style={{ flexGrow: 1 }} color='secondary.contrastText' fontWeight='bold'>
+          <Typography variant="h5" style={{ flexGrow: 1 }} color='secondary.contrastText' fontWeight='bold'>
             {currentChatroomName}
           </Typography>
           <Button
