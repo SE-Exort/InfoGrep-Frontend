@@ -9,7 +9,9 @@ import {
   Dialog,
   DialogTitle,
   Divider,
+  Snackbar
 } from "@mui/material";
+import MuiAlert from '@mui/material/Alert';
 import { Delete, Download, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../redux/store";
@@ -47,6 +49,11 @@ const ChatroomManager = () => {
   const session = useSelector(selectSession);
   const [currentFile, setCurrentFile] = useState<BackendFile | null>(null);
 
+  // Toast State
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
   if (loading) {
     return <CircularProgress />
   }
@@ -80,7 +87,18 @@ const ChatroomManager = () => {
                 <IconButton
                   onClick={() => {
                     dispatch(deleteFileThunk(file.File_UUID))
-                    dispatch(removeEmbeddingThunk(file.File_UUID))
+                      .unwrap()
+                      .then(() => {
+                        dispatch(removeEmbeddingThunk(file.File_UUID));
+                        setSnackbarMessage("File deleted successfully!");
+                        setSnackbarSeverity("success");
+                        setSnackbarOpen(true);
+                      })
+                      .catch(() => {
+                        setSnackbarMessage("Failed to delete file.");
+                        setSnackbarSeverity("error");
+                        setSnackbarOpen(true);
+                      });
                   }}
                 >
                   <Delete />
@@ -90,6 +108,7 @@ const ChatroomManager = () => {
           </>
         ))}
       </List>
+
       {currentFile ?
         <Dialog open={true} onClose={() => setCurrentFile(null)} fullWidth>
           <DialogTitle id="alert-dialog-title" noWrap>
@@ -113,11 +132,38 @@ const ChatroomManager = () => {
           hidden
           onChange={(e) => {
             if (e.target.files?.[0]) {
-              dispatch(uploadFileThunk(e.target.files[0]));
+              dispatch(uploadFileThunk(e.target.files[0]))
+                .unwrap()
+                .then(() => {
+                  setSnackbarMessage("File uploaded successfully!");
+                  setSnackbarSeverity("success");
+                  setSnackbarOpen(true);
+                })
+                .catch(() => {
+                  setSnackbarMessage("Failed to upload file.");
+                  setSnackbarSeverity("error");
+                  setSnackbarOpen(true);
+                });
             }
           }}
         />
       </Button>
+      
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <MuiAlert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          elevation={6}
+          variant="filled"
+        >
+          {snackbarMessage}
+        </MuiAlert>
+      </Snackbar>
     </Box>
   );
 };
