@@ -110,6 +110,24 @@ export const checkUser = async (session: string) => {
   }
 };
 
+export const sessionList = async (session: string) => {
+  console.log("Check user API called with session:", session);
+  try {
+    const response = await fetch(`${AUTH_API_BASE_URL}/sessions?` + new URLSearchParams({sessionToken: session}));
+
+    if (!response.ok) {
+      return {
+        error: true
+      }
+    }
+    console.log("List user sessions API response:", response);
+    return (await response.json()).data;
+  } catch (error) {
+    console.error("Check user error:", error);
+    return [];
+  }
+};
+
 export const logoutUser = async (): Promise<void> => {
   try {
     const response = await fetch(`${AUTH_API_BASE_URL}/logout`, {

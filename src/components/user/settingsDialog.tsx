@@ -14,6 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../redux/store";
 import { selectDarkMode, selectFontSize } from "../../redux/selectors";
 import { setDarkMode, setFontSize } from "../../redux/slices/appSlice";
+import SessionsList from "./sessionsList";
 
 const SettingsDialog = ({ open, onClose }: { open: boolean; onClose: () => void }) => {
   const [openChangePassword, setOpenChangePassword] = useState(false);
@@ -23,9 +24,9 @@ const SettingsDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
 
   return (
     <>
-      <Dialog open={open} onClose={onClose}>
+      <Dialog open={open} onClose={onClose} maxWidth='xl'>
         <DialogTitle sx={{ fontWeight: 600 }}>Settings</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
           <Box
             sx={{
               display: "flex",
@@ -42,18 +43,13 @@ const SettingsDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
           </Box>
 
           <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              mt: 2,
-            }}
+            display='flex'
+            flexDirection='row'
+            justifyContent='space-between'
           >
-            <Box sx={{ flexGrow: 1, textAlign: "center" }}>
-              <Typography variant="subtitle1" fontWeight={400}>
-                Font Size: {fontSize}px
-              </Typography>
-            </Box>
+            <Typography variant="subtitle1" fontWeight={400}>
+              Font Size: {fontSize}px
+            </Typography>
 
             <Box sx={{ display: "flex", gap: 1 }}>
               <Button
@@ -82,12 +78,11 @@ const SettingsDialog = ({ open, onClose }: { open: boolean; onClose: () => void 
               </Button>
             </Box>
           </Box>
-          <Box sx={{ mt: 3, display: "flex", justifyContent: "center" }}>
-            <Button color="error"
-              variant="contained" onClick={() => setOpenChangePassword(true)}>
-              Change My Password
-            </Button>
-          </Box>
+          <Button color="error"
+            variant="contained" onClick={() => setOpenChangePassword(true)}>
+            Change My Password
+          </Button>
+          <SessionsList />
         </DialogContent>
       </Dialog>
       <ChangePasswordDialog

@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
-import { authenticateUser, changePassword,  checkUser } from "../../utils/api";
+import { authenticateUser, changePassword, checkUser, sessionList } from "../../utils/api";
 import { RootState } from "../store";
 
 // Define the shape of the auth stat
@@ -10,6 +10,7 @@ interface AuthState {
   username: string;
   authError: string | null;
   isAdmin: boolean;
+  sessions: { ip_address: string, logged_out: boolean; id: string; timestamp: string }[]
 }
 
 // Initialize the auth stat with default values
@@ -18,7 +19,8 @@ const initialState: AuthState = {
   uuid: "",
   username: '', // not returned by /check rn
   authError: null,
-  isAdmin: false
+  isAdmin: false,
+  sessions: []
 };
 
 // Async thuck used for user auth (login/register)
@@ -56,6 +58,18 @@ export const checkUserThunk = createAsyncThunk(
     return await checkUser(session);
   }
 );
+
+export const sessionsListThunk = createAsyncThunk(
+  "auth/sessionsList",
+  async (_, { getState }) => {
+    const state = getState() as RootState; // Retrieve the current Reduc state
+    const session = state.auth.session; // Extract session tocken from the auth state
+    if (!session) throw new Error("No session found");
+
+    return await sessionList(session);
+  }
+);
+
 // Async thuck to change password
 export const changePasswordThunk = createAsyncThunk(
   "auth/changePassword",
@@ -114,14 +128,17 @@ const authSlice = createSlice({
       })
       // When User check is successful, update the state with the UUID
       .addCase(checkUserThunk.fulfilled, (state, action) => {
-        const {id, is_admin} = action.payload;
-      if (!action.payload || !id || (is_admin !== true && is_admin !== false)) {
+        const { id, is_admin } = action.payload;
+        if (!action.payload || !id || (is_admin !== true && is_admin !== false)) {
           Cookies.remove('session');
           state = initialState;
           return;
         }
         state.uuid = id;
         state.isAdmin = is_admin;
+      })
+      .addCase(sessionsListThunk.fulfilled, (state, action) => {
+        state.sessions = action.payload;
       })
       // When User check is successful, update the state with the UUID
       .addCase(checkUserThunk.rejected, (state, action) => {

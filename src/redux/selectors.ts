@@ -6,6 +6,7 @@ export const selectSession = (state: RootState) => state.auth.session;
 export const selectUUID = (state: RootState) => state.auth.uuid;
 export const selectUsername = (state: RootState) => state.auth.username;
 export const selectIsAdmin = (state: RootState) => state.auth.isAdmin;
+export const selectSessions = (state: RootState) => state.auth.sessions;
 
 // Chatroom Selectors
 export const selectChatrooms = (state: RootState) => state.chatroom.chatroomMap;
