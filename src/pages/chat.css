@@ -16,3 +16,19 @@
 .cs-button--send {
     color: black !important;
 }
+
+.cs-message__content > h1 {
+    margin: 0;
+}
+
+.cs-message__content > h2 {
+    margin: 0;
+}
+
+.cs-message__content > p {
+    margin: 0;
+}
+
+.cs-message__content > ul {
+    margin: 0;
+}

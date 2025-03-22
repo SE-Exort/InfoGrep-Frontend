@@ -132,7 +132,8 @@ export const fetchChatroom = async (
   chatroomUUID: string,
   session: string
 ): Promise<{
-  list: { user_uuid: string, message: string, timestamp: string }[];
+  messages: { user_uuid: string, message: string, timestamp: string }[];
+  integrations: { id: string; config: any; integration: string }[]
   embedding_model: string;
   embedding_provider: string;
   chat_model: string;
@@ -150,7 +151,7 @@ export const fetchChatroom = async (
     return await response.json();
   } catch (error) {
     console.error("Error fetching chatroom:", error);
-    return { list: [], embedding_model: '', embedding_provider: '', chat_model: '', chat_provider: '' };
+    return { messages: [], integrations: [], embedding_model: '', embedding_provider: '', chat_model: '', chat_provider: '' };
   }
 };
 
@@ -190,6 +191,83 @@ export const sendMessage = async (
         message: message,
       }).toString(),
       { method: "POST" }
+    );
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+};
+
+export const addIntegration = async (
+  chatroom_uuid: string,
+  integration: string,
+  config: any,
+  session: string
+): Promise<void> => {
+  try {
+    await fetch(
+      `${CHAT_API_BASE_URL}/integration`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          chatroom_uuid,
+          integration,
+          cookie: session,
+          config
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+};
+
+export const deleteIntegration = async (
+  integration_uuid: string,
+  session: string
+): Promise<void> => {
+  try {
+    await fetch(
+      `${CHAT_API_BASE_URL}/integration`,
+      {
+        method: "DELETE",
+        body: JSON.stringify({
+          integration_uuid,
+          cookie: session,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+};
+
+export const parseIntegration = async (
+  chatroom_uuid: string,
+  integration: string,
+  config: any,
+  session: string
+): Promise<void> => {
+  try {
+    await fetch(
+      `${AI_API_BASE_URL}/parse_integration`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          chatroom_uuid,
+          integration,
+          config,
+          cookie: session,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
   } catch (error) {
     console.error("Error sending message:", error);
@@ -363,7 +441,7 @@ export const fetchChatrooms = async (session: string): Promise<ChatroomListItem[
     if (data.error) {
       throw new Error(data.status);
     }
-    console.log("Chatroom fetch successful:", data.list);
+    console.log("Chatroom fetch successful:", data);
 
     return data;
   } catch (error) {
@@ -381,7 +459,7 @@ export const createChatroom = async (
   embedding_provider: string
 ): Promise<string | null> => {
   try {
-    const args = { cookie: session, embedding_model, chat_model, chat_provider, embedding_provider} as any;
+    const args = { cookie: session, embedding_model, chat_model, chat_provider, embedding_provider } as any;
     if (chatroomName) {
       args.chatroom_name = chatroomName;
     }

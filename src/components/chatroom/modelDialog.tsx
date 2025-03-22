@@ -39,7 +39,7 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
     
     const handleSubmit = async () => {
         if (!chatModel || !embeddingModel) return;
-        dispatch(createChatroomThunk({chatroomName, chatModel: chatModel.model, embeddingModel: embeddingModel.model, embeddingProvider: embeddingModel.provider, chatProvider: chatModel.provider}));
+        dispatch(createChatroomThunk({chatroomName: (!chatroomName ? undefined : chatroomName), chatModel: chatModel.model, embeddingModel: embeddingModel.model, embeddingProvider: embeddingModel.provider, chatProvider: chatModel.provider}));
         onClose();
     };
 

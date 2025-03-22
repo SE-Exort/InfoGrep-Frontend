@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { selectChatroomChatModel, selectChatroomChatProvider, selectChatroomEmbeddingModel, selectChatroomEmbeddingProvider } from "../../redux/selectors";
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 
 const ChatroomDetails = () => {
     const selectedEmbeddingModel = useSelector(selectChatroomEmbeddingModel);
@@ -10,7 +10,6 @@ const ChatroomDetails = () => {
 
     return <Box display='flex' gap={1} flexDirection='column'>
         <Typography>Room details</Typography>
-        <Divider />
         <Typography variant="caption">
             <Typography variant="caption" fontWeight='bold'>Embedding Model: </Typography>
             {selectedEmbeddingModel}

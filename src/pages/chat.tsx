@@ -97,6 +97,7 @@ const Chat = () => {
             flexGrow: 1,
             display: "flex",
             flexDirection: "row",
+            overflow: 'scroll'
           }}
         >
           <MainContainer
