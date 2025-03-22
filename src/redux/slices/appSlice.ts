@@ -1,14 +1,23 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import Cookies from "js-cookie";
 
 interface AppState {
     fontSize: number;
     darkMode: boolean;
 }
 
+const getFontSizeFromStorage = (): number => {
+    const storedValue = localStorage.getItem("fontSize");
+    return storedValue ? parseInt(storedValue, 10) : 16;
+};
+
+const getDarkModeFromStorage = (): boolean => {
+    const storedValue = localStorage.getItem("darkMode");
+    return storedValue ? storedValue === "true" : false;
+};
+
 const initialState: AppState = {
-    fontSize: Cookies.get("fontSize") ? parseInt(Cookies.get("fontSize") as string) : 16,
-    darkMode: Cookies.get("darkMode") ? Cookies.get("darkMode") === "true" : true,
+    fontSize: getFontSizeFromStorage(),
+    darkMode: getDarkModeFromStorage(),
 };
 
 // Create Redux Slice
@@ -18,11 +27,11 @@ const appSlice = createSlice({
     reducers: {
         setFontSize: (state, action: PayloadAction<number>) => {
             state.fontSize = action.payload;
-            Cookies.set("fontSize", action.payload.toString());
+            localStorage.setItem("fontSize", action.payload.toString());
         },
         setDarkMode: (state, action: PayloadAction<boolean>) => {
             state.darkMode = action.payload;
-            Cookies.set("darkMode", action.payload.toString());
+            localStorage.setItem("darkMode", action.payload.toString());
         },
     },
 });
