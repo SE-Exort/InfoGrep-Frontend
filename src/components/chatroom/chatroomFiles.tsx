@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
     Box,
     Button,
@@ -9,7 +9,9 @@ import {
     Dialog,
     DialogTitle,
     Divider,
+    Snackbar
 } from "@mui/material";
+import MuiAlert from '@mui/material/Alert';
 import { Delete, Download, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../redux/store";
@@ -41,6 +43,17 @@ const ChatroomFiles = () => {
     const session = useSelector(selectSession);
     const [currentFile, setCurrentFile] = useState<BackendFile | null>(null);
 
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
+    const showToast = useCallback((message: string, severity: 'success' | 'error') => {
+        console.log("Showing toast", message, severity); // Debug log
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    }, []);
+
     return (
         <Box display="flex" flexDirection="column" gap={2}>
             <Typography>Files</Typography>
@@ -65,7 +78,14 @@ const ChatroomFiles = () => {
                                 <IconButton
                                     onClick={() => {
                                         dispatch(deleteFileThunk(file.File_UUID))
-                                        dispatch(removeEmbeddingThunk(file.File_UUID))
+                                            .unwrap()
+                                            .then(() => {
+                                                dispatch(removeEmbeddingThunk(file.File_UUID));
+                                                showToast("File deleted successfully!", "success");
+                                            })
+                                            .catch(() => {
+                                                showToast("Failed to delete file.", "error");
+                                            });
                                     }}
                                 >
                                     <Delete />
@@ -98,11 +118,34 @@ const ChatroomFiles = () => {
                     hidden
                     onChange={(e) => {
                         if (e.target.files?.[0]) {
-                            dispatch(uploadFileThunk(e.target.files[0]));
+                            dispatch(uploadFileThunk(e.target.files[0]))
+                                .unwrap()
+                                .then(() => {
+                                    showToast("File uploaded successfully!", "success");
+                                })
+                                .catch(() => {
+                                    showToast("Failed to upload file.", "error");
+                                });
                         }
                     }}
                 />
             </Button>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={() => setSnackbarOpen(false)}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+            >
+                <MuiAlert
+                    onClose={() => setSnackbarOpen(false)}
+                    severity={snackbarSeverity}
+                    elevation={6}
+                    variant="filled"
+                >
+                    {snackbarMessage}
+                </MuiAlert>
+            </Snackbar>
         </Box>
     );
 };

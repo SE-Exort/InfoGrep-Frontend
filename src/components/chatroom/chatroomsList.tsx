@@ -7,7 +7,9 @@ import {
   IconButton,
   CircularProgress,
   Typography,
+  Snackbar
 } from "@mui/material";
+import MuiAlert from "@mui/material/Alert";
 import { Delete, Add } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../redux/store";
@@ -38,6 +40,10 @@ const ChatroomsList: React.FC = () => {
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+
   // Fetch UUID if its missing
   useEffect(() => {
     if (session && !uuid) {
@@ -51,6 +57,22 @@ const ChatroomsList: React.FC = () => {
       dispatch(fetchChatroomsThunk());
     }
   }, [session, dispatch]);
+
+  const handleDelete = (id: string) => {
+    dispatch(deleteChatroomThunk(id))
+      .unwrap()
+      .then(() => {
+        setSnackbarMessage("Chatroom deleted successfully.");
+        setSnackbarSeverity("success");
+        setSnackbarOpen(true);
+      })
+      .catch(() => {
+        setSnackbarMessage("Failed to delete chatroom.");
+        setSnackbarSeverity("error");
+        setSnackbarOpen(true);
+      });
+  };
+
 
   if (loading) {
     return <Box display="flex" justifyContent="center" alignItems="center">
@@ -97,7 +119,7 @@ const ChatroomsList: React.FC = () => {
                   edge="end"
                   aria-label="delete"
                   onClick={(e) => {
-                    dispatch(deleteChatroomThunk(id))
+                    handleDelete(id);
                     e.stopPropagation();
                   }}
                 >
@@ -120,6 +142,37 @@ const ChatroomsList: React.FC = () => {
         ))}
       </List>
       <ModelSelectorDialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)} />
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <MuiAlert
+          onClose={() => setSnackbarOpen(false)}
+          severity={snackbarSeverity}
+          elevation={6}
+          variant="filled"
+        >
+          {snackbarMessage}
+        </MuiAlert>
+      </Snackbar>
+
+      <ModelSelectorDialog
+        open={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSuccess={() => {
+          setSnackbarMessage("Chatroom created successfully.");
+          setSnackbarSeverity("success");
+          setSnackbarOpen(true);
+        }}
+        onError={() => {
+          setSnackbarMessage("Failed to create chatroom.");
+          setSnackbarSeverity("error");
+          setSnackbarOpen(true);
+        }}
+      />
     </Box>
   );
 };
