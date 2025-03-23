@@ -59,18 +59,16 @@ const ChatroomsList: React.FC = () => {
   }, [session, dispatch]);
 
   const handleDelete = (id: string) => {
-    dispatch(deleteChatroomThunk(id))
-      .unwrap()
-      .then(() => {
-        setSnackbarMessage("Chatroom deleted successfully.");
-        setSnackbarSeverity("success");
-        setSnackbarOpen(true);
-      })
-      .catch(() => {
+    dispatch(deleteChatroomThunk(id)).then((action) => {
+      if (deleteChatroomThunk.rejected.match(action)) {
         setSnackbarMessage("Failed to delete chatroom.");
         setSnackbarSeverity("error");
-        setSnackbarOpen(true);
-      });
+      } else {
+        setSnackbarMessage("Chatroom deleted successfully.");
+        setSnackbarSeverity("success");
+      }
+      setSnackbarOpen(true);
+    });
   };
 
 

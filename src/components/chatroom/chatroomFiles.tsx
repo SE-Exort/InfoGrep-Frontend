@@ -68,15 +68,14 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                                 </IconButton>
                                 <IconButton
                                     onClick={() => {
-                                        dispatch(deleteFileThunk(file.File_UUID))
-                                            .unwrap()
-                                            .then(() => {
-                                                dispatch(removeEmbeddingThunk(file.File_UUID));
-                                                showToast("File deleted successfully!", "success");
-                                            })
-                                            .catch(() => {
-                                                showToast("Failed to delete file.", "error");
-                                            });
+                                        dispatch(deleteFileThunk(file.File_UUID)).then((action) => {
+                                            if (deleteFileThunk.rejected.match(action)) {
+                                              showToast("Failed to delete file.", "error");
+                                            } else {
+                                              dispatch(removeEmbeddingThunk(file.File_UUID));
+                                              showToast("File deleted successfully!", "success");
+                                            }
+                                          });
                                     }}
                                 >
                                     <Delete />
@@ -123,14 +122,13 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                     onChange={(e) => {
                         if (e.target.files?.[0]) {
                             setUploadingFileName(e.target.files[0].name);
-                            dispatch(uploadFileThunk(e.target.files[0]))
-                                .unwrap()
-                                .then(() => {
-                                    showToast("File uploaded successfully!", "success");
-                                })
-                                .catch(() => {
-                                    showToast("Failed to upload file.", "error");
-                                });
+                            dispatch(uploadFileThunk(e.target.files[0])).then((action) => {
+                              if (uploadFileThunk.rejected.match(action)) {
+                                showToast("Failed to upload file.", "error");
+                              } else {
+                                showToast("File uploaded successfully!", "success");
+                              }
+                            });
                         }
                     }}
                 />
