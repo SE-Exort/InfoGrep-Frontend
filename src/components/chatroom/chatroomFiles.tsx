@@ -8,7 +8,8 @@ import {
     Typography,
     Dialog,
     DialogTitle,
-    Divider
+    Divider,
+    CircularProgress,
 } from "@mui/material";
 import { Delete, Download, UploadFile } from "@mui/icons-material";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,6 +24,7 @@ import {
     selectFiles,
     selectCurrentChatroomID,
     selectSession,
+    selectFileUploading,
 } from "../../redux/selectors";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { BackendFile, FILE_API_BASE_URL } from "../../utils/api";
@@ -39,6 +41,8 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
     const files = useSelector(selectFiles);
     const selectedChatroomID = useSelector(selectCurrentChatroomID);
     const session = useSelector(selectSession);
+    const isUploading = useSelector(selectFileUploading);
+    const [uploadingFileName, setUploadingFileName] = useState<string | null>(null);
     const [currentFile, setCurrentFile] = useState<BackendFile | null>(null);
 
     return (
@@ -81,6 +85,19 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                         </ListItem>
                     </>
                 ))}
+                {isUploading && (
+                    <>
+                        {files.length > 0 && <Divider />}
+                        <ListItem sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between' }}>
+                            <Box display="flex" alignItems="center" gap={1}>
+                                <CircularProgress size={20} />
+                                <Typography noWrap color="text.secondary" fontStyle="italic">
+                                    {uploadingFileName ? uploadingFileName : "Uploading file..."}
+                                </Typography>
+                            </Box>
+                        </ListItem>
+                    </>
+                )}
             </List>
             {currentFile ?
                 <Dialog open={true} onClose={() => setCurrentFile(null)} fullWidth>
@@ -105,6 +122,7 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                     hidden
                     onChange={(e) => {
                         if (e.target.files?.[0]) {
+                            setUploadingFileName(e.target.files[0].name);
                             dispatch(uploadFileThunk(e.target.files[0]))
                                 .unwrap()
                                 .then(() => {
