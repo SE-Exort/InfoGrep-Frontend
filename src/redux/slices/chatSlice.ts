@@ -185,6 +185,11 @@ const chatSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      // show indicator that the AI is replying..
+      .addCase(sendMessageThunk.pending, (state, action) => {
+        state.messages.push({ message: action.meta.arg, direction: 'outgoing', sender: "You" });
+        state.messages.push({ message: "Thinking..", direction: 'incoming', sender: "InfoGrep" })
+      })
       .addCase(sendMessageThunk.rejected, (state, action) => {
         state.error = action.payload as string;
       });
