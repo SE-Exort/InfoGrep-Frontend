@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Paper, TextField, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ParticlesBackground from "../style/loginBackground";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../redux/store";
@@ -13,8 +13,8 @@ import {
 import {
   selectSession,
   selectAuthError,
-  selectIsAdmin,
 } from "../redux/selectors";
+import { AUTH_API_BASE_URL } from "../utils/api";
 
 function Login() {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,13 +25,39 @@ function Login() {
   const [username, setUsername] = useState("");
   const authError = useSelector(selectAuthError);
   const [password, setPassword] = React.useState("");
-  const isAdmin = useSelector(selectIsAdmin);
-
+  const [searchParams] = useSearchParams();
+  const sessionToken = searchParams.get("token")
   useEffect(() => {
     if (session) {
       dispatch(checkUserThunk());
     }
-  }, []);
+  }, [dispatch, session]);
+
+  const checkUserAndRedirect = async () => {
+    // Then check if the user is admin
+    const result = await dispatch(checkUserThunk()).unwrap();
+    const isAdmin = result.is_admin;
+    const renameFlag = result.changePasswordWarning;
+
+    if (isAdmin) {
+      navigate("/admin", {
+        state: {
+          sessionID: session,
+          renameFlag: renameFlag,
+        },
+      });
+    } else {
+      navigate("/chat", { state: { sessionID: session } });
+    }
+  }
+
+  useEffect(() => {
+    if (sessionToken) {
+      console.log('found sessoin token in URL, likely from oauth! ', sessionToken)
+      dispatch(setSession(sessionToken));
+      checkUserAndRedirect();
+    }
+  })
 
   // Handle Login/Register
   const handleSignIn = async (
@@ -40,22 +66,7 @@ function Login() {
   ) => {
     try {
       await dispatch(authenticateUserThunk({ type, username, password })).unwrap();
-      
-      // Then check if the user is admin
-      const result = await dispatch(checkUserThunk()).unwrap();
-      const isAdmin = result.is_admin;
-      const renameFlag = result.changePasswordWarning;
-      
-      if (isAdmin) {
-        navigate("/admin", {
-          state: {
-            sessionID: session,
-            renameFlag: renameFlag, 
-          },
-        });
-      } else {
-        navigate("/chat", { state: { sessionID: session } });
-      }
+      await checkUserAndRedirect();
     } catch (error) {
       console.error("Authentication error:", error);
     }
@@ -126,13 +137,13 @@ function Login() {
             >
               Login
             </Button>
-            {/* <Button
+            <Button
               variant="contained"
               color="secondary"
-              onClick={(e) => handleSignIn("register", e)}
+              onClick={(e) => window.location.href = AUTH_API_BASE_URL + '/oauth_login'}
             >
-              Sign up
-            </Button> */}
+              OAuth SSO
+            </Button>
           </Box>
         </Paper>
       </Box>
