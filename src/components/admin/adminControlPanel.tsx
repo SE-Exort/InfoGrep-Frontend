@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, Autocomplete, Snackbar, Alert, Grid } from '@mui/material';
+import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, Autocomplete, Snackbar, Alert, Grid, CircularProgress } from '@mui/material';
 import { Delete, Add, SyncLock, Save, Download } from '@mui/icons-material';
 import * as endpoints from '../../utils/api';
 
@@ -73,6 +73,8 @@ const AdminControlPanel: React.FC = () => {
   const [modelList, setModelList] = useState<ModelsResponse>({ chat: [], embedding: [] });
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [providerSettings, setProviderSettings] = useState<Record<string, string>>({});
+  const [addingModel, setAddingModel] = useState(false);
+  const [deletingModel, setDeletingModel] = useState(false);
 
   const [openToast, setOpenToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -354,6 +356,7 @@ const AdminControlPanel: React.FC = () => {
       }
       const data = await postResult.json();
       console.log("updateModel Return", data);
+      showToast('Models updated successfully', 'success');
     } catch (error) {
       console.error('Error updating models:', error);
     }
@@ -363,6 +366,7 @@ const AdminControlPanel: React.FC = () => {
   const handleDeleteLLM = async (modelInfo: ModelInfo) => {
     try {
       console.log('Deleting model:', modelInfo);
+      setDeletingModel(true);
 
       const newChatModels = modelList?.chat?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
       const newEmbeddingsModels = modelList?.embedding?.filter(m => !(m.model === modelInfo.model && m.provider === modelInfo.provider)) ?? [];
@@ -378,13 +382,16 @@ const AdminControlPanel: React.FC = () => {
     } catch (error) {
       console.error('Error deleting model:', error);
       showToast(error instanceof Error ? error.message : 'Failed to delete model', 'error');
+    } finally {
+      setDeletingModel(false);
     }
   }
 
   const handleDownloadLLM = async (modelType: ModelType) => {
     if (!modelType || ollamaLLMNameRef.current?.value === '' || ollamaLLMProviderRef.current?.value === '') return;
-    else {
+    try {
       console.log('Adding model:', modelType, ollamaLLMNameRef.current?.value, ollamaLLMProviderRef.current?.value);
+      setAddingModel(true);
 
       const newModel = {
         model: ollamaLLMNameRef.current?.value || '',
@@ -405,8 +412,12 @@ const AdminControlPanel: React.FC = () => {
         }
       }
       updateModels(updatedModelList);
+    } catch (error) {
+      console.error('Error adding model:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to add model', 'error');
+    } finally {
+      setAddingModel(false);
     }
-
   };
 
   const handleDeleteFile = async (fileUUID: string) => {
@@ -426,7 +437,7 @@ const AdminControlPanel: React.FC = () => {
       </Paper>
       <Grid container spacing={1}>
         <Grid item xs={3}>
-          <Paper elevation={3} >
+          <Paper elevation={3}  sx={{ height: '100%' }}>
             <Box display="flex" flexDirection="column" gap={2} p={2}>
               <Typography variant="h6">Create an User</Typography>
               <TextField label="Username" variant="outlined" value={usernameCreate} onChange={handleCreateUserUsernameChange}
@@ -564,7 +575,10 @@ const AdminControlPanel: React.FC = () => {
         <Grid item xs={3}>
           <Paper elevation={3} sx={{ height: '100%' }}>
             <Box display="flex" flexDirection="column" gap={2} p={2}>
-              <Typography variant="h6">Add New LLM Model</Typography>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Typography variant="h6">Add New LLM Model</Typography>
+                {addingModel && <CircularProgress size={24} />}
+              </Box>
               <TextField label="Model Name" variant="outlined" inputRef={ollamaLLMNameRef} sx={{ maxWidth: '800px' }} />
               <TextField label="LLM Provider" variant="outlined" inputRef={ollamaLLMProviderRef} sx={{ maxWidth: '800px' }} />
               <Box display="flex" gap={2} flexDirection="row">
@@ -578,7 +592,10 @@ const AdminControlPanel: React.FC = () => {
         <Grid item xs={3}>
           <Paper elevation={3} sx={{ height: '100%' }}>
             <Box display="flex" flexDirection="column" gap={2} p={2}>
-              <Typography variant="h6">Remove Models</Typography>
+              <Box display="flex" alignItems="center" gap={1}>
+                <Typography variant="h6">Remove Models</Typography>
+                {deletingModel && <CircularProgress size={24} />}
+              </Box>
               <Autocomplete
                 options={[
                   ...(modelList.chat || []).map(model => ({

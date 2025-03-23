@@ -12,6 +12,7 @@ import { RootState } from "../store";
 
 interface FileState {
   files: BackendFile[]; // Stores all uploaded files
+  isUploading: boolean; // Indicates uploading state
   loading: boolean; // Indicates loading state
   error: string | null; // Stores any error messages
   fileListShowing: boolean;
@@ -19,6 +20,7 @@ interface FileState {
 
 const initialState: FileState = {
   files: [],
+  isUploading: false,
   loading: false,
   error: null,
   fileListShowing: false
@@ -53,11 +55,14 @@ export const uploadFileThunk = createAsyncThunk(
       return rejectWithValue("No session or chatroom found");
 
     try {
+      dispatch(setFileUploading(true));
       const uuid = await uploadFile(currentChatroom, session, file);
       dispatch(parseFileThunk(uuid))
       dispatch(fetchFilesThunk()); // Refresh file list after upload
     } catch (error) {
       return rejectWithValue("Failed to upload file");
+    } finally {
+      dispatch(setFileUploading(false));
     }
   }
 );
@@ -143,6 +148,9 @@ const fileSlice = createSlice({
     setFileListShowing: (state, action: PayloadAction<boolean>) => {
       state.fileListShowing = action.payload;
     },
+    setFileUploading: (state, action: PayloadAction<boolean>) => {
+      state.isUploading = action.payload;
+  },
   },
   extraReducers: (builder) => {
     builder
@@ -170,5 +178,5 @@ const fileSlice = createSlice({
   },
 });
 
-export const { setFileListShowing } = fileSlice.actions;
+export const { setFileListShowing, setFileUploading } = fileSlice.actions;
 export default fileSlice.reducer;
