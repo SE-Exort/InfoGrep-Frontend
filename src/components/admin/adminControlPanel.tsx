@@ -305,7 +305,7 @@ const AdminControlPanel: React.FC = () => {
         ]
       };
 
-      const response = await fetch('http://127.0.0.1:8004/providers?' + new URLSearchParams({
+      const response = await fetch(`${endpoints.AI_API_BASE_URL}/providers?` + new URLSearchParams({
         'sessionToken': session,
       }).toString(), {
         method: 'POST',
@@ -325,13 +325,13 @@ const AdminControlPanel: React.FC = () => {
         throw new Error(data.status || 'Failed to update API key');
       }
 
-      console.log('OpenAI key updated successfully:', data);
-      showToast('OpenAI API key updated successfully', 'success');
+      console.log('Provider updated successfully:', data);
+      showToast('Provider updated successfully', 'success');
       setProviderSettings({});
 
     } catch (error) {
-      console.error('Error updating OpenAI key:', error);
-      showToast(error instanceof Error ? error.message : 'Failed to update API key', 'error');
+      console.error('Error updating provider:', error);
+      showToast(error instanceof Error ? error.message : 'Failed to update provider', 'error');
     }
   };
 

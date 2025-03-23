@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
     Box,
     Button,
@@ -35,7 +35,7 @@ import 'react-pdf/dist/Page/TextLayer.css';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.3.136/pdf.worker.min.mjs`;
 
-const ChatroomFiles = () => {
+const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'success' | 'error') => void }) => {
     const dispatch = useDispatch<AppDispatch>();
 
     const files = useSelector(selectFiles);
@@ -69,7 +69,14 @@ const ChatroomFiles = () => {
                                 <IconButton
                                     onClick={() => {
                                         dispatch(deleteFileThunk(file.File_UUID))
-                                        dispatch(removeEmbeddingThunk(file.File_UUID))
+                                            .unwrap()
+                                            .then(() => {
+                                                dispatch(removeEmbeddingThunk(file.File_UUID));
+                                                showToast("File deleted successfully!", "success");
+                                            })
+                                            .catch(() => {
+                                                showToast("Failed to delete file.", "error");
+                                            });
                                     }}
                                 >
                                     <Delete />
@@ -116,7 +123,14 @@ const ChatroomFiles = () => {
                     onChange={(e) => {
                         if (e.target.files?.[0]) {
                             setUploadingFileName(e.target.files[0].name);
-                            dispatch(uploadFileThunk(e.target.files[0]));
+                            dispatch(uploadFileThunk(e.target.files[0]))
+                                .unwrap()
+                                .then(() => {
+                                    showToast("File uploaded successfully!", "success");
+                                })
+                                .catch(() => {
+                                    showToast("Failed to upload file.", "error");
+                                });
                         }
                     }}
                 />
