@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
+  changeModel,
   addIntegration,
   deleteIntegration,
   fetchChatroom,
@@ -158,6 +159,25 @@ export const parseIntegrationThunk = createAsyncThunk(
     }
   }
 );
+export const changeModelThunk = createAsyncThunk(
+  "chatrooms/changeModel",
+  async ({ chatroom_uuid, chatModel, chatProvider }: { chatroom_uuid: string, chatModel: string, chatProvider: string}, { getState, dispatch, rejectWithValue }) => {
+    const state = getState() as RootState;
+    const session = state.auth.session;
+
+    if (!session) return rejectWithValue("No session found");
+
+    try {
+      await changeModel(session, chatroom_uuid, chatModel, chatProvider);
+      return {
+        chatModel: chatModel,
+        chatProvider: chatProvider,
+      };
+    } catch (error) {
+      return rejectWithValue("Failed to change model");
+    }
+  }
+);
 
 const chatSlice = createSlice({
   name: "chat",
@@ -165,6 +185,10 @@ const chatSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(changeModelThunk.fulfilled, (state, action) => {
+        state.chat_model = action.payload.chatModel;
+        state.chat_provider = action.payload.chatProvider;
+      })
       .addCase(fetchChatroomThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
