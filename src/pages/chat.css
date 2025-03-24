@@ -16,6 +16,9 @@
 .cs-button--send {
     color: black !important;
 }
+.dark .cs-button--send {
+    color: white !important;
+  }
 
 .cs-message__content > h1 {
     margin: 0;

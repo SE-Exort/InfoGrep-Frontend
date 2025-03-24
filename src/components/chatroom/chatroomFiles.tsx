@@ -12,6 +12,7 @@ import {
     CircularProgress,
 } from "@mui/material";
 import { Delete, Download, UploadFile } from "@mui/icons-material";
+import { useTheme } from "@mui/material/styles";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch } from "../../redux/store";
 import {
@@ -45,15 +46,36 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
     const [uploadingFileName, setUploadingFileName] = useState<string | null>(null);
     const [currentFile, setCurrentFile] = useState<BackendFile | null>(null);
 
+    const theme = useTheme();
+
     return (
-        <Box display="flex" flexDirection="column" gap={2}>
+        <Box 
+            display="flex" 
+            flexDirection="column" 
+            gap={2}
+            sx={{
+                backgroundColor: theme.palette.background.default,
+                color: theme.palette.text.primary,
+                p: 2,
+                borderRadius: 2,
+              }}
+        >
             <Typography>Files</Typography>
-            <List sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', bgcolor: 'background.paper' }}>
+            <List 
+                sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    flexDirection: 'column', 
+                    backgroundColor: (theme) =>
+                        theme.palette.mode === 'dark' ? '#2c2c2c' : '#f0f0f0',
+                      color: (theme) => theme.palette.text.primary,
+                    }}
+            >
                 {!files.length && !isUploading && <Typography color="primary.main" >No files available</Typography>}
                 {files.length > 0 && files.map((file, i) => (
                     <>
                         {i !== 0 && <Divider />}
-                        <ListItem key={file.File_UUID} sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between' }}>
+                        <ListItem key={file.File_UUID} sx={{ pr: 0, flexGrow: 1, maxWidth: '26vw', display: 'flex', justifyContent: 'space-between', backgroundColor: theme.palette.mode === 'dark' ? '#2c2c2c' : '#f0f0f0'}}>
                             <Typography noWrap color="primary.main">{file.File_Name}</Typography>
                             <Box display='flex' >
                                 <IconButton
@@ -125,7 +147,6 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                     }]} pluginRenderers={DocViewerRenderers} />
                 </Dialog> : null
             }
-
             <Button variant="contained" component="label" startIcon={<UploadFile />} fullWidth>
                 Upload File
                 <input
