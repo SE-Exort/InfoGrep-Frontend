@@ -61,21 +61,23 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                                 >
                                     <Download />
                                 </IconButton>
-                                <IconButton
-                                    onClick={() => setCurrentFile(file)}
-                                >
-                                    <VisibilityIcon />
-                                </IconButton>
+                                {file.File_Name.toLowerCase().endsWith('.pdf') &&
+                                    <IconButton
+                                        onClick={() => setCurrentFile(file)}
+                                    >
+                                        <VisibilityIcon />
+                                    </IconButton>
+                                }
                                 <IconButton
                                     onClick={() => {
                                         dispatch(deleteFileThunk(file.File_UUID)).then((action) => {
                                             if (deleteFileThunk.rejected.match(action)) {
-                                              showToast("Failed to delete file.", "error");
+                                                showToast("Failed to delete file.", "error");
                                             } else {
-                                              dispatch(removeEmbeddingThunk(file.File_UUID));
-                                              showToast("File deleted successfully!", "success");
+                                                dispatch(removeEmbeddingThunk(file.File_UUID));
+                                                showToast("File deleted successfully!", "success");
                                             }
-                                          });
+                                        });
                                     }}
                                 >
                                     <Delete />
@@ -110,7 +112,7 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                                 cookie: session,
                                 file_uuid: currentFile.File_UUID,
                             })
-                    }]} pluginRenderers={DocViewerRenderers} config={{ header: { disableHeader: true } }} />
+                    }]} pluginRenderers={DocViewerRenderers} />
                 </Dialog> : null
             }
 
@@ -123,11 +125,11 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                         if (e.target.files?.[0]) {
                             setUploadingFileName(e.target.files[0].name);
                             dispatch(uploadFileThunk(e.target.files[0])).then((action) => {
-                              if (uploadFileThunk.rejected.match(action)) {
-                                showToast("Failed to upload file.", "error");
-                              } else {
-                                showToast("File uploaded successfully!", "success");
-                              }
+                                if (uploadFileThunk.rejected.match(action)) {
+                                    showToast("Failed to upload file.", "error");
+                                } else {
+                                    showToast("File uploaded successfully!", "success");
+                                }
                             });
                         }
                     }}
