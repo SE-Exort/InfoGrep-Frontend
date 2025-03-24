@@ -26,9 +26,9 @@ export default function SessionsList() {
                 <TableHead>
                     <TableRow>
                         <TableCell>Session</TableCell>
-                        <TableCell align="right">Timestamp</TableCell>
-                        <TableCell align="right">Logged out</TableCell>
-                        <TableCell align="right">IP Address</TableCell>
+                        <TableCell >Timestamp</TableCell>
+                        <TableCell >Logged out</TableCell>
+                        <TableCell >IP Address</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -40,9 +40,9 @@ export default function SessionsList() {
                             <TableCell component="th" scope="row">
                                 {s.id}
                             </TableCell>
-                            <TableCell align="right">{s.timestamp}</TableCell>
-                            <TableCell align="right">{s.logged_out.toString()}</TableCell>
-                            <TableCell align="right">{s.ip_address}</TableCell>
+                            <TableCell >{s.timestamp}</TableCell>
+                            <TableCell >{s.logged_out.toString()}</TableCell>
+                            <TableCell >{s.ip_address}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

@@ -1,5 +1,6 @@
 import * as endpointsProd from "./endpointsProd"
 import * as endpointsDev from "./endpointsDev"
+import { MessageReference } from "../redux/slices/chatSlice"
 
 let endpoints = null
 if (process.env.REACT_APP_INFOGREP_ENV === "production") {
@@ -150,7 +151,7 @@ export const fetchChatroom = async (
   chatroomUUID: string,
   session: string
 ): Promise<{
-  messages: { user_uuid: string, message: string, timestamp: string }[];
+  messages: { user_uuid: string, message: string, timestamp: string, references:  MessageReference[]}[];
   integrations: { id: string; config: any; integration: string }[]
   embedding_model: string;
   embedding_provider: string;

@@ -11,7 +11,7 @@ import {
 import { RootState } from "../store";
 
 interface FileState {
-  files: BackendFile[]; // Stores all uploaded files
+  files: BackendFile[]; // Current chatroom files
   isUploading: boolean; // Indicates uploading state
   loading: boolean; // Indicates loading state
   error: string | null; // Stores any error messages

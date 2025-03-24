@@ -14,11 +14,18 @@ interface Integration {
   config: any;
 }
 
+export interface MessageReference {
+  page: number;
+  textContent: string;
+  file: string;
+}
+
 interface ChatState {
   messages: {
     message: string;
     direction: "incoming" | "outgoing";
     sender: string;
+    references: MessageReference[];
   }[];
   embedding_provider: string;
   embedding_model: string;
@@ -54,7 +61,7 @@ export const fetchChatroomThunk = createAsyncThunk(
       const { messages: messageList, embedding_model, chat_model, chat_provider, embedding_provider, integrations } = await fetchChatroom(currentChatroom, session);
       const newMessagesArr = [];
 
-      for (const { user_uuid, message } of messageList) {
+      for (const { user_uuid, message, references } of messageList) {
         newMessagesArr.push({
           message: message,
           direction:
@@ -65,6 +72,7 @@ export const fetchChatroomThunk = createAsyncThunk(
             user_uuid === "00000000-0000-0000-0000-000000000000"
               ? "InfoGrep"
               : "You",
+          references
         });
       }
 
@@ -174,6 +182,7 @@ const chatSlice = createSlice({
         state.messages = action.payload.messageList.map((msg) => ({
           ...msg,
           direction: msg.direction as "incoming" | "outgoing",
+          references: msg.references
         }));
         state.integrations = action.payload.integrations;
         state.chat_model = action.payload.chat_model;
@@ -187,8 +196,8 @@ const chatSlice = createSlice({
       })
       // show indicator that the AI is replying..
       .addCase(sendMessageThunk.pending, (state, action) => {
-        state.messages.push({ message: action.meta.arg, direction: 'outgoing', sender: "You" });
-        state.messages.push({ message: "Thinking..", direction: 'incoming', sender: "InfoGrep" })
+        state.messages.push({ message: action.meta.arg, direction: 'outgoing', sender: "You", references: [] });
+        state.messages.push({ message: "Thinking..", direction: 'incoming', sender: "InfoGrep", references: [] })
       })
       .addCase(sendMessageThunk.rejected, (state, action) => {
         state.error = action.payload as string;
