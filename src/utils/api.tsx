@@ -445,6 +445,28 @@ export const fetchFileDownload = async (
 // ================================
 // Chatroom API Functions
 // ================================
+
+export const changeModel= async (
+  session: string,
+  chatroom_uuid: string,
+  chat_model: string,
+  chat_provider: string,
+): Promise<void> => {
+  try {
+    const args = { chatroom_uuid: chatroom_uuid, chat_provider:chat_provider, chat_model:chat_model, cookie: session} as any;
+
+    const response = await fetch(
+      `${CHAT_API_BASE_URL}/roommodel?` + new URLSearchParams(args).toString(),
+      {
+        method: "PUT",
+      }
+    );
+    console.log("Switch Model Successful");
+  } catch (error) {
+    console.error("Switch Model Error:", error);
+  }
+};
+
 export const fetchChatrooms = async (session: string): Promise<ChatroomListItem[]> => {
   try {
     console.log("Fetching chatrooms...");
