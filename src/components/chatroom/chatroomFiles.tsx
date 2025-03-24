@@ -70,14 +70,24 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
                                 }
                                 <IconButton
                                     onClick={() => {
-                                        dispatch(deleteFileThunk(file.File_UUID)).then((action) => {
-                                            if (deleteFileThunk.rejected.match(action)) {
-                                                showToast("Failed to delete file.", "error");
-                                            } else {
-                                                dispatch(removeEmbeddingThunk(file.File_UUID));
+                                        dispatch(deleteFileThunk(file.File_UUID))
+                                            .then((action) => {
+                                                if (deleteFileThunk.rejected.match(action)) {
+                                                throw new Error("Failed to delete file.");
+                                                }
+
+                                                return dispatch(removeEmbeddingThunk(file.File_UUID));
+                                            })
+                                            .then((action) => {
+                                                if (removeEmbeddingThunk.rejected.match(action)) {
+                                                throw new Error("Failed to remove embedding.");
+                                                }
+
                                                 showToast("File deleted successfully!", "success");
-                                            }
-                                        });
+                                            })
+                                            .catch((error) => {
+                                                showToast(error.message || "An error occurred.", "error");
+                                            });
                                     }}
                                 >
                                     <Delete />

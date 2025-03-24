@@ -339,6 +339,7 @@ export const parseFile = async (
     );
   } catch (error) {
     console.error("Error starting file parsing:", error);
+    throw error;
   }
 };
 
@@ -405,6 +406,7 @@ export const removeEmbedding = async (
     );
   } catch (error) {
     console.error("Error removing embedding", error);
+    throw error;
   }
 };
 

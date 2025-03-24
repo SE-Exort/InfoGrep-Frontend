@@ -58,7 +58,7 @@ export const uploadFileThunk = createAsyncThunk(
       const fileParts = file.name.split(".");
       dispatch(setFileUploading(true));
       const uuid = await uploadFile(currentChatroom, session, file);
-      await dispatch(parseFileThunk({fileUUID: uuid, fileType: fileParts[fileParts.length-1]?.toUpperCase() ?? "TXT"}))
+      await dispatch(parseFileThunk({fileUUID: uuid, fileType: fileParts[fileParts.length-1]?.toUpperCase() ?? "TXT"})).unwrap();
       dispatch(fetchFilesThunk()); // Refresh file list after upload
     } catch (error) {
       return rejectWithValue("Failed to upload file");
