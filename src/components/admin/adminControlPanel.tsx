@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, Autocomplete, Snackbar, Alert, Grid, CircularProgress } from '@mui/material';
+import { Box, Button, TextField, Typography, List, ListItem, ListItemText, IconButton, Paper, Autocomplete, Snackbar, Alert, Grid, CircularProgress, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Delete, Add, SyncLock, Save, Download } from '@mui/icons-material';
 import * as endpoints from '../../utils/api';
 
@@ -58,6 +58,12 @@ const PROVIDER_CONFIGS: ProviderConfig[] = [
   },
 ];
 
+interface Webhook {
+  id: string;
+  url: string;
+  type: string;
+}
+
 const AdminControlPanel: React.FC = () => {
   const [usernameCreate, setUsernameCreate] = useState<string>('');
   const [passwordCreate, setPasswordCreate] = useState<string>('');
@@ -71,6 +77,9 @@ const AdminControlPanel: React.FC = () => {
   const [selectedModel, setSelectedModel] = useState<ModelInfo | null>(null);
   const [fileList, setFileList] = useState<{ File_UUID: string; File_Name: string, File_Size: number }[]>([]);
   const [modelList, setModelList] = useState<ModelsResponse>({ chat: [], embedding: [] });
+  const [webhooksList, setWebhooksList] = useState<Webhook[]>([]);
+  const [curWebhookURL, setCurWebhookURL] = useState('');
+  const [curWebhookType, setCurWebhookType] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<string>('');
   const [providerSettings, setProviderSettings] = useState<Record<string, string>>({});
   const [addingModel, setAddingModel] = useState(false);
@@ -133,6 +142,52 @@ const AdminControlPanel: React.FC = () => {
       console.error('Error fetching the model list:', error);
     }
   }, [session]);
+
+  const getWebhooks = useCallback(async () => {
+    try {
+      const response = await fetch(`${endpoints.CHAT_API_BASE_URL}/webhooks?` + new URLSearchParams({
+        'cookie': session,
+      }).toString(), { method: 'GET' });
+      const webhooks = await response.json();
+      setWebhooksList(webhooks);
+    } catch (error) {
+      console.error('Error fetching the webhooks list:', error);
+    }
+  }, [session]);
+
+  const addWebhook = useCallback(async (url: string, type: string) => {
+    try {
+      await fetch(`${endpoints.CHAT_API_BASE_URL}/webhook?` + new URLSearchParams({
+        'cookie': session,
+      }).toString(), {
+        method: 'POST', headers: {
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify({ url, type })
+      });
+      await getWebhooks(); // refetch webhooks list
+    } catch (error) {
+      console.error('Error adding the webhook:', error);
+    }
+  }, [getWebhooks, session]);
+
+  const deleteWebhook = useCallback(async (id: string) => {
+    try {
+      await fetch(`${endpoints.CHAT_API_BASE_URL}/webhook?` + new URLSearchParams({
+        'cookie': session,
+      }).toString(), {
+        method: 'DELETE', headers: {
+          'Content-Type': 'application/json',
+        }, body: JSON.stringify({ id })
+      });
+      await getWebhooks(); // refetch webhooks list
+    } catch (error) {
+      console.error('Error deleting the webhook:', error);
+    }
+  }, [getWebhooks, session]);
+
+  useEffect(() => {
+    getWebhooks();
+  }, [getWebhooks])
 
   useEffect(() => {
     // need users?session
@@ -284,12 +339,12 @@ const AdminControlPanel: React.FC = () => {
   const handleProviderSettings = async () => {
     try {
       console.log('Setting provider settings for:', selectedProvider, providerSettings);
-      
+
       const config = PROVIDER_CONFIGS.find(p => p.provider === selectedProvider);
       if (!config) {
         throw new Error('Invalid provider selected');
       }
-      
+
       // Check if all required fields are filled
       const missingFields = config.fields.filter(field => !providerSettings[field.key]);
       if (missingFields.length > 0) {
@@ -437,7 +492,7 @@ const AdminControlPanel: React.FC = () => {
       </Paper>
       <Grid container spacing={1}>
         <Grid item xs={3}>
-          <Paper elevation={3}  sx={{ height: '100%' }}>
+          <Paper elevation={3} sx={{ height: '100%' }}>
             <Box display="flex" flexDirection="column" gap={2} p={2}>
               <Typography variant="h6">Create an User</Typography>
               <TextField label="Username" variant="outlined" value={usernameCreate} onChange={handleCreateUserUsernameChange}
@@ -558,7 +613,7 @@ const AdminControlPanel: React.FC = () => {
                   sx={{ maxWidth: '800px' }}
                 />
               ))}
-              
+
               <Button
                 variant="contained"
                 color="primary"
@@ -648,6 +703,47 @@ const AdminControlPanel: React.FC = () => {
                     <ListItemText primary={file.File_Name} />
                     <ListItemText primary={`${(file.File_Size / 1000000).toFixed(1)}MB`} />
                     <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteFile(file.File_UUID)}>
+                      <Delete />
+                    </IconButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          </Paper>
+        </Grid>
+
+        <Grid item xs={12} mb={3}>
+          <Paper elevation={3} sx={{ height: '100%' }}>
+            <Box display="flex" flexDirection="column" gap={2} p={2}>
+              <Typography variant="h6">Webhooks</Typography>
+              <Box display='flex' flexDirection='row'>
+                <TextField sx={{ width: '70%' }} id="outlined-basic" label="URL" variant="outlined" onChange={(e) => setCurWebhookURL(e.target.value)} />
+                <FormControl fullWidth>
+                  <InputLabel id="demo-simple-select-label">Webhook type</InputLabel>
+                  <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={curWebhookType}
+                    label="Webhook type"
+                    onChange={(e) => setCurWebhookType(e.target.value)}
+                  >
+                    <MenuItem value={'user_send_message'}>User send message</MenuItem>
+                  </Select>
+                </FormControl>
+                <Button
+                  color='primary'
+                  onClick={() => addWebhook(curWebhookURL, curWebhookType)}
+                >
+                  Add
+                </Button>
+              </Box>
+
+              <List>
+                {webhooksList.map((webhook) => (
+                  <ListItem key={webhook.id} divider>
+                    <ListItemText primary={webhook.url} />
+                    <ListItemText primary={webhook.type} />
+                    <IconButton edge="end" aria-label="delete" onClick={() => deleteWebhook(webhook.id)}>
                       <Delete />
                     </IconButton>
                   </ListItem>
