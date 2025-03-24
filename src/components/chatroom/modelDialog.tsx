@@ -43,24 +43,27 @@ const ModelSelectorDialog: React.FC<ModelSelectorDialogProps> = ({
     
     const handleSubmit = async () => {
         if (!chatModel || !embeddingModel) return;
-        dispatch(createChatroomThunk({
-            chatroomName: (!chatroomName ? undefined : chatroomName), 
-            chatModel: chatModel.model, embeddingModel: embeddingModel.model, 
-            embeddingProvider: embeddingModel.provider, 
-            chatProvider: chatModel.provider
-        }))
-        .unwrap() // handle success or failure
-        .then(() => {
-            onSuccess?.(); // trigger toast
-            onClose();
-        })
-        .catch(() => {
-            onError?.(); // trigger error toast
-        })
-        .finally(() => {
-            setLoading(false);
-        });
-    };
+        setLoading(true);
+      
+        const action = await dispatch(
+          createChatroomThunk({
+            chatroomName: (!chatroomName ? undefined : chatroomName),
+            chatModel: chatModel.model,
+            embeddingModel: embeddingModel.model,
+            embeddingProvider: embeddingModel.provider,
+            chatProvider: chatModel.provider,
+          })
+        );
+      
+        if (createChatroomThunk.rejected.match(action)) {
+          onError?.(); 
+        } else {
+          onSuccess?.(); 
+          onClose();
+        }
+      
+        setLoading(false);
+      };
 
     useEffect(() => {
         const fetchModels = async () => {
