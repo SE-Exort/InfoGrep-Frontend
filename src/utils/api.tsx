@@ -323,7 +323,8 @@ export const uploadFile = async (
 export const parseFile = async (
   chatroomUUID: string,
   session: string,
-  fileUUID: string
+  fileUUID: string,
+  fileType: string
 ): Promise<void> => {
   try {
     await fetch(
@@ -332,7 +333,7 @@ export const parseFile = async (
         chatroom_uuid: chatroomUUID,
         cookie: session,
         file_uuid: fileUUID,
-        filetype: "PDF",
+        filetype: fileType,
       }),
       { method: "POST" }
     );
