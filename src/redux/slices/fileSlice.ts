@@ -55,14 +55,13 @@ export const uploadFileThunk = createAsyncThunk(
       return rejectWithValue("No session or chatroom found");
 
     try {
+      const fileParts = file.name.split(".");
       dispatch(setFileUploading(true));
       const uuid = await uploadFile(currentChatroom, session, file);
-      dispatch(parseFileThunk({fileUUID: uuid, fileType: file.name.split(".")?.[1]?.toUpperCase() ?? "TXT"}))
+      await dispatch(parseFileThunk({fileUUID: uuid, fileType: fileParts[fileParts.length-1]?.toUpperCase() ?? "TXT"}))
       dispatch(fetchFilesThunk()); // Refresh file list after upload
     } catch (error) {
       return rejectWithValue("Failed to upload file");
-    } finally {
-      dispatch(setFileUploading(false));
     }
   }
 );
@@ -125,7 +124,7 @@ export const fetchFileDownloadThunk = createAsyncThunk(
 
 export const parseFileThunk = createAsyncThunk(
   "files/startParsing",
-  async ({ fileUUID, fileType }: { fileUUID: string; fileType: string }, { getState, rejectWithValue }) => {
+  async ({ fileUUID, fileType }: { fileUUID: string; fileType: string }, { getState, dispatch, rejectWithValue }) => {
     const state = getState() as RootState;
     const session = state.auth.session;
     const currentChatroom = state.chatroom.currentChatroomID;
@@ -135,6 +134,7 @@ export const parseFileThunk = createAsyncThunk(
 
     try {
       await parseFile(currentChatroom, session, fileUUID, fileType);
+      dispatch(setFileUploading(false));
     } catch (error) {
       return rejectWithValue("Failed to start file parsing");
     }

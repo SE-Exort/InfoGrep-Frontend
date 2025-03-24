@@ -49,7 +49,7 @@ const ChatroomFiles = ({ showToast }: { showToast: (msg: string, severity: 'succ
         <Box display="flex" flexDirection="column" gap={2}>
             <Typography>Files</Typography>
             <List sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', bgcolor: 'background.paper' }}>
-                {!files.length && <Typography color="primary.main" >No files available</Typography>}
+                {!files.length && !isUploading && <Typography color="primary.main" >No files available</Typography>}
                 {files.length > 0 && files.map((file, i) => (
                     <>
                         {i !== 0 && <Divider />}
