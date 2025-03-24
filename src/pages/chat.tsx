@@ -72,6 +72,10 @@ const Chat = () => {
     }
   }, [currentChatroomID, dispatch]);
 
+  useEffect(() => {
+    document.body.classList.toggle("dark", darkMode);
+  }, [darkMode]);
+
   const msgComponents = messages.map((msg, index) => (
     <Message style={{ fontSize: fontSize }}
       model={{
@@ -151,7 +155,15 @@ const Chat = () => {
         <ChatroomsList />
       </Box>
 
-      <Divider orientation='vertical' />
+      <Divider
+        orientation="vertical"
+        flexItem
+        sx={{
+          width: '1px',
+          backgroundColor: (theme) =>
+            theme.palette.mode === 'dark' ? '#2e2e2e' : theme.palette.divider,
+        }}
+      />
 
       {
         currentChatroomID && <Box display="flex" height="100vh" flexDirection="column" flexGrow={1} bgcolor="background.default" >
