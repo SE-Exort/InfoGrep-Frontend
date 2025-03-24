@@ -316,7 +316,7 @@ export const uploadFile = async (
     return (await response.text()).replaceAll('"', "");
   } catch (error) {
     console.error("Error uploading file:", error);
-    return "";
+    throw error;
   }
 };
 
@@ -379,6 +379,7 @@ export const deleteFile = async (
     );
   } catch (error) {
     console.error("Error deleting file:", error);
+    throw error;
   }
 };
 
@@ -532,6 +533,7 @@ export const deleteChatroom = async (
     console.log("Chatroom delete successful:", data);
   } catch (error) {
     console.error("Chatroom deletion error:", error);
+    throw error
   }
 };
 

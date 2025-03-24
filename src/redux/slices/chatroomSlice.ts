@@ -65,7 +65,13 @@ export const createChatroomThunk = createAsyncThunk(
     if (!session) return rejectWithValue("No session found");
 
     try {
-      await createChatroom(session, chatroomName, chatModel, chatProvider, embeddingModel, embeddingProvider);
+      const id = await createChatroom(session, chatroomName, chatModel, chatProvider, embeddingModel, embeddingProvider);
+
+      if (id === null) {
+        // If createChatroom returned null, treat it as failure
+        return rejectWithValue("Failed to create chatroom (no ID returned)");
+      }
+
       dispatch(fetchChatroomsThunk()); // Refresh chatrooms after creation
     } catch (error) {
       return rejectWithValue("Failed to create chatroom");
