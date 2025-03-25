@@ -9,6 +9,7 @@ import {
   removeEmbedding,
 } from "../../utils/api";
 import { RootState } from "../store";
+import { logout } from "./authSlice";
 
 interface FileState {
   files: BackendFile[]; // Current chatroom files
@@ -58,7 +59,7 @@ export const uploadFileThunk = createAsyncThunk(
       const fileParts = file.name.split(".");
       dispatch(setFileUploading(true));
       const uuid = await uploadFile(currentChatroom, session, file);
-      await dispatch(parseFileThunk({fileUUID: uuid, fileType: fileParts[fileParts.length-1]?.toUpperCase() ?? "TXT"})).unwrap();
+      await dispatch(parseFileThunk({ fileUUID: uuid, fileType: fileParts[fileParts.length - 1]?.toUpperCase() ?? "TXT" })).unwrap();
       dispatch(fetchFilesThunk()); // Refresh file list after upload
     } catch (error) {
       return rejectWithValue("Failed to upload file");
@@ -174,7 +175,14 @@ const fileSlice = createSlice({
       })
       .addCase(parseFileThunk.rejected, (state, action) => {
         state.error = action.payload as string;
-      });
+      })
+      .addCase(logout, (state) => {
+        state.files = [];
+        state.isUploading = false;
+        state.loading = false;
+        state.error = null;
+        state.fileListShowing = false;
+      })
   },
 });
 

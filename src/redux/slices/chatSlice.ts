@@ -7,6 +7,7 @@ import {
   sendMessage,
 } from "../../utils/api";
 import { RootState } from "../store";
+import { logout } from "./authSlice";
 
 interface Integration {
   id: string;
@@ -201,7 +202,17 @@ const chatSlice = createSlice({
       })
       .addCase(sendMessageThunk.rejected, (state, action) => {
         state.error = action.payload as string;
-      });
+      })
+      .addCase(logout, (state) => {
+        state.messages = [];
+        state.integrations = [];
+        state.embedding_provider = '';
+        state.embedding_model = '';
+        state.chat_provider = '';
+        state.chat_model = '';
+        state.loading = false;
+        state.error = null;
+      })
   },
 });
 

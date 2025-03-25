@@ -106,11 +106,13 @@ const authSlice = createSlice({
     },
     // Reducer to handle logout
     logout: (state) => {
+      Cookies.remove("session");
       state.session = "";
       state.username = "";
       state.uuid = "";
       state.authError = null;
-      Cookies.remove("session");
+      state.isAdmin = false;
+      state.sessions = [];
     },
   },
   // Reducers to handle AsyncThunk

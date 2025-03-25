@@ -7,6 +7,7 @@ import {
   renameChatroom,
 } from "../../utils/api";
 import { RootState } from "../store";
+import { logout } from "./authSlice";
 
 interface ChatroomState {
   chatroomMap: Map<string, ChatroomListItem>;
@@ -128,7 +129,13 @@ const chatroomSlice = createSlice({
       })
       .addCase(deleteChatroomThunk.fulfilled, (state, action) => {
         state.currentChatroomID = '';
-      });
+      })
+      .addCase(logout, (state) => {
+        state.chatroomMap = new Map<string, ChatroomListItem>();
+        state.currentChatroomID = "";
+        state.loading = false;
+        state.error = null;
+      })
   },
 });
 
