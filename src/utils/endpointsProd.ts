@@ -1,5 +1,5 @@
 const PROTOCOL = "http://";
-const HOST = "api.infogrep.ca";
+const HOST = process.env.REACT_APP_INFOGREP_URL || "api.infogrep.ca";
 
 // Base URLs for each service
 export const AI_API_BASE_URL = `${PROTOCOL}${HOST}/ai/api`;
